@@ -197,7 +197,7 @@ protected:
 	void _DeleteLeaf() {
 		pNode f = this->father;
 		if (f != nullptr) {
-			f->child[GetIdx()] = nullptr;
+			f->child[get_idx()] = nullptr;
 		}
 		delete cell;
 		if (data != nullptr) {
@@ -226,20 +226,20 @@ public:
 	/*
 	 * type
 	 */
-	inline int GetType() const {
+	inline int get_type() const {
 		return _node_type;
 	}
-	inline void SetType(int type) {
+	inline void set_type(int type) {
 		_node_type = type;
 	}
 
-	inline st GetLevel() const {
+	inline st get_level() const {
 		return _level;
 	}
-	inline st GetIdx() const {
+	inline st get_idx() const {
 		return (_path >> int(pow(Dim, _level))) & (NumVertexes - 1);
 	}
-	inline st GetPath() const {
+	inline st get_path() const {
 		return _path;
 	}
 	inline st GetRootIdx() const {
@@ -319,23 +319,24 @@ public:
 	inline bool IsAdjacent(const Direction& d) const {
 		// Direction on x y or z
 		st hi = d >> 3;
-		return ((hi & GetIdx()) ^ (hi & d)) == 0;
+		return ((hi & get_idx()) ^ (hi & d)) == 0;
 	}
-	inline st Reflect(const Direction& d) const {
+	inline st reflect(const Direction& d) const {
 		// Direction on x y or z
-		return GetIdx() ^ (d >> 3);
+		return get_idx() ^ (d >> 3);
 	}
-	inline bool HasDiagonalSibling(const Direction& d) const {
-		return (GetIdx() ^ (d >> 3)) == (d & 7);
+	inline bool has_diagonal_sibling(const Direction& d) const {
+		return (get_idx() ^ (d >> 3)) == (d & 7);
 	}
-	inline bool IsOutCorner(const Direction& d) const {
-		return GetIdx() == (d & 7);
+	inline bool is_out_corner(const Direction& d) const {
+		return get_idx() == (d & 7);
 	}
-	inline st OutCommonDirection(const Direction& d) const {
+	inline st out_common_direction(const Direction& d) const {
+
 		// return direction on x y or z
 		st hi = d >> 3;
 		st low = d & 7;
-		return (((low ^ GetIdx()) ^ hi) << 3) + low;
+		return (((low ^ get_idx()) ^ hi) << 3) + low;
 	}
 
 };

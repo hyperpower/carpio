@@ -1,15 +1,14 @@
 #ifndef GRID_H_
 #define GRID_H_
 
-#include "../TypeDef.h"
-#include "grid_def.h"
-#include "node.h"
-#include "cell.h"
+#include "domain_define.hpp"
+#include "node.hpp"
+#include "cell.hpp"
 
-#include "../Algebra/Space.h"
+#include "../algebra/space.hpp"
 
-namespace Larus {
-namespace Grid {
+namespace carpio {
+
 template<typename COO_VALUE, typename VALUE, int DIM>
 class Grid {
 public:
@@ -52,7 +51,7 @@ public:
 					// new
 					nodes.at_1d(i_1d) =  //
 							new node(
-							NULL_PTR, // father
+							nullptr, // father
 									0, // type
 									0, //level
 									i_1d, //root idx
@@ -68,7 +67,7 @@ public:
 protected:
 	void _delete() {
 		for (int i = 0; i < nodes.size(); i++) {
-			if (nodes.at_1d(i) != NULL_PTR) {
+			if (nodes.at_1d(i) != nullptr) {
 				delete nodes.at_1d(i);
 			}
 		}
@@ -104,6 +103,6 @@ public:
 	}
 
 };
-}
+
 }
 #endif

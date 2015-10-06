@@ -1,11 +1,12 @@
 #ifndef IOGRID_H_
 #define IOGRID_H_
 
-#include "../TypeDef.h"
-#include "grid_def.h"
-#include "node.h"
-#include "cell.h"
-#include "boundary.h"
+
+#include "domain_define.hpp"
+#include "node.hpp"
+#include "cell.hpp"
+#include "boundary.hpp"
+#include "grid.hpp"
 
 // vtk include
 #include <vtkSmartPointer.h>
@@ -23,8 +24,8 @@
 #include <vtkDataSetMapper.h>
 //
 
-namespace Larus {
-namespace Grid {
+namespace carpio {
+
 
 struct vtk_RenderingArg {
 	int flag;
@@ -71,7 +72,7 @@ void _vtkUnstructuredGrid_add_node(
 		const Node<COO_VALUE, VALUE, DIM>* pn, //
 		vtkSmartPointer<vtkPoints> points,
 		vtkSmartPointer<vtkUnstructuredGrid> ugrid) {
-	ASSERT(pn!=NULL_PTR);
+	ASSERT(pn!=nullptr);
 	typedef COO_VALUE vt;
 	typedef Node<COO_VALUE, VALUE, DIM> node_t;
 	vtkIdType n = points->GetNumberOfPoints();
@@ -127,7 +128,7 @@ vtkSmartPointer<vtkActor> vtk_new_actor(const Grid<COO_VALUE, VALUE, DIM>& grid)
 	//
 	for (size_t i = 0; i < grid.nodes.size(); ++i) {
 		pnode pn = grid.nodes.at_1d(i);
-		if (pn != NULL_PTR) {
+		if (pn != nullptr) {
 			_vtkUnstructuredGrid_add_node(pn, points, ugrid);
 		}
 	}
@@ -162,7 +163,7 @@ int vtk_show(const Node<COO_VALUE, VALUE, DIM>* pnode) {
 	return vtk_show_actor(&actor, 1);
 }
 
-}
+
 }
 
 #endif

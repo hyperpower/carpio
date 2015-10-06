@@ -10,6 +10,7 @@
 #include <set>
 #include <stack>
 #include <unordered_map>
+#include <assert.h>
 
 
 namespace carpio{

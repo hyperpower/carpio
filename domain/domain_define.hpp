@@ -1,6 +1,8 @@
 #ifndef GRIDDEF_H_
 #define GRIDDEF_H_
 
+#include "../carpio_define.hpp"
+
 namespace carpio {
 
 typedef short code;

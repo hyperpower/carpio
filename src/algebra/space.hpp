@@ -23,9 +23,9 @@ public:
 	static const st Dim = DIM;
 	// type definitions===================
 	typedef T value_t;
-	typedef T* pointer;
 	typedef SpaceT<value_t, Dim>  self;
 	typedef SpaceT<value_t, Dim>* pself;
+	typedef T* pointer;
 	typedef const T* const_pointer;
 	typedef T& reference;
 	typedef const T& const_reference;
@@ -91,8 +91,8 @@ public:
 		}
 	}
 	inline bool check_idx_ijk(size_type i, size_type j, size_type k) const {
-		return check_idx(0, i) && (Dim >= 2) ? check_idx(1, j) :
-				true && (Dim >= 3) ? check_idx(2, k) : true;
+		return check_idx(0, i) && ((Dim >= 2) ? check_idx(1, j) :
+				true) && ((Dim >= 3) ? check_idx(2, k) : true);
 	}
 
 	inline size_type count_equal(const T& nd) const { //overload ==

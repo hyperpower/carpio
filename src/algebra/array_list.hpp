@@ -741,7 +741,7 @@ st ArrayListV<V>::countEq(const V &a) const
 template<typename V>
 void ArrayListV<V>::show() const
 {
-	std::cout << "Size = " << this->m_Len << "\n";
+	std::cout << "size = " << this->m_Len << "\n";
 	for (int i = 0; i < this->m_Len; i++) {
 		std::cout.width(5);
 		std::cout << i <<" ";

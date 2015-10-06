@@ -95,7 +95,7 @@ protected:
 	public:
 		_iterator() :
 				pm(NULL), ptr(nullptr), i(0), j(0) {
-			/* Empty */
+			/* empty */
 		}
 
 		_iterator(_pMatrix pm, _Ptr p, size_type i, size_type j) {
@@ -624,7 +624,7 @@ public:
 	MatrixV();
 	MatrixV(size_type iLen, size_type jLen);
 	MatrixV(size_type iLen, size_type jLen, T **value);
-	//void reconstruct(size_type size_i, size_type jLen);
+	//void reconstruct(size_type size_i, size_type size_j);
 	//~MatrixV();
 	//=============================================
 	MatrixV<T> operator+(const MatrixV<T> &a);

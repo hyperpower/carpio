@@ -31,6 +31,9 @@ public:
 	typedef const T& const_reference;
 	typedef st size_type;
 	typedef st difference_type;
+
+	typedef typename ArrayListT<value_t>::iterator iterator;
+	typedef typename ArrayListT<value_t>::const_iterator const_iterator;
 	//static const int DIM = Dim;
 private:
 	std::array<size_type, Dim> m_len;
@@ -63,6 +66,21 @@ public:
 	}
 	bool empty() const {
 		return m_mp.empty();
+	}
+	/*
+	 *  iterator
+	 */
+	iterator begin(){
+		return m_mp.begin();
+	}
+	const_iterator begin() const{
+		return m_mp.begin();
+	}
+	iterator end(){
+		return m_mp.end();
+	}
+	const_iterator end() const{
+		return m_mp.end();
 	}
 	//Element access===============================
 	size_type to_1d_idx(size_type i, size_type = 0, size_type = 0) const;

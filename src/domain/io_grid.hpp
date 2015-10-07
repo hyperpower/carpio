@@ -58,7 +58,7 @@ namespace carpio {
         return EXIT_SUCCESS;
     }
 
-    int vtk_show_actor(const std::list<vtkSmartPointer<vtkProp> >& list_actor, vtkIdType len) {
+    int vtk_show_actor(const std::list<vtkSmartPointer<vtkProp> >& list_actor) {
         //
         //actor->GetProperty()->SetRepresentationToWireframe();
         // Create a renderer, render window and interactor
@@ -107,9 +107,9 @@ namespace carpio {
         vtkIdType n = points->GetNumberOfPoints();
 
         for (size_t i = 0; i < pn->NumVertexes; ++i) {
-            vt x = pn->cell->Get(vtk_VOXEL[i][0], _X_);
-            vt y = (node_t::Dim >= 2) ? pn->cell->Get(vtk_VOXEL[i][1], _Y_) : 0.0;
-            vt z = (node_t::Dim == 3) ? pn->cell->Get(vtk_VOXEL[i][2], _Z_) : 0.0;
+            vt x = pn->cell->get(vtk_VOXEL[i][0], _X_);
+            vt y = (node_t::Dim >= 2) ? pn->cell->get(vtk_VOXEL[i][1], _Y_) : 0.0;
+            vt z = (node_t::Dim == 3) ? pn->cell->get(vtk_VOXEL[i][2], _Z_) : 0.0;
             points->InsertNextPoint(x, y, z);
         }
 
@@ -164,7 +164,7 @@ namespace carpio {
     }
 
     template<typename COO_VALUE, typename VALUE, int DIM>
-    vtkSmartPointer<vtkActor> vtk_new_actor(const Grid<COO_VALUE, VALUE, DIM> &grid) {
+    vtkSmartPointer<vtkActor> vtk_new_actor_grid_root(const Grid<COO_VALUE, VALUE, DIM> &grid) {
         typedef Node<COO_VALUE, VALUE, DIM> *pnode;
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
         vtkSmartPointer<vtkUnstructuredGrid> ugrid = vtkSmartPointer<
@@ -174,6 +174,42 @@ namespace carpio {
             pnode pn = grid.nodes.at_1d(i);
             if (pn != nullptr) {
                 _vtkUnstructuredGrid_add_node(pn, points, ugrid);
+            }
+        }
+
+        ugrid->SetPoints(points);
+
+        // Create a mapper and actor
+        vtkSmartPointer<vtkDataSetMapper> mapper =
+                vtkSmartPointer<vtkDataSetMapper>::New();
+#if VTK_MAJOR_VERSION <= 5
+        mapper->SetInput(ugrid);
+#else
+        mapper->SetInputData(ugrid);
+#endif
+        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+        actor->SetMapper(mapper);
+        actor->GetProperty()->SetRepresentationToWireframe();
+        return actor;
+    }
+
+    template<typename COO_VALUE, typename VALUE, int DIM>
+    vtkSmartPointer<vtkActor> vtk_new_actor_grid_leaf(const Grid<COO_VALUE, VALUE, DIM> &grid) {
+        typedef Node<COO_VALUE, VALUE, DIM> *pnode;
+        vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+        vtkSmartPointer<vtkUnstructuredGrid> ugrid = vtkSmartPointer<
+                vtkUnstructuredGrid>::New();
+        //
+        for (size_t i = 0; i < grid.nodes.size(); ++i) {
+            pnode pn = grid.nodes.at_1d(i);
+            if (pn != nullptr) {
+                std::function<void(pnode,int)> fun = [&points, &ugrid](pnode p, int dummy){
+                    if(p->is_leaf()){
+                        _vtkUnstructuredGrid_add_node(p, points, ugrid);
+                    }
+                };
+                int dummy = 0;
+                pn->traversal(fun,dummy);
             }
         }
 

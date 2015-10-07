@@ -53,7 +53,7 @@ public:
 	/*
 	 *  get
 	 */
-	inline value_t Get(const Orientation& ori, const Axes& axes) const {
+	inline value_t get(const Orientation& ori, const Axes& axes) const {
 		value_t res = 0.0;
 		if(axes>=Dim){
 			return 0.0;
@@ -78,14 +78,14 @@ public:
 		return res;
 	}
 
-	inline value_t GetD(const Axes& axes) const {
+	inline value_t get_d(const Axes& axes) const {
 		return 2.0 * _hd[axes];
 	}
-	inline value_t GetHD(const Axes& axes) const {
+	inline value_t get_hd(const Axes& axes) const {
 		return _hd[axes];
 	}
 
-	inline value_t Volume() const {
+	inline value_t volume() const {
 		value_t res = 1.0;
 		for (size_t i = 0; i < Dim; ++i) {
 			res *= 2.0 * _hd[i];
@@ -93,7 +93,7 @@ public:
 		return res;
 	}
 
-	void Show(pfunction fun = nullptr, utPointer utp = nullptr) const {
+	void show(pfunction fun = nullptr, utPointer utp = nullptr) const {
 		fun(this, utp);
 	}
 };

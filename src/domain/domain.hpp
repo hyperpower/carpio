@@ -7,6 +7,7 @@
 #include "node.hpp"
 #include "cell.hpp"
 #include "grid.hpp"
+#include "adaptive.hpp"
 
 
 namespace carpio {

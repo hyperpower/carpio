@@ -163,11 +163,28 @@ namespace carpio {
                 return;
             } else {
                 (*pfun)(pn, utp);
-                if (pn->HasChild()) {
+                if (pn->has_child()) {
                     for (int i = 0; i < NumChildren; i++) {
                         pNode c = pn->child[i];
                         if (c != nullptr) {
                             _traversal(c, pfun, utp);
+                        }
+                    }
+                }
+            }
+        }
+
+        template <class Ret, class Args>
+        void _traversal(pNode pn, std::function<Ret(pNode, Args)> fun, Args& args){
+            if (pn == nullptr) {
+                return;
+            } else {
+                fun(pn,args);
+                if (pn->has_child()) {
+                    for (int i = 0; i < NumChildren; i++) {
+                        pNode c = pn->child[i];
+                        if (c != nullptr) {
+                            _traversal(c, fun, args);
                         }
                     }
                 }
@@ -478,6 +495,16 @@ namespace carpio {
                 default:
                     return nullptr;
             }
+        }
+        /*
+         *  Traverse
+         */
+        void traversal(pFun pfun, utPointer utp) {
+            this->_traversal(this, pfun, utp);
+        }
+        template <class Args>
+        void traversal(std::function<void(pNode, Args)> fun, Args& args){
+            this->_traversal(this, fun, args);
         }
 
     };

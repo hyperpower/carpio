@@ -30,6 +30,7 @@ namespace carpio {
         typedef typename SpaceT<pnode, Dim>::reference reference;
         typedef typename SpaceT<pnode, Dim>::const_reference const_reference;
         typedef typename SpaceT<pnode, Dim>::size_type size_type;
+
         typedef void (*pfunction)(pnode, utPointer);
 
         typedef void (*pfunction_conditional)(arrayList &, pnode, utPointer);
@@ -82,11 +83,12 @@ namespace carpio {
             _delete();
         }
 
-        reference operator()(size_type i, size_type j= 0, size_type k= 0){
-            return nodes(i,j,k);
+        reference operator()(size_type i, size_type j = 0, size_type k = 0) {
+            return nodes(i, j, k);
         }
-        const_reference operator()(size_type i, size_type j= 0, size_type k= 0) const{
-            return nodes(i,j,k);
+
+        const_reference operator()(size_type i, size_type j = 0, size_type k = 0) const {
+            return nodes(i, j, k);
         }
 
         /*
@@ -118,6 +120,16 @@ namespace carpio {
 
         size_t size() const {
             return nodes.size();
+        }
+
+        size_t get_num_root() const {
+            size_t num = 0;
+            for (auto iter = nodes.begin(); iter != nodes.end(); ++iter) {
+                if((*iter)!= nullptr){
+                    num++;
+                }
+            }
+            return num;
         }
 
         void connect_root() {

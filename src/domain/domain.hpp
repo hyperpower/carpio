@@ -1,4 +1,3 @@
-
 #ifndef DOMAIN_HPP_
 #define DOMAIN_HPP_
 
@@ -11,6 +10,8 @@
 
 
 namespace carpio {
+
+
 
 
 }

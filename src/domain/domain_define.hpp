@@ -2,6 +2,7 @@
 #define GRIDDEF_H_
 
 #include "../carpio_define.hpp"
+#include "../algebra/arithmetic.hpp"
 
 namespace carpio {
 
@@ -32,34 +33,34 @@ namespace carpio {
         D_PYP_P = 16 + 7, //010 111
 
         //D_Z==================
-                D_ZMM_M = 32 + 0, //100 000
+        D_ZMM_M = 32 + 0, //100 000
         D_ZMP_M = 32 + 1, //100 001
         D_ZPM_M = 32 + 2, //100 010
         D_ZPP_M = 32 + 3, //100 011
         //
-                D_ZMM_P = 32 + 4, //100 100
+        D_ZMM_P = 32 + 4, //100 100
         D_ZMP_P = 32 + 5, //100 101
         D_ZPM_P = 32 + 6, //100 110
         D_ZPP_P = 32 + 7, //100 111
 
         //D_ZX==================
-                D_ZMX_MM = 40 + 0, //101 000
+        D_ZMX_MM = 40 + 0, //101 000
         D_ZMX_MP = 40 + 1, //101 001
         D_ZMX_PM = 40 + 4, //101 100
         D_ZMX_PP = 40 + 5, //101 101
         //
-                D_ZPX_MM = 40 + 2, //101 010
+        D_ZPX_MM = 40 + 2, //101 010
         D_ZPX_MP = 40 + 3, //101 011
         D_ZPX_PM = 40 + 6, //101 110
         D_ZPX_PP = 40 + 7, //101 111
 
         //D_ZY==================
-                D_ZYM_MM = 48 + 0, //110 000
+        D_ZYM_MM = 48 + 0, //110 000
         D_ZYM_MP = 48 + 2, //110 010
         D_ZYM_PM = 48 + 4, //110 100
         D_ZYM_PP = 48 + 6, //110 110
         //
-                D_ZYP_MM = 48 + 1, //110 001
+        D_ZYP_MM = 48 + 1, //110 001
         D_ZYP_MP = 48 + 3, //110 011
         D_ZYP_PM = 48 + 5, //110 101
         D_ZYP_PP = 48 + 7, //110 111
@@ -98,7 +99,39 @@ namespace carpio {
         _Z_ = 2, //
     };
 
+    enum Plane {
+        _XY_ = 24,
+        _YZ_ = 48,
+        _ZX_ = 40,
+    };
+
+
+
     typedef unsigned short Direction;
+
+    inline Direction ToDirection(const Plane& p,
+                                 const Orientation& o1,
+                                 const Orientation& o2){
+        ASSERT(o1!=_C_);
+        ASSERT(o2!=_C_);
+        switch (p){
+            case _XY_:
+                return p + o1 + (o2 << 1);
+            case _YZ_:
+                return p + (o1<<1) + (o2 << 2);
+            case _ZX_:
+                return p + (o1<<2) +  o2;
+            };
+    }
+
+    inline Direction ToDirection(const Orientation& x,
+                                 const Orientation& y,
+                                 const Orientation& z){
+        ASSERT(x!=_C_);
+        ASSERT(y!=_C_);
+        ASSERT(z!=_C_);
+        return 56 + x + (y<<1) + (z<<2);
+    }
 
     inline unsigned short HI(const Direction &d){
         return d >> 3;

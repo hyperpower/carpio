@@ -139,6 +139,32 @@ namespace carpio {
             }
         }
 
+        template<class Ret1, class Ret2, class Args1, class Args2>
+        void _traversal_conditional(pNode pn,
+                                    std::function<Ret1(bool[], pNode, Args1)> fun_con,
+                                    Args1 argsc,
+                                    std::function<Ret2(pNode, Args2)> fun,
+                                    Args2 args) {
+            if (pn == nullptr) {
+                return;
+            } else {
+                fun(pn, args);
+                if (pn->has_child()) {
+                    bool ist[NumChildren];
+                    for (int i = 0; i < NumChildren; i++) {
+                        ist[i] = false;
+                    }
+                    fun_con(ist, pn, argsc);
+                    for (int i = 0; i < NumChildren; i++) {
+                        pNode c = pn->child[i];
+                        if (c != nullptr && ist[i]) {
+                            _traversal_conditional(c, fun_con, argsc, fun, args);
+                        }
+                    }
+                }
+            }
+        }
+
         void _traversal_conditional(pNode pn, pFun_Conditional pfun_con,
                                     pFun pfun, utPointer utp) {
             if (pn == nullptr) {
@@ -174,12 +200,12 @@ namespace carpio {
             }
         }
 
-        template <class Ret, class Args>
-        void _traversal(pNode pn, std::function<Ret(pNode, Args)> fun, Args& args){
+        template<class Ret, class Args>
+        void _traversal(pNode pn, std::function<Ret(pNode, Args)> fun, Args &args) {
             if (pn == nullptr) {
                 return;
             } else {
-                fun(pn,args);
+                fun(pn, args);
                 if (pn->has_child()) {
                     for (int i = 0; i < NumChildren; i++) {
                         pNode c = pn->child[i];
@@ -269,7 +295,8 @@ namespace carpio {
         }
 
         inline st get_idx() const {
-            return (_path >> int(pow(Dim, _level))) & (NumVertexes - 1);
+            //return (_path >> int(pow(Dim, _level))) & (NumVertexes - 1);
+            return _path;
         }
 
         inline st get_path() const {
@@ -345,7 +372,8 @@ namespace carpio {
                     int nt = 1;
                     st l = ltmp;
                     st ridx = _root_idx;
-                    st npath = (i << int((pow(Dim, l)))) + _path;
+                    //st npath = (i << int((pow(Dim, l)))) + _path;
+                    st npath = i;
                     this->child[i] = new Node_( //
                             f, nt, l, ridx, npath, //
                             cx + (is_x_p(i) ? nhdx : -nhdx), nhdx, //
@@ -353,6 +381,25 @@ namespace carpio {
                             cz + (is_z_p(i) ? nhdx : -nhdx), nhdz);
                 }
             }
+        }
+
+        /*
+         *  make sure point is in this node
+         */
+        st which_child(const COO_VALUE &x,
+                       const COO_VALUE &y = 0,
+                       const COO_VALUE &z = 0) {
+            st idx = 0;
+            if (Dim == 3) {
+                idx = IsInRange(this->cell->get(_M_, _Z_), z, this->cell->get(_C_, _Z_), _cc_) ? 0 : 1;
+            }
+            idx = idx << 1;
+            if (Dim >= 2) {
+                idx = idx + (IsInRange(this->cell->get(_M_, _Y_), y, this->cell->get(_C_, _Y_), _cc_) ? 0 : 1);
+            }
+            idx = idx << 1;
+            idx = idx + (IsInRange(this->cell->get(_M_, _X_), x, this->cell->get(_C_, _X_), _cc_) ? 0 : 1);
+            return idx;
         }
 
         /*
@@ -386,25 +433,60 @@ namespace carpio {
             return ((hi & get_idx()) ^ (hi & d)) == 0;
         }
 
+
         inline st reflect(const Direction &d) const {
             // Direction on x y or z
             return get_idx() ^ (d >> 3);
         }
 
         inline bool has_diagonal_sibling(const Direction &d) const {
-            return (get_idx() ^ (d >> 3)) == (d & 7);
+            unsigned short hi = d >> 3;
+            return ((get_idx() ^ hi) & hi) == (LO(d) & hi);
         }
 
         inline bool is_out_corner(const Direction &d) const {
-            return get_idx() == (d & 7);
+            return (get_idx() & HI(d)) == (HI(d) & LO(d));
         }
 
-        inline st out_common_direction(const Direction &d) const {
-
+        inline Direction out_common_direction(const Direction &d) const {
             // return direction on x y or z
-            st hi = d >> 3;
-            st low = d & 7;
-            return (((low ^ get_idx()) ^ hi) << 3) + low;
+            static const unsigned short COMMON_AXES[4][4] = {{0, 2, 1, 0},
+                                                             {2, 0, 0, 1},
+                                                             {1, 0, 0, 2},
+                                                             {0, 1, 2, 0}};
+            std::function<unsigned short(unsigned short)> to2bit = [](unsigned short num) {
+                unsigned short z = (num & 4) >> 2;
+                return ((num & 1) << 1) + z;
+            };
+            std::function<unsigned short(unsigned short)> to3bit = [](unsigned short num) {
+                unsigned short z = (num & 1) << 2;
+                return z + ((num & 2) >> 1);
+            };
+            unsigned short hi = d >> 3;
+            unsigned short lo = LO(d) & hi;
+            unsigned short id = get_idx() & hi;
+            unsigned short com;
+            switch (hi) {
+                case 3: //xy
+                    com = COMMON_AXES[id][lo];
+                    break;
+                case 6: //yz
+                    com = COMMON_AXES[id >> 1][lo >> 1];
+                    com = com << 1;
+                    break;
+                case 5: {//zx
+                    com = COMMON_AXES[to2bit(id)][to2bit(lo)];
+                    com = to3bit(com);
+                    break;
+                }
+                default:
+                    ASSERT(false);
+            }
+            return (com << 3) + (lo & com);
+        }
+
+        inline st diagonal_idx(Direction d) const {
+            return get_idx() ^ HI(d);
         }
 
     protected:
@@ -496,15 +578,131 @@ namespace carpio {
                     return nullptr;
             }
         }
+
+        pNode get_adj_neighbor(const pNode Current, Direction d) {
+            // face direction
+            std::cout << "--------" << std::endl;
+            std::cout << "d n     " << d << std::endl;
+            std::cout << "idx adj " << Current->get_idx() << std::endl;
+            pNode ca = nullptr;        //common ancestor
+            if (Current->father != nullptr
+                && Current->is_adjacent(d)) {
+                ca = get_adj_neighbor(Current->father, d);
+            } else {
+                ca = Current->father;
+            }
+            pNode pt = nullptr;
+            if (ca != nullptr && ca->has_child()) {
+                pt = ca->child[Current->reflect(d)];
+            } else if (ca == nullptr) {
+                pt = Current->get_root_neighbor(d);
+            } else {
+                pt = ca;
+            }
+            return pt;
+        }
+
+
+        pNode get_cor_neighbor(const pNode Current, Direction d) {
+            std::cout << "--------" << std::endl;
+            std::cout << "d n     " << d << std::endl;
+            std::cout << "idx cor " << Current->get_idx() << std::endl;
+            pNode ca = nullptr;    //common ancestor
+            int flag = 0;
+            if (Current->father != nullptr &&
+                !Current->has_diagonal_sibling(d)) {
+                //Find a common ancestor
+                if (Current->is_out_corner(d)) {
+                    std::cout << "cor " << Current->get_idx() << std::endl;
+                    ca = get_cor_neighbor(Current->father, d);
+                } else {
+                    std::cout << "adj " << Current->get_idx() << std::endl;
+                    ca = get_adj_neighbor(Current->father,
+                                          Current->out_common_direction(d));
+                }
+            } else {
+                std::cout << "dia " << Current->get_idx() << std::endl;
+                flag = 1;
+                ca = Current->father;
+            }
+            //Follow opposite path to locate the neighbor
+            pNode pt = nullptr;
+            if (ca != nullptr && ca->has_child()) {
+                pt = ca->child[Current->diagonal_idx(d)];
+            } else if (ca == nullptr && flag == 1) {
+                pt = Current->get_root_neighbor(d);
+            } else {
+                pt = ca;
+            }
+            return pt;
+        }
+
+        pNode get_neighbor_adj_cor(const pNode Current, //
+                                   Direction d) {
+            if (IsFaceDirection(d)) {
+                return get_adj_neighbor(Current, d);
+            }
+            if (IsPlaneDirection(d)) {
+                return get_cor_neighbor(Current, d);
+            }
+            return nullptr;
+        }
+
+
+        pNode get_cor_neighbor_xyz(const pNode Current, Direction d) {
+            std::cout << "xyz " << Current->get_idx() << std::endl;
+            pNode ca = nullptr;    //common ancestor
+            if (Current->father != nullptr &&
+                Current->is_out_corner(d)) {
+                ca = get_cor_neighbor_xyz(Current->father, d);
+            } else {
+                Direction nd = (((~(Current->get_idx() ^ (d & 7))) & 7) << 3) + Current->get_idx();
+                if (nd != d && LO(nd) != (~LO(d))) {
+                    ca = get_neighbor_adj_cor(Current->father, nd);
+                } else {
+                    ca = Current->father;
+                }
+            }
+            pNode pt = nullptr;
+            if (ca != nullptr && ca->has_child()) {
+                pt = ca->child[Current->diagonal_idx(d)];
+            } else if (ca == nullptr) {
+                pt = Current->get_root_neighbor(d);
+            } else {
+                pt = ca;
+            }
+            return pt;
+        }
+
+
+        pNode get_neighbor(const pNode Current, Direction d) {
+            ASSERT(d > 7);
+            Direction nd = d & 62;
+            if ( IsXYZDirection(nd)) {
+                return get_cor_neighbor_xyz(Current, nd);
+            } else {
+                return get_neighbor_adj_cor(Current, nd);
+            }
+        }
+
         /*
          *  Traverse
          */
         void traversal(pFun pfun, utPointer utp) {
             this->_traversal(this, pfun, utp);
         }
-        template <class Args>
-        void traversal(std::function<void(pNode, Args)> fun, Args& args){
+
+        template<class Args>
+        void traversal(std::function<void(pNode, Args)> fun, Args &args) {
             this->_traversal(this, fun, args);
+        }
+
+        template<class Ret1, class Ret2, class Args1, class Args2>
+        void traversal_conditional(std::function<Ret1(bool[], pNode, Args1)> fun_con,
+                                   Args1 argsc,
+                                   std::function<Ret2(pNode, Args2)> fun,
+                                   Args2 args) {
+            this->_traversal_conditional(this, fun_con, argsc, fun, args);
         }
 
     };
@@ -516,6 +714,40 @@ namespace carpio {
     int GetDataIdx(const Node<COO_VALUE, VALUE, DIM> *pn) {
         ASSERT(pn != nullptr);
         return pn->data->get_idx();
+    }
+
+    _TEMPLATE_COOV_V_DIM_
+    Node<COO_VALUE, VALUE, DIM> *
+    GetpNodeAt(Node<COO_VALUE, VALUE, DIM> *pn,
+               const COO_VALUE &x,
+               const COO_VALUE &y = 0,
+               const COO_VALUE &z = 0) {
+        typedef Node<COO_VALUE, VALUE, DIM> *pNode;
+        ASSERT(pn != nullptr);
+        if (!pn->cell->is_in_on(x, y, z)) {
+            return nullptr;
+        }
+        std::function<void(bool[], pNode, Float[])> condition =
+                [](bool arr[], pNode pn, Float point[]) {
+                    st idx = pn->which_child(point[0],
+                                             (pn->Dim >= 2) ? point[1] : 0,
+                                             (pn->Dim == 3) ? point[2] : 0);
+                    arr[idx] = true;
+                };
+        pNode ret = nullptr;
+        std::function<void(pNode, int)> fun =
+                [&ret](pNode pn, int dummy) {
+                    if (pn->is_leaf()) {
+                        ret = pn;
+                    }
+                };
+        Float point[pn->Dim];
+        point[0] = x;
+        if (pn->Dim >= 2) { point[1] = y; }
+        if (pn->Dim == 3) { point[2] = z; }
+        int dummy = 0;
+        pn->traversal_conditional(condition, point, fun, dummy);
+        return ret;
     }
 
 

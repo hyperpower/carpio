@@ -35,6 +35,9 @@ namespace carpio {
 
         typedef void (*pfunction_conditional)(arrayList &, pnode, utPointer);
 
+        typedef typename SpaceT<pnode, Dim>::iterator iterator;
+        typedef typename SpaceT<pnode, Dim>::const_iterator const_iterator;
+
         /*
          *  data
          */
@@ -125,11 +128,30 @@ namespace carpio {
         size_t get_num_root() const {
             size_t num = 0;
             for (auto iter = nodes.begin(); iter != nodes.end(); ++iter) {
-                if((*iter)!= nullptr){
+                if ((*iter) != nullptr) {
                     num++;
                 }
             }
             return num;
+        }
+
+        /*
+         *  iterator
+         */
+        iterator begin() {
+            return nodes.begin();
+        }
+
+        const_iterator begin() const {
+            return nodes.begin();
+        }
+
+        iterator end() {
+            return nodes.end();
+        }
+
+        const_iterator end() const {
+            return nodes.end();
         }
 
         void connect_root() {
@@ -156,6 +178,40 @@ namespace carpio {
         }
 
     };
+
+    /*
+     *  Function out of class
+     */
+
+    template<typename COO_VALUE, typename VALUE, int DIM>
+    Node<COO_VALUE, VALUE, DIM> *
+    GetpNodeAt(Grid<COO_VALUE, VALUE, DIM> *pg,
+               const COO_VALUE &x,
+               const COO_VALUE &y = 0,
+               const COO_VALUE &z = 0) {
+        typedef Node<COO_VALUE, VALUE, DIM> *pnode;
+        for (typename Grid<COO_VALUE, VALUE, DIM>::iterator iter = pg->begin();
+             iter != pg->end(); ++iter) {
+            pnode pn = (*iter);
+            if (pn != nullptr) {
+                if (pn->cell->is_in_on(x, y, z)) {
+                    return GetpNodeAt(pn, x, y, z);
+                }
+            }
+        }
+        return nullptr;
+
+    }
+
+    template<typename COO_VALUE, typename VALUE, int DIM>
+    const Node<COO_VALUE, VALUE, DIM> *
+    GetpNodeAt(const Grid<COO_VALUE, VALUE, DIM> *pg,
+               const COO_VALUE &x,
+               const COO_VALUE &y = 0,
+               const COO_VALUE &z = 0) {
+
+
+    }
 
 }
 #endif

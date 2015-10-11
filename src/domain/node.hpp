@@ -128,7 +128,7 @@ namespace carpio {
             if (Current == nullptr) {
                 return 0;
             }
-            if (!Current->HasChild()) {
+            if (!Current->has_child()) {
                 return 0;
             } else {
                 ArrayListV<st> arrh(NumChildren);
@@ -171,7 +171,7 @@ namespace carpio {
                 return;
             } else {
                 (*pfun)(pn, utp);
-                if (pn->HasChild()) {
+                if (pn->has_child()) {
                     arrayList avt(NumChildren);
                     pfun_con(avt, pn, utp);
                     for (int i = 0; i < NumChildren; i++) {
@@ -448,6 +448,7 @@ namespace carpio {
             return (get_idx() & HI(d)) == (HI(d) & LO(d));
         }
 
+
         inline Direction out_common_direction(const Direction &d) const {
             // return direction on x y or z
             static const unsigned short COMMON_AXES[4][4] = {{0, 2, 1, 0},
@@ -656,11 +657,12 @@ namespace carpio {
                 Current->is_out_corner(d)) {
                 ca = get_cor_neighbor_xyz(Current->father, d);
             } else {
-                Direction nd = (((~(Current->get_idx() ^ (d & 7))) & 7) << 3) + Current->get_idx();
-                if (nd != d && LO(nd) != (~LO(d))) {
-                    ca = get_neighbor_adj_cor(Current->father, nd);
-                } else {
+                Direction idx = Current->get_idx();
+                if (idx==((~LO(d))&7)) {
                     ca = Current->father;
+                } else {
+                    Direction nd = (((~(idx ^ (d & 7))) & 7) << 3) + idx;
+                    ca = get_neighbor_adj_cor(Current->father, nd);
                 }
             }
             pNode pt = nullptr;
@@ -677,7 +679,7 @@ namespace carpio {
 
         pNode get_neighbor(const pNode Current, Direction d) {
             ASSERT(d > 7);
-            Direction nd = d & 62;
+            Direction nd = d & 63;
             if ( IsXYZDirection(nd)) {
                 return get_cor_neighbor_xyz(Current, nd);
             } else {

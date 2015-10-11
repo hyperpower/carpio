@@ -66,7 +66,7 @@ namespace carpio {
         D_ZYP_PP = 48 + 7, //110 111
 
         //D_YX==================
-                D_MYX_MM = 24 + 0, //011 000
+        D_MYX_MM = 24 + 0, //011 000
         D_MYX_MP = 24 + 1, //011 001
         D_MYX_PM = 24 + 2, //011 010
         D_MYX_PP = 24 + 3, //011 011
@@ -77,7 +77,7 @@ namespace carpio {
         D_PYX_PP = 24 + 7, //011 111
 
         //D_ZYX==================
-                D_ZYX_MMM = 56 + 0, //111 000
+        D_ZYX_MMM = 56 + 0, //111 000
         D_ZYX_MMP = 56 + 1, //111 001
         D_ZYX_MPM = 56 + 2, //111 010
         D_ZYX_MPP = 56 + 3, //111 011
@@ -106,38 +106,37 @@ namespace carpio {
     };
 
 
-
     typedef unsigned short Direction;
 
-    inline Direction ToDirection(const Plane& p,
-                                 const Orientation& o1,
-                                 const Orientation& o2){
-        ASSERT(o1!=_C_);
-        ASSERT(o2!=_C_);
-        switch (p){
+    inline Direction ToDirection(const Plane &p,
+                                 const Orientation &o1,
+                                 const Orientation &o2) {
+        ASSERT(o1 != _C_);
+        ASSERT(o2 != _C_);
+        switch (p) {
             case _XY_:
                 return p + o1 + (o2 << 1);
             case _YZ_:
-                return p + (o1<<1) + (o2 << 2);
+                return p + (o1 << 1) + (o2 << 2);
             case _ZX_:
-                return p + (o1<<2) +  o2;
-            };
+                return p + (o1 << 2) + o2;
+        };
     }
 
-    inline Direction ToDirection(const Orientation& x,
-                                 const Orientation& y,
-                                 const Orientation& z){
-        ASSERT(x!=_C_);
-        ASSERT(y!=_C_);
-        ASSERT(z!=_C_);
-        return 56 + x + (y<<1) + (z<<2);
+    inline Direction ToDirection(const Orientation &x,
+                                 const Orientation &y,
+                                 const Orientation &z) {
+        ASSERT(x != _C_);
+        ASSERT(y != _C_);
+        ASSERT(z != _C_);
+        return 56 + x + (y << 1) + (z << 2);
     }
 
-    inline unsigned short HI(const Direction &d){
+    inline unsigned short HI(const Direction &d) {
         return d >> 3;
     }
 
-    inline unsigned short LO(const Direction &d){
+    inline unsigned short LO(const Direction &d) {
         return d & 7;
     }
 
@@ -173,6 +172,47 @@ namespace carpio {
 
     inline bool IsXYZDirection(const Direction &d) {
         return (d >> 3) == 7;
+    }
+
+    inline Direction FaceDirectionInOrder(const size_t i) {
+        ASSERT(i < 6);
+        static const Direction ARR_FD[] = {8, 9, 16, 18, 32, 36};
+        return ARR_FD[i];
+    }
+
+    inline Direction XYDirectionInOrder(const size_t i) {
+        ASSERT(i < 4);
+        return 24 + i;
+    }
+
+    inline Direction YZDirectionInOrder(const size_t i) {
+        ASSERT(i < 4);
+        return 48 + i * 2;
+    }
+
+    inline Direction ZXDirectionInOrder(const size_t i) {
+        ASSERT(i < 4);
+        static const Direction ARR_ZXD[] = {
+                40 + 0, //101 000
+                40 + 1, //101 001
+                40 + 4, //101 100
+                40 + 5, //101 101
+        };
+        return ARR_ZXD[i];
+    }
+
+    inline Direction XYZDirectionInOrder(const size_t i) {
+        ASSERT(i < 8);
+        return 56 + i;
+    }
+
+    inline Direction DirectionInOrder(const size_t i){
+        ASSERT(i < 26);
+        if (i<6) return FaceDirectionInOrder(i);
+        if (i<10) return XYDirectionInOrder(i-6);
+        if (i<14) return YZDirectionInOrder(i-10);
+        if (i<18) return ZXDirectionInOrder(i-14);
+        return XYZDirectionInOrder(i-18);
     }
 
 

@@ -65,6 +65,33 @@ namespace carpio {
         }
         return false;
     }
+    template <class ST>
+    class IdxRange{
+    protected:
+        ArrayListV<ST> _arr;
+    public:
+        typedef typename ArrayListV<ST>::iterator iterator;
+        typedef typename ArrayListV<ST>::const_iterator const_iterator;
+        IdxRange(const ST& down, const ST& up){
+            ASSERT(down<up);
+            _arr.reconstruct(up - down);
+            _arr.assign_forward(down, 1);
+        }
+        //iterater
+        iterator begin(){
+            return _arr.begin();
+        }
+        const_iterator begin() const{
+            return _arr.begin();
+        }
+        iterator end(){
+            return _arr.end();
+        }
+        const_iterator end() const{
+            return _arr.end();
+        }
+
+    };
 
     // round to n digit of a
     // roundto(3.145,1)=3.1    roundto(3.145,2)=3.15
@@ -329,6 +356,8 @@ namespace carpio {
         Float rmin = std::min(r1, r2);
         return rmin + (rmax - rmin) / 100 * rnum1;
     }
+
+
 
 } //namespace Larus
 

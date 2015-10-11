@@ -170,12 +170,13 @@ namespace carpio {
                             yp = nodes.check_idx_ijk(i, j + 1, k) ? nodes(i, j + 1, k) : nullptr;
                             zm = nodes.check_idx_ijk(i, j, k - 1) ? nodes(i, j, k - 1) : nullptr;
                             zp = nodes.check_idx_ijk(i, j, k + 1) ? nodes(i, j, k + 1) : nullptr;
+                            cnode->set_neighbor(xm, xp, ym, yp, zm, zp);
                         }
-                        cnode->set_neighbor(xm, xp, ym, yp, zm, zp);
                     }
                 }
             }
         }
+
 
     };
 

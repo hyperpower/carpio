@@ -17,12 +17,10 @@
 #include <fstream>
 #include <sstream>
 
-namespace LarusTS
-{
+namespace LarusTS {
 
 template<class TYPE, st DIM>
-class Surface
-{
+class Surface {
 public:
 	typedef Surface<TYPE, DIM> self_class;
 	typedef st size_type;
@@ -48,17 +46,15 @@ public:
 	Set<pVer> c_vertex;
 	Set<pEdg> c_edge;
 public:
-	Surface()
-	{
+	Surface() {
 	}
 	Surface(const String& filename);
 
-	~Surface()
-	{
+	~Surface() {
 		clear();
 	}
 
-	void clear(){
+	void clear() {
 		for (auto iter = c_vertex.begin(); iter != c_vertex.end(); ++iter) {
 			delete (*iter);
 		}
@@ -73,27 +69,54 @@ public:
 		faces.clear();
 
 	}
-	size_type size_edge() const
-	{
+	size_type size_edge() const {
 		return c_edge.size();
 	}
-	size_type size_vertex() const
-	{
+	size_type size_vertex() const {
 		return c_vertex.size();
 	}
-	size_type size_face() const
-	{
+	size_type size_face() const {
 		return faces.size();
 	}
-	void transfer(TYPE dx, TYPE dy, TYPE dz = 0){
-		for (auto iter = c_vertex.begin();iter != c_vertex.end(); ++iter) {
+	void transfer(TYPE dx, TYPE dy, TYPE dz = 0) {
+		for (auto iter = c_vertex.begin(); iter != c_vertex.end(); ++iter) {
 			Ver& ver = (*(*iter));
-			ver[0]  = ver[0] + dx;
-			ver[1]  = ver[1] + dy;
-			if(DIM == 3){
-				ver[2]  = ver[2] + dy;
+			ver[0] = ver[0] + dx;
+			ver[1] = ver[1] + dy;
+			if (DIM == 3) {
+				ver[2] = ver[2] + dy;
 			}
 		}
+	}
+	bool is_orientable() {
+		bool res = true;
+		for (pEdg pe : c_edge) {
+			//std::cout<< " edge ======"<<std::endl;
+			pFac f1 = nullptr, f2 = nullptr;
+			int i = 0;
+			for(pFac pf : pe->faces){
+				//pFac pf = dynamic_cast<pFac>(pt);
+				if (pf!=nullptr &&
+						pf->has_parent_surface(this)) {
+					if (f1 == nullptr){
+						f1 = pf;
+					}else if (f2 == nullptr){
+						f2 = pf;
+					}else{
+						res=false;
+					}
+				}
+				i++;
+			}
+			if (f1!=nullptr && f2!=nullptr
+					&& !AreCompatible(f1,f2, pe)){
+				res = false;
+				//std::cout<<"size "<<pe->faces.size()<<endl;
+				//f2->show();
+				//std::cout<<"compatible\n";
+			}
+		}
+		return res;
 	}
 	// connection -------------------------------
 	// check ------------------------------------
@@ -109,8 +132,7 @@ public:
 };
 
 template<class TYPE, st DIM>
-Surface<TYPE, DIM>::Surface(const String& filename)
-{
+Surface<TYPE, DIM>::Surface(const String& filename) {
 	std::ifstream fs;
 	fs.open(filename.c_str(), std::fstream::in); //read
 	if (!fs.is_open()) {
@@ -188,17 +210,15 @@ Surface<TYPE, DIM>::Surface(const String& filename)
 
 }
 template<class TYPE, st DIM>
-void Surface<TYPE, DIM>::show_vertex() const
-{
+void Surface<TYPE, DIM>::show_vertex() const {
 	std::cout << " size vertex = " << c_vertex.size() << "\n";
-for (typename Set<pVer>::const_iterator iter = c_vertex.begin();
+	for (typename Set<pVer>::const_iterator iter = c_vertex.begin();
 			iter != c_vertex.end(); ++iter) {
 		(*iter)->show();
 	}
 }
 template<class TYPE, st DIM>
-void Surface<TYPE, DIM>::show_edge() const
-{
+void Surface<TYPE, DIM>::show_edge() const {
 	std::cout << " size edge = " << c_edge.size() << "\n";
 	for (auto iter = c_edge.begin(); iter != c_edge.end(); ++iter) {
 		(*iter)->show();
@@ -206,8 +226,7 @@ void Surface<TYPE, DIM>::show_edge() const
 }
 
 template<class TYPE, st DIM>
-void Surface<TYPE, DIM>::show_face() const
-{
+void Surface<TYPE, DIM>::show_face() const {
 	std::cout << " size face = " << faces.size() << "\n";
 	for (auto iter = faces.begin(); iter != faces.end(); ++iter) {
 		(*iter)->show();
@@ -215,8 +234,7 @@ void Surface<TYPE, DIM>::show_face() const
 }
 
 template<class TYPE, st DIM>
-void Surface<TYPE, DIM>::output_vtk(const String& fn) const
-{
+void Surface<TYPE, DIM>::output_vtk(const String& fn) const {
 	FILE* fptr = fopen(fn.c_str(), "w"); //write
 	if (fptr == NULL) {
 		std::cerr << "!> Open file error! " << fn << " \n";

@@ -20,7 +20,7 @@
 
 namespace LarusTS {
 template<class TYPE, st DIM>
-void construct_circle( //
+void ConstructCircle( //
 		Surface<TYPE, DIM>& sur,          // the surface
 		uInt n,                           //the number of triangle
 		const TYPE& r) {
@@ -74,6 +74,43 @@ void construct_circle( //
 		sur.c_edge.insert(pe);
 	}
 }
+template<class TYPE, st DIM>
+void ConstructTriangle(
+		Surface<TYPE, DIM>& sur,          // the surface
+		const Point<TYPE, DIM> p1, const Point<TYPE, DIM> p2,
+		const Point<TYPE, DIM> p3) {
+	typedef Point<TYPE, DIM> Poi;
+	typedef Point<TYPE, DIM>* pPoi;
+	typedef Segment<TYPE, DIM> Seg;
+	typedef Segment<TYPE, DIM>* pSeg;
+	typedef Edge<TYPE, DIM> Edg;
+	typedef Edge<TYPE, DIM>* pEdg;
+	typedef Vertex<TYPE, DIM> Ver;
+	typedef Vertex<TYPE, DIM>* pVer;
+	typedef Triangle<TYPE, DIM> Tri;
+	typedef Triangle<TYPE, DIM>* pTri;
+	typedef Face<TYPE, DIM> Fac;
+	typedef Face<TYPE, DIM>* pFac;
+
+	Vertex<TYPE, DIM>* pv1 = new Vertex<TYPE, DIM>(p1.x(), p1.y(), p1.z());
+	Vertex<TYPE, DIM>* pv2 = new Vertex<TYPE, DIM>(p2.x(), p2.y(), p2.z());
+	Vertex<TYPE, DIM>* pv3 = new Vertex<TYPE, DIM>(p3.x(), p3.y(), p3.z());
+
+	pEdg pe1 = new Edg(pv1, pv2);
+	pEdg pe2 = new Edg(pv2, pv3);
+	pEdg pe3 = new Edg(pv3, pv1);
+
+	sur.clear();
+	pFac pfac = new Fac(pe1, pe2, pe3, &sur);
+	sur.faces.insert(pfac);
+	sur.c_vertex.insert(pv1);
+	sur.c_vertex.insert(pv2);
+	sur.c_vertex.insert(pv3);
+	sur.c_edge.insert(pe1);
+	sur.c_edge.insert(pe2);
+	sur.c_edge.insert(pe3);
+}
+
 
 }
 

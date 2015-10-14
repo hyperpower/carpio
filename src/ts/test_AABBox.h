@@ -47,19 +47,20 @@ void test_aabbox1() {
 	//actors.push_back(vtk_new_actor(bbtree.begin()->box));
 	//actors.push_back(vtk_new_actor_axes(0, 0, 0));
 	//vtk_show_actor(actors);
-
+	std::cout<<"is Orientable  "<<Sur.is_orientable()<<endl;
 	Surface<Float, 3> Sur_t("triangle.gts");
-	Sur_t.output_vtk("out_tri.vtk");
+	//Sur_t.output_vtk("out_tri.vtk");
 	auto iter = Sur_t.faces.begin();
 	AABBox<Float, 3> bs((*iter));
-	bs.output_vtk("bs.vtk");
+	//bs.output_vtk("bs.vtk");
 
 	cout << "inter " << do_intersect_box_box(&bbtree, &bs) << endl;
 	List<AABBox<Float, 3>*> lres;
 	do_intersect_box_obj(&bbtree, &bs, lres);
 	std::list<vtkSmartPointer<vtkProp> > actors;
 	actors.push_back(vtk_new_actor(lres));
-	actors.push_back(vtk_new_actor_surface(Sur));
+	actors.push_back(vtk_new_actor(Sur));
+	//actors.push_back(vtk_new_actor_normal(Sur));
 
 	actors.push_back(vtk_new_actor_axes(0, 0, 0));
 	vtk_show_actor(actors);
@@ -68,6 +69,8 @@ void test_aabbox1() {
 	//cout << "end test ===============\n";
 
 }
+
+
 void test_boxtri() {
 	// tri and its box -------------------------
 	Surface<Float, 3> Sur_t("triangle.gts");
@@ -85,12 +88,15 @@ void test_boxtri() {
 }
 
 void test_construct() {
+	std::cout<<"test construct ====="<<endl;
 	Surface<Float, 3> Sur;
 	Float r = 1;
-	uInt n = 100;
-	construct_circle(Sur, n, r);
+	uInt n = 10;
+	ConstructCircle(Sur, n, r);
+
 	std::list<vtkSmartPointer<vtkProp> > actors;
-	actors.push_back(vtk_new_actor_surface(Sur));
+	actors.push_back(vtk_new_actor(Sur));
+	actors.push_back(vtk_new_actor_normal(Sur));
 	actors.push_back(vtk_new_actor_axes(0, 0, 0));
 	vtk_show_actor(actors);
 }

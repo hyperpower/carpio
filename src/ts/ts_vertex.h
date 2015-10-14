@@ -27,12 +27,15 @@ public:
 	typedef st size_type;
 	typedef Segment<TYPE, DIM> Seg;
 	typedef Segment<TYPE, DIM>* pSeg;
+	typedef Edge<TYPE, DIM> Edg;
+	typedef Edge<TYPE, DIM>* pEdg;
 	typedef Vertex<TYPE, DIM> Ver;
 	typedef Vertex<TYPE, DIM>* pVer;
 	typedef List<pSeg> list_pSeg;
+	typedef List<pSeg> list_pEdg;
 	typedef List<pVer> list_pVer;
 public:
-	list_pSeg segments;
+	list_pEdg segments;
 public:
 	Vertex(const base_class& poi) :
 			base_class(poi), segments()

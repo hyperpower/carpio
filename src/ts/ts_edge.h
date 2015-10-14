@@ -10,12 +10,14 @@
 
 #include "ts_define.h"
 #include "ts_point.h"
+#include "ts_face.h"
 #include "ts_vertex.h"
 #include "ts_segment.h"
 
 namespace LarusTS {
 
 template<class TYPE, st DIM> class Triangle;
+template<class TYPE, st DIM> class Face;
 template<class TYPE, st DIM> class Surface;
 
 template<class TYPE, st DIM>
@@ -31,16 +33,19 @@ public:
 	typedef Segment<TYPE, DIM>* pSeg;
 	typedef Vertex<TYPE, DIM> Ver;
 	typedef Vertex<TYPE, DIM>* pVer;
+	typedef Face<TYPE, DIM> Fac;
+	typedef Face<TYPE, DIM>* pFac;
 	typedef Triangle<TYPE, DIM> Tri;
 	typedef Triangle<TYPE, DIM>* pTri;
 	typedef List<pSeg> list_pSeg;
 	typedef List<pVer> list_pVer;
+	typedef List<pFac> list_pFac;
 	typedef List<pTri> list_pTri;
 public:
-	list_pTri triangles;
+	list_pFac faces;
 
 	Edge(pVer a, pVer b) :
-		base_class(a, b) {
+			base_class(a, b, this) {
 	}
 
 	// show =====================================
@@ -49,10 +54,12 @@ public:
 };
 
 template<class TYPE, st DIM>
-void Edge<TYPE, DIM>::show() const{
-	std::cout<<"edg ("<< this->v1->at(0)<<" "<<  this->v1->at(1) << " " << this->v1->at(2)<<")";
-	std::cout<<"->("<< this->v2->at(0)<<" "<<  this->v2->at(1) << " " << this->v2->at(2)<<") ";
-	std::cout<< " -> tri "<<triangles.size()<<"\n";
+void Edge<TYPE, DIM>::show() const {
+	std::cout << "edg (" << this->v1->at(0) << " " << this->v1->at(1) << " "
+			<< this->v1->at(2) << ")";
+	std::cout << "->(" << this->v2->at(0) << " " << this->v2->at(1) << " "
+			<< this->v2->at(2) << ") ";
+	std::cout << " -> tri " << faces.size() << "\n";
 }
 
 }

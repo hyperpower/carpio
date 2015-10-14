@@ -45,8 +45,25 @@ public:
 	list_pSur surfaces;
 public:
 	Face(pEdg a, pEdg b, pEdg c, pSur sur) :
-			base_class(a, b, c) {
+			base_class(a, b, c, this) {
 		surfaces.push_back(sur);
+	}
+
+	/**
+	 * gts_face_has_parent_surface:
+	 * @f: a #GtsFace.
+	 * @s: a #GtsSurface.
+	 *
+	 * Returns: %TRUE if @f belongs to @s, %FALSE otherwise.
+	 */
+	bool has_parent_surface(pSur ps) {
+		_return_val_if_fail(ps != nullptr, false);
+		for (pSur s : this->surfaces) {
+			if (ps == s) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	void show() const {

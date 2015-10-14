@@ -15,21 +15,26 @@
 #include "ts_triangle.h"
 #include "ts_edge.h"
 // vtk include
+#include <vtkVersion.h>
 #include <vtkSmartPointer.h>
 #include <vtkTriangle.h>
 #include <vtkVoxel.h>
 #include <vtkCellArray.h>
+#include <vtkCellData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
 #include <vtkProperty.h>
-#include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkUnstructuredGrid.h>
 #include <vtkDataSetMapper.h>
 #include <vtkTransform.h>
 #include <vtkAxesActor.h>
+#include <vtkLine.h>
+#include <vtkDoubleArray.h>
+#include <vtkPoints.h>
 //
 namespace LarusTS {
 
@@ -247,14 +252,14 @@ static const Location vtk_VOXEL[8][3] = { //
 				{ _P, _P, _P }, //
 		};
 
-template<typename BOX>
+template<typename V, st DIM>
 void _vtkUnstructuredGrid_add_node(
-		const BOX& box, //
+		const AABBox<V, DIM>& box, //
 		vtkSmartPointer<vtkPoints> points,
 		vtkSmartPointer<vtkUnstructuredGrid> ugrid) {
 	//ASSERT(box != nullptr);
-	typedef typename BOX::value_type vt;
-	typedef BOX node_t;
+	typedef typename AABBox<V, DIM>::value_type vt;
+	typedef AABBox<V, DIM> node_t;
 	vtkIdType n = points->GetNumberOfPoints();
 
 	for (size_t i = 0; i < box.NumVertexes; ++i) {
@@ -301,7 +306,60 @@ void _vtkPolyData_add_surface(
 }
 
 template<class TYPE, st DIM>
-vtkSmartPointer<vtkActor> vtk_new_actor_surface(const Surface<TYPE, DIM>& sur) {
+void _vtkPolyData_add_surface_normal(
+		const Surface<TYPE, DIM>& sur, //
+		vtkSmartPointer<vtkPoints> points,
+		vtkSmartPointer<vtkCellArray> cellarray) {
+	//ASSERT(box != nullptr);
+	//typedef typename Surface<TYPE, DIM>::value_type vt;
+
+	vtkIdType num = points->GetNumberOfPoints();
+	for (auto iter = sur.faces.begin(); iter != sur.faces.end(); ++iter) {
+		typename Surface<TYPE, DIM>::pFac pf = (*iter);
+		typename Surface<TYPE, DIM>::Poi n = pf->normal();
+		typename Surface<TYPE, DIM>::Poi c = pf->centroid();
+		points->InsertNextPoint(c.x(), c.y(), c.z());
+		points->InsertNextPoint(c.x() + n.x(), c.y() + n.y(), c.z() + n.z());
+		vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+		//
+		for (vtkIdType i = 0; i < 2; ++i) {
+			line->GetPointIds()->SetId(i, num + i);
+		}
+		cellarray->InsertNextCell(line);
+		num = num + 2;
+	}
+}
+
+template<class TYPE, st DIM>
+vtkSmartPointer<vtkActor> vtk_new_actor_normal(const Surface<TYPE, DIM>& sur) {
+	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+	vtkSmartPointer<vtkCellArray> cellarray =
+			vtkSmartPointer<vtkCellArray>::New();
+	// Add the geometry and topology to the unstructure grid
+	_vtkPolyData_add_surface_normal(sur, points, cellarray);
+	vtkSmartPointer<vtkPolyData> PolyData = vtkSmartPointer<vtkPolyData>::New();
+
+	// Add the geometry and topology to the polydata
+	PolyData->SetPoints(points);
+	PolyData->SetLines(cellarray);
+
+	// Create a mapper and actor
+	vtkSmartPointer<vtkDataSetMapper> mapper =
+			vtkSmartPointer<vtkDataSetMapper>::New();
+#if VTK_MAJOR_VERSION <= 5
+	mapper->SetInput(ugrid);
+#else
+	mapper->SetInputData(PolyData);
+#endif
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+	//actor->GetProperty()->SetLineWidth(4);
+
+	return actor;
+}
+
+template<class TYPE, st DIM>
+vtkSmartPointer<vtkActor> vtk_new_actor(const Surface<TYPE, DIM>& sur) {
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 	vtkSmartPointer<vtkCellArray> cellarray =
 			vtkSmartPointer<vtkCellArray>::New();
@@ -328,8 +386,8 @@ vtkSmartPointer<vtkActor> vtk_new_actor_surface(const Surface<TYPE, DIM>& sur) {
 	return actor;
 }
 
-template<typename BOX>
-vtkSmartPointer<vtkActor> vtk_new_actor(const BOX& box) {
+template<typename V, st DIM>
+vtkSmartPointer<vtkActor> vtk_new_actor(const AABBox<V, DIM>& box) {
 	//ASSERT(box != nullptr);
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 	vtkSmartPointer<vtkUnstructuredGrid> ugrid = vtkSmartPointer<
@@ -367,9 +425,9 @@ vtkSmartPointer<vtkAxesActor> vtk_new_actor_axes(double x, double y, double z) {
 	return axes;
 }
 
-template<typename BOX>
-vtkSmartPointer<vtkActor> vtk_new_actor(const List<BOX*>& lbn) {
-	typedef BOX* pnode;
+template<typename V, st DIM>
+vtkSmartPointer<vtkActor> vtk_new_actor(const List<AABBox<V, DIM>*>& lbn) {
+	typedef AABBox<V, DIM>* pnode;
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 	vtkSmartPointer<vtkUnstructuredGrid> ugrid = vtkSmartPointer<
 			vtkUnstructuredGrid>::New();

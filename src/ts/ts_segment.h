@@ -29,8 +29,11 @@ public:
 	typedef Segment<TYPE, DIM>* pSeg;
 	typedef Vertex<TYPE, DIM> Ver;
 	typedef Vertex<TYPE, DIM>* pVer;
+	typedef Edge<TYPE, DIM> Edg;
+	typedef Edge<TYPE, DIM>* pEdg;
 	typedef List<pSeg> list_pSeg;
 	typedef List<pVer> list_pVer;
+	typedef List<pVer> list_pEdg;
 public:
 	pVer v1;
 	pVer v2;
@@ -39,13 +42,13 @@ public:
 		v1 = nullptr;
 		v2 = nullptr;
 	}
-	Segment(const pVer& a, const pVer& b) {
+	Segment(const pVer& a, const pVer& b, pEdg pe) {
 		assert(a != nullptr);
 		assert(b != nullptr);
 		v1 = a;
 		v2 = b;
-		v1->segments.push_back(this);
-		v2->segments.push_back(this);
+		v1->segments.push_back(pe);
+		v2->segments.push_back(pe);
 	}
 
 };

@@ -135,9 +135,6 @@ public:
 		return (this < &rhs);
 	}
 
-	void reset(OBJ_TYPE t, utPointer bounded,  //
-			Float x1, Float y1, Float z1,  // min
-			Float x2, Float y2, Float z2); // max
 
 	value_type get(Aix aix, Location loc) const {
 		if (aix == _Z && DIM == 2) {
@@ -196,7 +193,9 @@ public:
 		}
 		return true;
 	}
-
+	void reset(OBJ_TYPE t, utPointer bounded,  //
+				Float x1, Float y1, Float z1,  // min
+				Float x2, Float y2, Float z2); // max
 	void reset(OBJ_TYPE t, pTri bounded);
 	void reset(OBJ_TYPE t, pPoi bounded);
 	void reset(OBJ_TYPE t, pSeg bounded);

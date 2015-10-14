@@ -13,8 +13,7 @@
 #include "ts_define.h"
 #include "ts_predicates.h"
 
-namespace LarusTS
-{
+namespace LarusTS {
 
 template<class TYPE, st DIM> class Segment;
 template<class TYPE, st DIM> class Surface;
@@ -23,33 +22,30 @@ template<class TYPE, st DIM> class Vertex;
 template<class TYPE, st DIM> class Triangle;
 
 template<class TYPE, st DIM>
-class Point: public Array<TYPE, DIM>
-{
+class Point: public Array<TYPE, DIM> {
 public:
 	typedef Array<TYPE, DIM> base_class;
 	typedef Point<TYPE, DIM> self_class;
 
-	typedef typename base_class::value_type      value_type;
-	typedef typename base_class::pointer         pointer;
-	typedef typename base_class::const_pointer   const_pointer;
-	typedef typename base_class::reference       reference;
+	typedef typename base_class::value_type value_type;
+	typedef typename base_class::pointer pointer;
+	typedef typename base_class::const_pointer const_pointer;
+	typedef typename base_class::reference reference;
 	typedef typename base_class::const_reference const_reference;
-	typedef typename base_class::iterator        iterator;
-	typedef typename base_class::const_iterator  const_iterator;
-	typedef typename base_class::size_type       size_type;
+	typedef typename base_class::iterator iterator;
+	typedef typename base_class::const_iterator const_iterator;
+	typedef typename base_class::size_type size_type;
 	typedef typename base_class::difference_type difference_type;
 	typedef typename base_class::reverse_iterator reverse_iterator;
 	typedef typename base_class::const_reverse_iterator const_reverse_iterator;
 
 	//constructor
 	Point() :
-			base_class()
-	{
+			base_class() {
 	}
 
 	Point(const TYPE& a, const TYPE& b, const TYPE& c = 0) :
-			base_class()
-	{
+			base_class() {
 		this->at(0) = a;
 		this->at(1) = b;
 		if (DIM == 3) {
@@ -57,8 +53,7 @@ public:
 		}
 	}
 
-	void set(const TYPE& a, const TYPE& b, const TYPE& c = 0)
-	{
+	void set(const TYPE& a, const TYPE& b, const TYPE& c = 0) {
 		this->at(0) = a;
 		this->at(1) = b;
 		if (DIM == 3) {
@@ -66,40 +61,33 @@ public:
 		}
 	}
 
-	const_reference x() const
-	{
+	const_reference x() const {
 		return this->at(0);
 	}
 
-	reference x()
-	{
+	reference x() {
 		return this->at(0);
 	}
 
-	const_reference y() const
-	{
+	const_reference y() const {
 		return this->at(1);
 	}
 
-	reference y()
-	{
+	reference y() {
 		return this->at(1);
 	}
 
-	const_reference z() const
-	{
+	const_reference z() const {
 		assert(DIM == 3);
 		return this->at(2);
 	}
 
-	reference z()
-	{
+	reference z() {
 		assert(DIM == 3);
 		return this->at(2);
 	}
 
-	void reconstruct(const TYPE& a, const TYPE& b, const TYPE& c = 0)
-	{
+	void reconstruct(const TYPE& a, const TYPE& b, const TYPE& c = 0) {
 		this->at(0) = a;
 		this->at(1) = b;
 		if (DIM == 3) {
@@ -107,30 +95,24 @@ public:
 		}
 	}
 
-	bool operator==(const Point<TYPE, DIM> &a) const
-	{
+	bool operator==(const Point<TYPE, DIM> &a) const {
 		if (DIM == 2) {
-			return (this->at(0) == a[0] && this->at(1) == a[1]) ?
-					true : false;
+			return (this->at(0) == a[0] && this->at(1) == a[1]) ? true : false;
 		} else {
 			return (this->at(0) == a[0] && this->at(1) == a[1]
 					&& this->at(2) == a[2]) ? true : false;
 		}
 	}
-	bool operator!=(const Point<TYPE, DIM> &a) const
-	{
+	bool operator!=(const Point<TYPE, DIM> &a) const {
 		if (DIM == 2) {
-			return !(
-					(this->at(0) == a[0] && this->at(1) == a[1]) ?
-							true : false);
+			return !((this->at(0) == a[0] && this->at(1) == a[1]) ? true : false);
 		} else {
 			return !(
 					(this->at(0) == a[0] && this->at(1) == a[1]
 							&& this->at(2) == a[2]) ? true : false);
 		}
 	}
-	void show() const
-	{
+	void show() const {
 		std::cout << std::scientific << "( " << this->at(0) << " , "
 				<< this->at(1);
 		if (DIM == 3) {
@@ -141,8 +123,7 @@ public:
 	}
 
 	template<typename T>
-	void transfer(const T&dx, const T&dy, const T&dz)
-	{
+	void transfer(const T&dx, const T&dy, const T&dz) {
 		this->at(0) = this->at(0) + TYPE(dx);
 		this->at(1) = this->at(1) + TYPE(dy);
 		if (DIM == 3) {
@@ -151,8 +132,7 @@ public:
 	}
 
 	template<typename T>
-	void scale(const T&dx, const T&dy, const T&dz)
-	{
+	void scale(const T&dx, const T&dy, const T&dz) {
 		this->at(0) = this->at(0) * TYPE(dx);
 		this->at(1) = this->at(1) * TYPE(dy);
 		if (DIM == 3) {
@@ -160,8 +140,7 @@ public:
 		}
 	}
 
-	inline size_type size() const
-	{
+	inline size_type size() const {
 		return size_type(DIM);
 	}
 
@@ -169,8 +148,7 @@ public:
 
 //function out of class
 template<class POINT>
-typename POINT::value_type point_distance(const POINT& p1, const POINT& p2)
-{
+typename POINT::value_type point_distance(const POINT& p1, const POINT& p2) {
 	if (POINT::Dim == 2) {
 		return sqrt(
 				(p1[0] - p2[0]) * (p1[0] - p2[0])
@@ -183,8 +161,7 @@ typename POINT::value_type point_distance(const POINT& p1, const POINT& p2)
 	}
 }
 template<class POINT>
-typename POINT::value_type point_distance2(const POINT& p1, const POINT& p2)
-{
+typename POINT::value_type point_distance2(const POINT& p1, const POINT& p2) {
 	if (POINT::Dim == 2) {
 		return (p1[0] - p2[0]) * (p1[0] - p2[0])
 				+ (p1[1] - p2[1]) * (p1[1] - p2[1]);
@@ -195,8 +172,8 @@ typename POINT::value_type point_distance2(const POINT& p1, const POINT& p2)
 	}
 }
 template<class POINT>
-bool point_is_in_on_rectangle(const POINT& p, const POINT& p1, const POINT& p2)
-{
+bool point_is_in_on_rectangle(const POINT& p, const POINT& p1,
+		const POINT& p2) {
 	bool res = true;
 	for (typename POINT::size_type i = 0; i < POINT::Dim; ++i) {
 		res = res && p[i] >= p1[i] && p[i] <= p2[i];
@@ -220,8 +197,7 @@ bool point_is_in_on_rectangle(const POINT& p, const POINT& p1, const POINT& p2)
  * clockwise order and zero if they are colinear.
  */
 template<class POINT>
-Float point_orientation(const POINT& p1, const POINT& p2, const POINT& p3)
-{
+Float point_orientation(const POINT& p1, const POINT& p2, const POINT& p3) {
 	return orient2d((double *) p1.data(), (double *) p2.data(),
 			(double *) p3.data());
 }
@@ -248,8 +224,7 @@ Float point_orientation(const POINT& p1, const POINT& p2, const POINT& p3)
  */
 template<class POINT>
 Float point_orientation_3d(const POINT& p1, const POINT& p2, const POINT& p3,
-		const POINT& p4)
-{
+		const POINT& p4) {
 	assert(POINT::Dim == 3);
 	return orient3d((double *) p1.data(), (double *) p2.data(),
 			(double *) p3.data(), (double *) p4.data());
@@ -268,8 +243,7 @@ Float point_orientation_3d(const POINT& p1, const POINT& p2, const POINT& p3,
  */
 template<class TYPE, st DIM>
 Intersect point_is_in_triangle(const Point<TYPE, DIM>& p,
-		const Triangle<TYPE, DIM>& t)
-{
+		const Triangle<TYPE, DIM>& t) {
 	Vertex<TYPE, DIM> v1, v2, v3;
 	Float d1, d2, d3;
 
@@ -305,8 +279,7 @@ Intersect point_is_in_triangle(const Point<TYPE, DIM>& p,
 template<class TYPE, st DIM>
 Float point_in_triangle_circle(     //
 		const Point<TYPE, DIM>& p,  //
-		const Triangle<TYPE, DIM>& t)
-{
+		const Triangle<TYPE, DIM>& t) {
 	Vertex<TYPE, DIM> v1, v2, v3;
 	triangle_vertices(t, v1, v2, v3);
 	return incircle((double *) v1.data(), (double *) v2.data(),
@@ -331,8 +304,7 @@ template<class TYPE, st DIM>
 Float gts_point_in_circle(const Point<TYPE, DIM>& p,   //
 		const Point<TYPE, DIM>& p1,  //
 		const Point<TYPE, DIM>& p2,  //
-		const Point<TYPE, DIM>& p3)
-{
+		const Point<TYPE, DIM>& p3) {
 	return incircle((double *) p1.data(), (double *) p2.data(),
 			(double *) p3.data(), (double *) p.data());
 }
@@ -342,8 +314,7 @@ Float gts_point_in_sphere(  //
 		const Point<TYPE, DIM>& p1, //
 		const Point<TYPE, DIM>& p2,  //
 		const Point<TYPE, DIM>& p3, //
-		const Point<TYPE, DIM>& p4)
-{
+		const Point<TYPE, DIM>& p4) {
 	return insphere((double *) &p1.data(), (double *) &p2.data(),
 			(double *) &p3.data(), (double *) &p4.data(), (double *) &p.data());
 }
@@ -358,8 +329,7 @@ Float gts_point_in_sphere(  //
 template<class TYPE, st DIM>
 TYPE point_segment_distance2( //
 		const Point<TYPE, DIM>& p, //
-		const Segment<TYPE, DIM>& s)
-{
+		const Segment<TYPE, DIM>& s) {
 	TYPE t, ns2, x, y, z;
 	const Point<TYPE, DIM>* p1, p2;
 
@@ -391,8 +361,7 @@ TYPE point_segment_distance2( //
 template<class TYPE, st DIM>
 Float point_segment_distance( //
 		const Point<TYPE, DIM>& p, //
-		const Segment<TYPE, DIM>& s)
-{
+		const Segment<TYPE, DIM>& s) {
 	return sqrt(point_segment_distance2(p, s));
 }
 
@@ -407,8 +376,7 @@ Float point_segment_distance( //
  */
 template<class TYPE, st DIM>
 void gts_point_segment_closest(const Point<TYPE, DIM>& p,
-		const Segment<TYPE, DIM>& s, Point<TYPE, DIM>& closest)
-{
+		const Segment<TYPE, DIM>& s, Point<TYPE, DIM>& closest) {
 	TYPE t, ns2;
 	Point<TYPE, DIM>* p1, *p2;
 
@@ -458,8 +426,7 @@ int point_orientation_sos( //
 		const Point<TYPE, DIM>& p1, //
 		const Point<TYPE, DIM>& p2,  //
 		const Point<TYPE, DIM>& p3 //
-		)
-{
+		) {
 	Float o;
 
 	o = orient2d((double *) p1.data(), (double *) p2.data(),

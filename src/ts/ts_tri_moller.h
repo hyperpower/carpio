@@ -531,7 +531,8 @@ VALUE ORIENT3D(VALUE *pa, VALUE *pb, VALUE *pc, VALUE *pd)
 	return adx * (bdy * cdz - bdz * cdy) + bdx * (cdy * adz - cdz * ady)
 			+ cdx * (ady * bdz - adz * bdy);
 }
-
+// the method 2 is based on the Devillers O, Guigue P. Faster triangle-triangle intersection tests[J]. 2002.
+//
 //template specialization ---------------------------------
 #include "ts_predicates.h"
 //template <>

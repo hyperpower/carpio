@@ -10,54 +10,54 @@
 namespace carpio {
 
     template<typename COO_VALUE, typename VALUE, int DIM>
-    class Grid {
+    class Grid_ {
     public:
-        static const size_t Dim = DIM;
-        static const size_t NumFaces = DIM + DIM;
-        static const size_t NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
-        static const size_t NumNeighbors = NumFaces;
+        static const st Dim = DIM;
+        static const st NumFaces = DIM + DIM;
+        static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
+        static const st NumNeighbors = NumFaces;
 
         typedef COO_VALUE coo_value_t;
         typedef VALUE value_t;
-        typedef Grid<COO_VALUE, VALUE, DIM> self;
-        typedef Grid<COO_VALUE, VALUE, DIM> *pself;
-        typedef Cell<COO_VALUE, Dim> cell_t;
-        typedef cell_t *pcell;
-        typedef Data<VALUE, Dim> data_t;
-        typedef data_t *pdata;
-        typedef Node<COO_VALUE, VALUE, DIM> node;
-        typedef Node<COO_VALUE, VALUE, DIM> *pnode;
-        typedef typename SpaceT<pnode, Dim>::reference reference;
-        typedef typename SpaceT<pnode, Dim>::const_reference const_reference;
-        typedef typename SpaceT<pnode, Dim>::size_type size_type;
+        typedef Grid_<COO_VALUE, VALUE, DIM> Self;
+        typedef Grid_<COO_VALUE, VALUE, DIM> *pSelf;
+        typedef Cell_<COO_VALUE, Dim> Cell;
+        typedef Cell *pCell;
+        typedef Data_<VALUE, Dim> Data;
+        typedef Data *pData;
+        typedef Node_<COO_VALUE, VALUE, DIM> Node;
+        typedef Node_<COO_VALUE, VALUE, DIM> *pNode;
+        typedef typename SpaceT<pNode, Dim>::reference reference;
+        typedef typename SpaceT<pNode, Dim>::const_reference const_reference;
+        typedef typename SpaceT<pNode, Dim>::size_type size_type;
 
-        typedef void (*pfunction)(pnode, utPointer);
+        typedef void (*pfunction)(pNode, utPointer);
 
-        typedef void (*pfunction_conditional)(arrayList &, pnode, utPointer);
+        typedef void (*pfunction_conditional)(arrayList &, pNode, utPointer);
 
-        typedef typename SpaceT<pnode, Dim>::iterator iterator;
-        typedef typename SpaceT<pnode, Dim>::const_iterator const_iterator;
+        typedef typename SpaceT<pNode, Dim>::iterator iterator;
+        typedef typename SpaceT<pNode, Dim>::const_iterator const_iterator;
 
         /*
          *  data
          */
-        SpaceT<pnode, Dim> nodes;
+        SpaceT<pNode, Dim> nodes;
 
         /*
          *  constructor
          */
 
-        Grid(size_t ni, coo_value_t ox, coo_value_t dx, //
-             size_t nj = 0, coo_value_t oy = 0, coo_value_t dy = 0, //
-             size_t nk = 0, coo_value_t oz = 0, coo_value_t dz = 0) :
+        Grid_(st ni, coo_value_t ox, coo_value_t dx, //
+             st nj = 0, coo_value_t oy = 0, coo_value_t dy = 0, //
+             st nk = 0, coo_value_t oz = 0, coo_value_t dz = 0) :
                 nodes(ni, nj, nk) {
-            size_t i_1d = 0;
-            for (size_t i = 0; i < ni; i++) {
-                for (size_t j = 0; j < ((Dim >= 2) ? nj : 1); j++) {
-                    for (size_t k = 0; k < ((Dim == 3) ? nk : 1); k++) {
+            st i_1d = 0;
+            for (st i = 0; i < ni; i++) {
+                for (st j = 0; j < ((Dim >= 2) ? nj : 1); j++) {
+                    for (st k = 0; k < ((Dim == 3) ? nk : 1); k++) {
                         // new
                         nodes.at_1d(i_1d) =  //
-                                new node(
+                                new Node(
                                         nullptr, // father
                                         0, // type
                                         0, //level
@@ -82,7 +82,7 @@ namespace carpio {
         }
 
     public:
-        ~Grid() {
+        ~Grid_() {
             _delete();
         }
 
@@ -97,15 +97,15 @@ namespace carpio {
         /*
          *  size
          */
-        inline size_t size_i() const {
+        inline st size_i() const {
             return nodes.iLen();
         }
 
-        inline size_t size_j() const {
+        inline st size_j() const {
             return nodes.jLen();
         }
 
-        inline size_t size_k() const {
+        inline st size_k() const {
             return (Dim < 3) ? 0 : nodes.kLen();
         }
 
@@ -117,16 +117,16 @@ namespace carpio {
             }
         }
 
-        size_t get_dim() const {
+        st get_dim() const {
             return Dim;
         }
 
-        size_t size() const {
+        st size() const {
             return nodes.size();
         }
 
-        size_t get_num_root() const {
-            size_t num = 0;
+        st get_num_root() const {
+            st num = 0;
             for (auto iter = nodes.begin(); iter != nodes.end(); ++iter) {
                 if ((*iter) != nullptr) {
                     num++;
@@ -155,13 +155,13 @@ namespace carpio {
         }
 
         void connect_root() {
-            for (size_t i = 0; i < nodes.size_i(); i++) {
-                for (size_t j = 0; j < (Dim >= 2 ? nodes.size_j() : 1); j++) {
-                    for (size_t k = 0; k < (Dim == 3 ? nodes.size_k() : 1); k++) {
-                        pnode xp = nullptr, xm = nullptr, //x
+            for (st i = 0; i < nodes.size_i(); i++) {
+                for (st j = 0; j < (Dim >= 2 ? nodes.size_j() : 1); j++) {
+                    for (st k = 0; k < (Dim == 3 ? nodes.size_k() : 1); k++) {
+                        pNode xp = nullptr, xm = nullptr, //x
                                 yp = nullptr, ym = nullptr, //y
                                 zp = nullptr, zm = nullptr; //z
-                        pnode cnode = nodes(i, j, k);
+                        pNode cnode = nodes(i, j, k);
                         if (cnode != nullptr) {
                             // x m  and  p
                             xm = nodes.check_idx_ijk(i - 1, j, k) ? nodes(i - 1, j, k) : nullptr;
@@ -185,13 +185,13 @@ namespace carpio {
      */
 
     template<typename COO_VALUE, typename VALUE, int DIM>
-    Node<COO_VALUE, VALUE, DIM> *
-    GetpNodeAt(Grid<COO_VALUE, VALUE, DIM> *pg,
+    Node_<COO_VALUE, VALUE, DIM> *
+    GetpNodeAt(Grid_<COO_VALUE, VALUE, DIM> *pg,
                const COO_VALUE &x,
                const COO_VALUE &y = 0,
                const COO_VALUE &z = 0) {
-        typedef Node<COO_VALUE, VALUE, DIM> *pnode;
-        for (typename Grid<COO_VALUE, VALUE, DIM>::iterator iter = pg->begin();
+        typedef Node_<COO_VALUE, VALUE, DIM> *pnode;
+        for (typename Grid_<COO_VALUE, VALUE, DIM>::iterator iter = pg->begin();
              iter != pg->end(); ++iter) {
             pnode pn = (*iter);
             if (pn != nullptr) {
@@ -205,8 +205,8 @@ namespace carpio {
     }
 
     template<typename COO_VALUE, typename VALUE, int DIM>
-    const Node<COO_VALUE, VALUE, DIM> *
-    GetpNodeAt(const Grid<COO_VALUE, VALUE, DIM> *pg,
+    const Node_<COO_VALUE, VALUE, DIM> *
+    GetpNodeAt(const Grid_<COO_VALUE, VALUE, DIM> *pg,
                const COO_VALUE &x,
                const COO_VALUE &y = 0,
                const COO_VALUE &z = 0) {

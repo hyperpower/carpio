@@ -5,6 +5,7 @@
 #include "domain_define.hpp"
 #include "cell.hpp"
 #include "data.hpp"
+#include <functional>
 
 #include <math.h>
 
@@ -51,56 +52,57 @@ namespace carpio {
         _PPP_ = 7,
     };
 
-    inline bool is_x_p(size_t i) {
+    inline bool is_x_p(st i) {
         ASSERT(i >= 0 && i < 8);
         return (i | 6) == 7;
     }
 
-    inline bool is_x_m(size_t i) {
+    inline bool is_x_m(st i) {
         ASSERT(i >= 0 && i < 8);
         return (i | 6) == 6;
     }
 
-    inline bool is_y_p(size_t i) {
+    inline bool is_y_p(st i) {
         ASSERT(i >= 0 && i < 8);
         return (i | 5) == 7;
     }
 
-    inline bool is_y_m(size_t i) {
+    inline bool is_y_m(st i) {
         ASSERT(i >= 0 && i < 8);
         return (i | 5) == 5;
     }
 
-    inline bool is_z_p(size_t i) {
+    inline bool is_z_p(st i) {
         ASSERT(i >= 0 && i < 8);
         return (i | 3) == 7;
     }
 
-    inline bool is_z_m(size_t i) {
+    inline bool is_z_m(st i) {
         ASSERT(i >= 0 && i < 8);
         return (i | 3) == 3;
     }
+
 #define _TEMPLATE_COOV_V_DIM_ template<typename COO_VALUE, typename VALUE, int DIM>
 #define _COOV_V_DIM_ COO_VALUE, VALUE, DIM
 
     _TEMPLATE_COOV_V_DIM_
-    class Node {
+    class Node_ {
     public:
-        static const size_t Dim = DIM;
-        static const size_t NumFaces = DIM + DIM;
-        static const size_t NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
-        static const size_t NumNeighbors = NumFaces;
-        static const size_t NumChildren = NumVertexes;
+        static const st Dim = DIM;
+        static const st NumFaces = DIM + DIM;
+        static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
+        static const st NumNeighbors = NumFaces;
+        static const st NumChildren = NumVertexes;
 
         typedef COO_VALUE coo_value_t;
         typedef VALUE value_t;
-        typedef Node<_COOV_V_DIM_> Self;
-        typedef Node<_COOV_V_DIM_> *pSelf;
-        typedef Cell<COO_VALUE, Dim> Cell_;
-        typedef Cell_ *pCell;
-        typedef Data<VALUE, Dim> Data_;
-        typedef Data_ *pData;
-        typedef Self Node_;
+        typedef Node_<_COOV_V_DIM_> Self;
+        typedef Node_<_COOV_V_DIM_> *pSelf;
+        typedef Cell_<COO_VALUE, Dim> Cell;
+        typedef Cell_<COO_VALUE, Dim> *pCell;
+        typedef Data_<VALUE, Dim> Data;
+        typedef Data *pData;
+        typedef Self Node;
         typedef Self *pNode;
 
         typedef void (*pFun)(pNode, utPointer);
@@ -108,7 +110,6 @@ namespace carpio {
         typedef void (*pFun_Conditional)(arrayList &, pNode, utPointer);
 
     protected:
-        typedef size_t st;
         typedef COO_VALUE cvt;
         typedef VALUE vt;
         //
@@ -221,13 +222,13 @@ namespace carpio {
         /*
          *  constructor
          */
-        Node(pNode f, int nt, st level, st root_idx, st path,    //
+        Node_(pNode f, int nt, st level, st root_idx, st path,    //
              const vt &x, const vt &dhx, //
              const vt &y = 0.0, const vt &dhy = 0.0, //
              const vt &z = 0.0, const vt &dhz = 0.0) {
             _node_type = nt;
             _level = level;
-            cell = new Cell_(x, dhx, y, dhy, z, dhz);
+            cell = new Cell(x, dhx, y, dhy, z, dhz);
             father = f;
             _root_idx = root_idx;
             _path = path;
@@ -275,7 +276,7 @@ namespace carpio {
         }
 
     public:
-        ~Node() {
+        ~Node_() {
             _Delete(this);
         }
 
@@ -713,18 +714,18 @@ namespace carpio {
      *  functions out of class
      */
     _TEMPLATE_COOV_V_DIM_
-    int GetDataIdx(const Node<COO_VALUE, VALUE, DIM> *pn) {
+    int GetDataIdx(const Node_<COO_VALUE, VALUE, DIM> *pn) {
         ASSERT(pn != nullptr);
         return pn->data->get_idx();
     }
 
     _TEMPLATE_COOV_V_DIM_
-    Node<COO_VALUE, VALUE, DIM> *
-    GetpNodeAt(Node<COO_VALUE, VALUE, DIM> *pn,
+    Node_<COO_VALUE, VALUE, DIM> *
+    GetpNodeAt(Node_<COO_VALUE, VALUE, DIM> *pn,
                const COO_VALUE &x,
                const COO_VALUE &y = 0,
                const COO_VALUE &z = 0) {
-        typedef Node<COO_VALUE, VALUE, DIM> *pNode;
+        typedef Node_<COO_VALUE, VALUE, DIM> *pNode;
         ASSERT(pn != nullptr);
         if (!pn->cell->is_in_on(x, y, z)) {
             return nullptr;

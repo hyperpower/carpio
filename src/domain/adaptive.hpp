@@ -10,7 +10,7 @@
 
 namespace carpio {
     template<typename COO_VALUE, typename VALUE, int DIM>
-    void _visit_current_info(Node <COO_VALUE, VALUE, DIM> *pn, utPointer utp) {
+    void _visit_current_info(Node_ <COO_VALUE, VALUE, DIM> *pn, utPointer utp) {
         ArrayListV<size_t> &arr = CAST_REF(ArrayListV<size_t>*, utp);
         size_t &min_l = arr[0];
         size_t &max_l = arr[1];
@@ -36,14 +36,14 @@ namespace carpio {
 
         typedef COO_VALUE coo_value_t;
         typedef VALUE value_t;
-        typedef Grid <COO_VALUE, VALUE, DIM> grid;
-        typedef Grid <COO_VALUE, VALUE, DIM> *pgrid;
-        typedef Cell <COO_VALUE, Dim> cell_t;
+        typedef Grid_ <COO_VALUE, VALUE, DIM> grid;
+        typedef Grid_ <COO_VALUE, VALUE, DIM> *pgrid;
+        typedef Cell_ <COO_VALUE, Dim> cell_t;
         typedef cell_t *pcell;
-        typedef Data <VALUE, Dim> data_t;
+        typedef Data_ <VALUE, Dim> data_t;
         typedef data_t *pdata;
-        typedef Node <COO_VALUE, VALUE, DIM> node;
-        typedef Node <COO_VALUE, VALUE, DIM> *pnode;
+        typedef Node_ <COO_VALUE, VALUE, DIM> node;
+        typedef Node_ <COO_VALUE, VALUE, DIM> *pnode;
         typedef typename SpaceT<pnode, Dim>::reference reference;
         typedef typename SpaceT<pnode, Dim>::const_reference const_reference;
         typedef typename SpaceT<pnode, Dim>::size_type size_type;
@@ -87,7 +87,10 @@ namespace carpio {
         }
 
     public:
-        Adaptive(Grid <COO_VALUE, VALUE, DIM> *pg, size_t minl = 1, size_t maxl = 5) {
+        Adaptive(Grid_ <COO_VALUE, VALUE, DIM> *pg,  //the pointer of grid
+        		size_t minl = 1,  //min level
+        		size_t maxl = 5   //max level
+        		) {
             size_t n_root = pg->get_num_root();
             _min_l = minl;
             _max_l = maxl;

@@ -6,17 +6,17 @@
 
 namespace carpio {
 
-template<typename VALUE, size_t DIM>
-class Data {
+template<typename VALUE, st DIM>
+class Data_ {
 public:
-	static const size_t Dim = DIM;
-	static const size_t NumFaces = DIM + DIM;
-	static const size_t NumVertexes = (DIM == 3) ? 8 : (DIM + DIM); //
+	static const st Dim = DIM;
+	static const st NumFaces = DIM + DIM;
+	static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM); //
 
 	typedef VALUE value_t;
-	typedef Data<VALUE, DIM> self;
+	typedef Data_<VALUE, DIM> Self;
 
-	typedef void (*pfunction)(self*, utPointer);
+	typedef void (*pfunction)(Self*, utPointer);
 
 protected:
 	int _idx;
@@ -25,11 +25,11 @@ protected:
 	ArrayListV<value_t> _vertex[NumVertexes];
 	utPointer untype;
 public:
-	Data() {
+	Data_() {
 		_idx = 0;
 		untype = nullptr;
 	}
-	Data(const size_t& nc, const size_t& nf, const size_t& nv, utPointer utp) :
+	Data_(const st& nc, const st& nf, const st& nv, utPointer utp) :
 			_center(nc) {
 		_idx = 0;
 		for (int i = 0; i < NumFaces; ++i) {
@@ -41,38 +41,38 @@ public:
 		untype = utp;
 	}
 
-	inline value_t& Center(size_t i){
+	inline value_t& center(st i){
 		ASSERT(i<_center.size());
 		return _center[i];
 	}
 
-	inline const value_t& Center(size_t i) const{
+	inline const value_t& center(st i) const{
 		ASSERT(i<_center.size());
 		return _center[i];
 	}
 
-	inline value_t& Face(Direction d, size_t i){
+	inline value_t& face(Direction d, st i){
 		ASSERT(i < this->NumFaces);
 		return _face[i];
 	}
 
-	inline const value_t& Face(Direction d, size_t i) const{
+	inline const value_t& face(Direction d, st i) const{
 		ASSERT(i < this->NumFaces);
 		return _face[i];
 	}
 
-	inline value_t& Vertex(Direction d, size_t i){
+	inline value_t& vertex(Direction d, st i){
 		ASSERT(i<this->NumVertexes);
 		return _vertex[i];
 	}
 
-	inline const value_t& Vertex(Direction d, size_t i) const{
+	inline const value_t& vertex(Direction d, st i) const{
 		ASSERT(i<this->NumVertexes);
 		return _vertex[i];
 	}
 
 
-	bool Empty() const {
+	bool empty() const {
 		bool res = true;
 		res = res && (_center.size() == 0);
 		for (int i = 0; i < NumFaces; ++i) {
@@ -84,7 +84,7 @@ public:
 		return res;
 	}
 
-	void ShowInfo() const {
+	void show_info() const {
 		std::cout << "center data:" << this->_center.size() << "\n";
 		std::cout << "face data   :" << "\n";
 		for (int i = 0; i < NumFaces; ++i) {

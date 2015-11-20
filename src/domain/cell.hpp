@@ -6,7 +6,7 @@
 namespace carpio {
 
     template<typename VALUE, size_t DIM>
-    class Cell {
+    class Cell_ {
     public:
         static const size_t Dim = DIM;
         static const size_t NumFaces = DIM + DIM;
@@ -14,9 +14,9 @@ namespace carpio {
 
         typedef VALUE value_t;
 
-        typedef Cell<VALUE, DIM> self;
+        typedef Cell_<VALUE, DIM> Self;
 
-        typedef void (*pfunction)(self *, utPointer);
+        typedef void (*pfunction)(Self *, utPointer);
 
     protected:
         value_t _center[Dim];
@@ -25,14 +25,14 @@ namespace carpio {
         /*
          *  constructor
          */
-        Cell() {
+        Cell_() {
             for (size_t i = 0; i < Dim; ++i) {
                 _center[i] = 0.0;
                 _hd[i] = 0.0;
             }
         }
 
-        Cell(const value_t &x, const value_t &dhx, //
+        Cell_(const value_t &x, const value_t &dhx, //
              const value_t &y = 0.0, const value_t &dhy = 0.0, //
              const value_t &z = 0.0, const value_t &dhz = 0.0) {
             for (size_t i = 0; i < Dim; ++i) {

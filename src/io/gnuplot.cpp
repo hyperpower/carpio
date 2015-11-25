@@ -114,7 +114,7 @@ bool Gnuplot::_get_program_path() {
 		std::list<std::string> ls;
 		//split path (one long string) into list ls of strings
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
-		stringtok(ls,path,";");
+		stringtok(ls,idx,";");
 #elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
 		stringtok(ls, path, ":");
 #endif
@@ -241,7 +241,6 @@ Gnuplot& Gnuplot::set_zlabel(const std::string &label ) {
 // set the xrange
 Gnuplot& Gnuplot::set_xrange(const double iFrom, const double iTo) {
 	std::ostringstream cmdstr;
-
 	cmdstr << "set xrange[" << iFrom << ":" << iTo << "]";
 	cmd(cmdstr.str());
 
@@ -250,7 +249,6 @@ Gnuplot& Gnuplot::set_xrange(const double iFrom, const double iTo) {
 
 Gnuplot& Gnuplot::set_xrange_reverse(const double iFrom, const double iTo) {
 	std::ostringstream cmdstr;
-
 	cmdstr << "set xrange[" << iFrom << ":" << iTo << "] reverse";
 	cmd(cmdstr.str());
 
@@ -259,16 +257,13 @@ Gnuplot& Gnuplot::set_xrange_reverse(const double iFrom, const double iTo) {
 
 Gnuplot& Gnuplot::set_yrange(const double iFrom, const double iTo) {
 	std::ostringstream cmdstr;
-
 	cmdstr << "set yrange[" << iFrom << ":" << iTo << "]";
 	cmd(cmdstr.str());
-
 	return *this;
 }
 
 Gnuplot& Gnuplot::set_yrange_reverse(const double iFrom, const double iTo) {
 	std::ostringstream cmdstr;
-
 	cmdstr << "set yrange[" << iFrom << ":" << iTo << "] reverse";
 	cmd(cmdstr.str());
 
@@ -277,7 +272,6 @@ Gnuplot& Gnuplot::set_yrange_reverse(const double iFrom, const double iTo) {
 
 Gnuplot& Gnuplot::set_zrange(const double iFrom, const double iTo) {
 	std::ostringstream cmdstr;
-
 	cmdstr << "set zrange[" << iFrom << ":" << iTo << "]";
 	cmd(cmdstr.str());
 
@@ -286,7 +280,6 @@ Gnuplot& Gnuplot::set_zrange(const double iFrom, const double iTo) {
 
 Gnuplot& Gnuplot::set_zrange_reverse(const double iFrom, const double iTo) {
 	std::ostringstream cmdstr;
-
 	cmdstr << "set zrange[" << iFrom << ":" << iTo << "] reverse";
 	cmd(cmdstr.str());
 
@@ -295,7 +288,6 @@ Gnuplot& Gnuplot::set_zrange_reverse(const double iFrom, const double iTo) {
 
 Gnuplot& Gnuplot::set(const std::string& str) {
 	std::ostringstream cmdstr;
-
 	cmdstr << "set " << str;
 	cmd(cmdstr.str());
 
@@ -305,7 +297,6 @@ Gnuplot& Gnuplot::set(const std::string& str) {
 
 Gnuplot& Gnuplot::set_cbrange(const double iFrom, const double iTo) {
 	std::ostringstream cmdstr;
-
 	cmdstr << "set cbrange[" << iFrom << ":" << iTo << "]";
 	cmd(cmdstr.str());
 

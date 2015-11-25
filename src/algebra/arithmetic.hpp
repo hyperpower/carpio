@@ -18,14 +18,6 @@
 
 namespace carpio {
 
-    Float calDiscreteErrorL2(const arrayList &ao, const arrayList &ap);
-
-    Float calDiscreteErrorL1(const arrayList &ao, const arrayList &ap);
-
-    Float calDiscreteErrorLinf(const arrayList &ao, const arrayList &ap);
-
-    Float cal_weighted_arithmetic_mean(const arrayList &a, const arrayList &w);
-
     inline int StepFun(Float x) {
         return (x <= 0) ? 0 : 1;
     }

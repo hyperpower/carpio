@@ -22,7 +22,7 @@ namespace carpio{
 #define _IF_TRUE_RETRUN(expr)  if(expr){return;};
 #define _IF_FALSE_RETRUN(expr)  if(false==(expr)){return;};
 // value type
-typedef std::size_t st;
+typedef std::size_t st; //size type
 typedef double Float;
 typedef void* utPointer;
 typedef const void* const_utPointer;

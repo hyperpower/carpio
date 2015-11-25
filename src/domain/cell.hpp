@@ -5,37 +5,37 @@
 
 namespace carpio {
 
-    template<typename VALUE, size_t DIM>
+    template<typename VALUE, st DIM>
     class Cell_ {
     public:
-        static const size_t Dim = DIM;
-        static const size_t NumFaces = DIM + DIM;
-        static const size_t NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
+        static const st Dim = DIM;
+        static const st NumFaces = DIM + DIM;
+        static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
 
-        typedef VALUE value_t;
+        typedef VALUE vt;
 
         typedef Cell_<VALUE, DIM> Self;
 
         typedef void (*pfunction)(Self *, utPointer);
 
     protected:
-        value_t _center[Dim];
-        value_t _hd[Dim];
+        vt _center[Dim];
+        vt _hd[Dim];
     public:
         /*
          *  constructor
          */
         Cell_() {
-            for (size_t i = 0; i < Dim; ++i) {
+            for (st i = 0; i < Dim; ++i) {
                 _center[i] = 0.0;
                 _hd[i] = 0.0;
             }
         }
 
-        Cell_(const value_t &x, const value_t &dhx, //
-             const value_t &y = 0.0, const value_t &dhy = 0.0, //
-             const value_t &z = 0.0, const value_t &dhz = 0.0) {
-            for (size_t i = 0; i < Dim; ++i) {
+        Cell_(const vt &x, const vt &dhx, //
+             const vt &y = 0.0, const vt &dhy = 0.0, //
+             const vt &z = 0.0, const vt &dhz = 0.0) {
+            for (st i = 0; i < Dim; ++i) {
                 if (i == 0) {
                     _center[i] = x;
                     ASSERT(dhx > 0.0);
@@ -55,8 +55,8 @@ namespace carpio {
         /*
          *  get
          */
-        inline value_t get(const Orientation &ori, const Axes &axes) const {
-            value_t res = 0.0;
+        inline vt get(const Orientation &ori, const Axes &axes) const {
+            vt res = 0.0;
             if (axes >= Dim) {
                 return 0.0;
             }
@@ -80,25 +80,25 @@ namespace carpio {
             return res;
         }
 
-        inline value_t get_d(const Axes &axes) const {
+        inline vt get_d(const Axes &axes) const {
             return 2.0 * _hd[axes];
         }
 
-        inline value_t get_hd(const Axes &axes) const {
+        inline vt get_hd(const Axes &axes) const {
             return _hd[axes];
         }
 
-        inline value_t volume() const {
-            value_t res = 1.0;
-            for (size_t i = 0; i < Dim; ++i) {
+        inline vt volume() const {
+            vt res = 1.0;
+            for (st i = 0; i < Dim; ++i) {
                 res *= 2.0 * _hd[i];
             }
             return res;
         }
 
-        bool is_in_on(const value_t x,
-                      const value_t y = 0,
-                      const value_t z = 0) const {
+        bool is_in_on(const vt x,
+                      const vt y = 0,
+                      const vt z = 0) const {
             return (IsInRange(this->get(_M_, _X_), x, this->get(_P_, _X_), _cc_)
                     && ((Dim >= 2) ?
                         IsInRange(this->get(_M_, _Y_), y, this->get(_P_, _Y_), _cc_) : true)

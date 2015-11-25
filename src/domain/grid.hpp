@@ -17,8 +17,8 @@ namespace carpio {
         static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
         static const st NumNeighbors = NumFaces;
 
-        typedef COO_VALUE coo_value_t;
-        typedef VALUE value_t;
+        typedef COO_VALUE cvt;
+        typedef VALUE vt;
         typedef Grid_<COO_VALUE, VALUE, DIM> Self;
         typedef Grid_<COO_VALUE, VALUE, DIM> *pSelf;
         typedef Cell_<COO_VALUE, Dim> Cell;
@@ -47,9 +47,9 @@ namespace carpio {
          *  constructor
          */
 
-        Grid_(st ni, coo_value_t ox, coo_value_t dx, //
-             st nj = 0, coo_value_t oy = 0, coo_value_t dy = 0, //
-             st nk = 0, coo_value_t oz = 0, coo_value_t dz = 0) :
+        Grid_(st ni, cvt ox, cvt dx, //
+             st nj = 0, cvt oy = 0, cvt dy = 0, //
+             st nk = 0, cvt oz = 0, cvt dz = 0) :
                 nodes(ni, nj, nk) {
             st i_1d = 0;
             for (st i = 0; i < ni; i++) {

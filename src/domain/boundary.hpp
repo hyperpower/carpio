@@ -12,9 +12,9 @@ struct GhostID {
 	typedef int (*pFun_set_bc)(Node_<COO_VALUE, VALUE, DIM>*,
 				GhostID<COO_VALUE, VALUE, DIM>&, utPointer);
 
-	st root_idx;  //the global idx of the origin node
-	st path;
-	st step;   //the steps of ghost node, we can choose multiple ghost node,
+	st root_idx;   //the global idx of the origin node
+	st idx;
+	st step;       //the steps of ghost node, we can choose multiple ghost Node,
 				   // usually step = 0
 	Direction direction; //The direction only on x, y or z
 
@@ -30,8 +30,8 @@ struct GhostID_compare {
 		if (lhs.root_idx < rhs.root_idx) {
 			return true;
 		} else if (lhs.root_idx == rhs.root_idx) {
-			return lhs.path < rhs.path;
-		} else if (lhs.path == rhs.path) {
+			return lhs.idx < rhs.idx;
+		} else if (lhs.idx == rhs.idx) {
 			return int(lhs.direction) < int(rhs.direction);
 		} else if (lhs.direction == rhs.direction) {
 			return lhs.step < rhs.step;
@@ -50,8 +50,8 @@ public:
 	static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
 	static const st NumNeighbors = NumFaces;
 
-	typedef COO_VALUE coo_value_t;
-	typedef VALUE value_t;
+	typedef COO_VALUE cvt;
+	typedef VALUE vt;
 	typedef Boundary_<COO_VALUE, VALUE, DIM> Self;
 	typedef const Boundary_<COO_VALUE, VALUE, DIM> const_Self;
 	typedef Boundary_<COO_VALUE, VALUE, DIM>* pSelf;
@@ -64,6 +64,8 @@ public:
 	typedef Node_<COO_VALUE, VALUE, DIM>* pNode;
 	typedef void (*pfunction)(pNode, utPointer);
 	typedef void (*pfunction_conditional)(arrayList&, pNode, utPointer);
+
+
 
 };
 

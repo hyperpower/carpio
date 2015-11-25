@@ -94,8 +94,8 @@ namespace carpio {
         static const st NumNeighbors = NumFaces;
         static const st NumChildren = NumVertexes;
 
-        typedef COO_VALUE coo_value_t;
-        typedef VALUE value_t;
+        typedef COO_VALUE cvt;
+        typedef VALUE vt;
         typedef Node_<_COOV_V_DIM_> Self;
         typedef Node_<_COOV_V_DIM_> *pSelf;
         typedef Cell_<COO_VALUE, Dim> Cell;
@@ -110,13 +110,11 @@ namespace carpio {
         typedef void (*pFun_Conditional)(arrayList &, pNode, utPointer);
 
     protected:
-        typedef COO_VALUE cvt;
-        typedef VALUE vt;
         //
         int _node_type;
         st _level;
         st _root_idx;
-        st _path;
+        st _idx;
     public:
         pNode father;
         pNode child[NumChildren];
@@ -231,7 +229,7 @@ namespace carpio {
             cell = new Cell(x, dhx, y, dhy, z, dhz);
             father = f;
             _root_idx = root_idx;
-            _path = path;
+            _idx = path;
 
             data = nullptr;
             for (int i = 0; i < this->NumChildren; i++) {
@@ -297,11 +295,11 @@ namespace carpio {
 
         inline st get_idx() const {
             //return (_path >> int(pow(Dim, _level))) & (NumVertexes - 1);
-            return _path;
+            return _idx;
         }
 
         inline st get_path() const {
-            return _path;
+            return _idx;
         }
 
         inline st get_root_idx() const {
@@ -583,9 +581,9 @@ namespace carpio {
 
         pNode get_adj_neighbor(const pNode Current, Direction d) {
             // face direction
-            std::cout << "--------" << std::endl;
-            std::cout << "d n     " << d << std::endl;
-            std::cout << "idx adj " << Current->get_idx() << std::endl;
+            std::cout << "--------" << "\n";
+            std::cout << "d n     " << d << "\n";
+            std::cout << "idx adj " << Current->get_idx() << "\n";
             pNode ca = nullptr;        //common ancestor
             if (Current->father != nullptr
                 && Current->is_adjacent(d)) {
@@ -606,24 +604,24 @@ namespace carpio {
 
 
         pNode get_cor_neighbor(const pNode Current, Direction d) {
-            std::cout << "--------" << std::endl;
-            std::cout << "d n     " << d << std::endl;
-            std::cout << "idx cor " << Current->get_idx() << std::endl;
+            std::cout << "--------" << "\n";
+            std::cout << "d n     " << d << "\n";
+            std::cout << "idx cor " << Current->get_idx() << "\n";
             pNode ca = nullptr;    //common ancestor
             int flag = 0;
             if (Current->father != nullptr &&
                 !Current->has_diagonal_sibling(d)) {
                 //Find a common ancestor
                 if (Current->is_out_corner(d)) {
-                    std::cout << "cor " << Current->get_idx() << std::endl;
+                    std::cout << "cor " << Current->get_idx() << "\n";
                     ca = get_cor_neighbor(Current->father, d);
                 } else {
-                    std::cout << "adj " << Current->get_idx() << std::endl;
+                    std::cout << "adj " << Current->get_idx() << "\n";
                     ca = get_adj_neighbor(Current->father,
                                           Current->out_common_direction(d));
                 }
             } else {
-                std::cout << "dia " << Current->get_idx() << std::endl;
+                std::cout << "dia " << Current->get_idx() << "\n";
                 flag = 1;
                 ca = Current->father;
             }
@@ -652,7 +650,7 @@ namespace carpio {
 
 
         pNode get_cor_neighbor_xyz(const pNode Current, Direction d) {
-            std::cout << "xyz " << Current->get_idx() << std::endl;
+            //std::cout << "xyz " << Current->get_idx() << "\n";
             pNode ca = nullptr;    //common ancestor
             if (Current->father != nullptr &&
                 Current->is_out_corner(d)) {

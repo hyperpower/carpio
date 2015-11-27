@@ -25,6 +25,51 @@
 
 namespace carpio {
 
+//
+class Gnuplot_actor {
+protected:
+	std::string _pcmd;  //plot command
+	std::list<std::string> _data;
+public:
+	friend class Gnuplot;
+	/*
+	 *  Constructor
+	 */
+	Gnuplot_actor() :
+			_pcmd(""), _data() {
+	}
+	Gnuplot_actor(const std::string& pcmd, const std::list<std::string>& data) :
+			_pcmd(pcmd), _data(data) {
+	}
+	/*
+	 *  is empty
+	 */
+	bool empty() const {
+		if (_pcmd == "") {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	std::string& command() {
+		return _pcmd;
+	}
+	const std::string& command() const {
+		return _pcmd;
+	}
+	std::list<std::string>& data() {
+		return _data;
+	}
+	const std::list<std::string>& data() const {
+		return _data;
+	}
+
+	void show_command() const {
+		std::cout << "Actor command :" << _pcmd << "\n";
+	}
+
+};
+
 class Gnuplot {
 protected:
 	/*
@@ -179,7 +224,8 @@ public:
 			const std::string &str = "") {  //
 		if (x.size() != y.size()) {
 			std::cerr << " >Warning! The containers' size are not equal. \n";
-			std::cerr << " >Warning! x =" << x.size() << " y =" << y.size << " \n";
+			std::cerr << " >Warning! x =" << x.size() << " y =" << y.size
+					<< " \n";
 		}
 		// inline data
 		std::ostringstream sst;
@@ -211,6 +257,42 @@ public:
 		cmd("e\n");
 		return *this;
 	}
+
+	Gnuplot& plot(const Gnuplot_actor& actor) {
+		if (actor.empty()) {
+			std::cerr << " >Warning! The Gnuplot actor is empty! \n";
+			return *this;
+		}
+		// inline data
+		std::ostringstream sst;
+		//
+		sst << "plot \"-\" " << actor._pcmd;
+		cmd(sst.str());
+		sst.str("");
+		cmd("\n");
+		for (std::list<std::string>::const_iterator iter = actor._data.begin();
+				iter != actor._data.end(); ++iter) {
+			sst << (*iter);
+			cmd(sst.str());
+			sst.str("");
+			cmd("\n");
+		}
+		cmd("e\n");
+		return *this;
+	}
+
+	Gnuplot& output_inline_data(const Gnuplot_actor& actor) {
+		std::ostringstream sst;
+		for (std::list<std::string>::const_iterator iter = actor._data.begin();
+				iter != actor._data.end(); ++iter) {
+			sst << (*iter);
+			cmd(sst.str());
+			sst.str("");
+		}
+		cmd("e\n");
+		return *this;
+	}
+
 }
 ;
 

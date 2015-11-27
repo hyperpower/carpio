@@ -181,7 +181,7 @@ namespace carpio {
     };
 
     /*
-     *  Function out of class
+     *  Function out of class =================================================
      */
 
     template<typename COO_VALUE, typename VALUE, int DIM>

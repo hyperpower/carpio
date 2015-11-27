@@ -110,7 +110,7 @@ namespace carpio {
         return -1;
     }
 
-    Float VolumeOfCircularTruncatedCone(Float R, Float r, Float h){
+    inline Float VolumeOfCircularTruncatedCone(Float R, Float r, Float h){
         return _PI_ * h * (R * R + r * r + R * r) / 3;
     }
 

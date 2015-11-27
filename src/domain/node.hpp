@@ -709,7 +709,7 @@ namespace carpio {
     };
 
     /*
-     *  functions out of class
+     *  functions out of class ================================================
      */
     _TEMPLATE_COOV_V_DIM_
     int GetDataIdx(const Node_<COO_VALUE, VALUE, DIM> *pn) {

@@ -73,6 +73,8 @@ void Gnuplot::_init() {
 		std::cerr << "!> Couldn't open connection to gnuplot! " << " \n";
 	}
 
+	this->_valid = true;
+
 	//set terminal type
 	cmd("set output");
 	cmd(
@@ -198,7 +200,6 @@ Gnuplot& Gnuplot::cmd(const std::string &cmdstr) {
 
 Gnuplot& Gnuplot::set_equal_ratio() {
 	std::ostringstream cmdstr;
-
 	cmdstr << "set size ratio -1";
 	cmd(cmdstr.str());
 

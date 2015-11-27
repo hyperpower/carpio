@@ -32,8 +32,10 @@ typedef const void* const_utPointer;
 template<typename T>
 using Vector = std::vector<T>;
 
-
-
+//return code
+#define _SUCCESS   0
+#define _ERROR     1
+#define _WARNING   2
 
 
 }

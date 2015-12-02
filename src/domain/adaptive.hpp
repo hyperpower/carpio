@@ -71,7 +71,7 @@ namespace carpio {
          */
 
 
-        void _get_current_info() {
+        void _update_current_info() {
             ArrayListV<st> arr_info(4);
             for (int i = 0; i < _grid->size(); i++) {
                 pNode pn = _grid->nodes.at_1d(i);
@@ -96,7 +96,7 @@ namespace carpio {
             _max_l = maxl;
             _grid = pg;
             ASSERT(minl <= maxl);
-            _get_current_info();
+            _update_current_info();
         }
 
         void adapt() {

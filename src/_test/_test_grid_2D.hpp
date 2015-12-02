@@ -16,7 +16,18 @@ inline void test_grid_2d() {
 	Adaptive<Float, Float, 2> adp(&g, 2, 5);
 	adp.adapt();
 
-	GnuplotShow_RootNodes(g);
+	//GnuplotShow_RootNodes(g);
+	// test iterator
+	int i=0;
+	Grid_2D::iterator_leaf iter=g.begin_leaf();
+	for(; iter!=g.end_leaf(); ++iter){
+		i++;
+	}
+	std::cout<< "all     : "<<g(0,0)->count_all()<< std::endl;
+	std::cout<< "leaf    : "<<g(0,0)->count_leaf()<< std::endl;
+	std::cout<< "level 1 : "<<g(0,0)->count_level(1)<< std::endl;
+	std::cout<< "level 2 : "<<g(0,0)->count_level(2)<< std::endl;
+
 
 
 }

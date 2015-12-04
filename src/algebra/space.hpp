@@ -120,7 +120,7 @@ public:
 
 template<typename T, st Dim>
 SpaceT<T, Dim>::SpaceT() {
-	m_len.assign(0);
+	m_len.fill(0);
 }
 template<typename T, st Dim>
 SpaceT<T, Dim>::SpaceT(const SpaceT<T, Dim>& a) {
@@ -144,17 +144,22 @@ SpaceT<T, Dim>::SpaceT(size_type iLen, size_type jLen, size_type kLen) {
 template<typename T, st Dim>
 void SpaceT<T, Dim>::reconstruct(size_type iLen, size_type jLen,
 		size_type kLen) {
+	size_type Len = 0;
 	this->m_len[0] = iLen;
+	if (Dim == 1 ) {
+		Len = iLen;
+	}
 	if (Dim >= 2) {
 		ASSERT(iLen > 0 && jLen > 0);
 		this->m_len[1] = jLen;
-		this->m_mp.reconstruct(iLen * jLen);
+		Len = iLen * jLen;
 	}
 	if (Dim >= 3) {
 		ASSERT(iLen > 0 && jLen > 0 && kLen > 0);
 		this->m_len[2] = kLen;
-		this->m_mp.reconstruct(iLen * jLen * kLen);
+		Len = iLen * jLen * kLen;
 	}
+	this->m_mp.reconstruct(Len);
 }
 template<typename T, st DIM>
 SpaceT<T, DIM>& SpaceT<T, DIM>::operator=(const SpaceT<T, DIM>& a) {

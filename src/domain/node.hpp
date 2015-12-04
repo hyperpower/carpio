@@ -364,7 +364,7 @@ protected:
 			return res;
 		}
 
-		inline bool is_alone() const{
+		inline bool is_alone() const {
 			return this->is_leaf()&&this->is_root();
 		}
 
@@ -381,7 +381,7 @@ protected:
 
 		inline st count_all() const {
 			st res = 0;
-			std::function<void(const_pNode, st)> fun = [&res](const_pNode pn, st res) {
+			std::function<void(const_pNode, st)> fun = [&res](const_pNode pn, st dummy) {
 				res++;
 			};
 			this->traversal(fun, res);
@@ -390,7 +390,7 @@ protected:
 
 		inline st count_leaf() const {
 			st res = 0;
-			std::function<void(const_pNode, st)> fun = [&res](const_pNode pn, st res) {
+			std::function<void(const_pNode, st)> fun = [&res](const_pNode pn, st dummy) {
 				if(pn->is_leaf()) {
 					res++;
 				}
@@ -401,12 +401,12 @@ protected:
 
 		inline st count_level(st le) const {
 			st res = 0;
-			std::function<void(const_pNode, st)> fun = [&res, &le](const_pNode pn, st res) {
+			std::function<void(const_pNode, st)> fun = [&res](const_pNode pn, st le) {
 				if(pn->get_level()==le) {
 					res++;
 				}
 			};
-			this->traversal(fun, res);
+			this->traversal(fun, le);
 			return res;
 		}
 
@@ -737,7 +737,7 @@ protected:
 			}
 		}
 
-		pNode get_neighbor(Direction d){
+		pNode get_neighbor(Direction d) {
 			return get_neighbor(this, d);
 		}
 
@@ -812,6 +812,22 @@ GetpNodeAt(Node_<COO_VALUE, VALUE, DIM> *pn,
 	return ret;
 }
 
+_TEMPLATE_COOV_V_DIM_ const Node_<COO_VALUE, VALUE, DIM> *
+GetpNodeSiblingPlus(const Node_<COO_VALUE, VALUE, DIM> *p) {
+	typedef Node_<COO_VALUE, VALUE, DIM> Node;
+	Node* f = p->father;
+	if (f == nullptr) {
+		return p;
+	}
+	for (int i = p->get_idx() + 1; i < Node::NumChildren; ++i) {
+		Node* c = f->child[i];
+		if (c != nullptr) {
+			return c;
+		}
+	}
+	return GetpNodeSiblingPlus(f);
+}
+
 _TEMPLATE_COOV_V_DIM_ Node_<COO_VALUE, VALUE, DIM> *
 GetpNodeSiblingPlus(Node_<COO_VALUE, VALUE, DIM> *p) {
 	typedef Node_<COO_VALUE, VALUE, DIM> Node;
@@ -844,6 +860,22 @@ GetFirstChild(Node_<COO_VALUE, VALUE, DIM> * p) {
 	return c;
 }
 
+_TEMPLATE_COOV_V_DIM_ const Node_<COO_VALUE, VALUE, DIM> *
+GetFirstChild(const Node_<COO_VALUE, VALUE, DIM> * p) {
+	typedef Node_<COO_VALUE, VALUE, DIM> Node;
+	Node* c = nullptr;
+	if(p==nullptr) {
+		return c;
+	}
+	for (int i = 0; i < Node::NumChildren; ++i) {
+		c = p->child[i];
+		if (c != nullptr) {
+			return c;
+		}
+	}
+	return c;
+}
+
 _TEMPLATE_COOV_V_DIM_ Node_<COO_VALUE, VALUE, DIM> *
 GetFirstLeaf(Node_<COO_VALUE, VALUE, DIM> * p) {
 	typedef Node_<COO_VALUE, VALUE, DIM> Node;
@@ -852,6 +884,22 @@ GetFirstLeaf(Node_<COO_VALUE, VALUE, DIM> * p) {
 		return p;
 	} else {
 		Node* resc = c;
+		while (c != nullptr) {
+			resc = c;
+			c = GetFirstChild(c);
+		}
+		return resc;
+	}
+}
+
+_TEMPLATE_COOV_V_DIM_ const Node_<COO_VALUE, VALUE, DIM> *
+GetFirstLeaf(const Node_<COO_VALUE, VALUE, DIM> * p) {
+	typedef Node_<COO_VALUE, VALUE, DIM> Node;
+	const Node* c = GetFirstChild(p);
+	if (c == nullptr) {
+		return p;
+	} else {
+		const Node* resc = c;
 		while (c != nullptr) {
 			resc = c;
 			c = GetFirstChild(c);

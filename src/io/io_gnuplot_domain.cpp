@@ -55,6 +55,26 @@ int GnuplotActor_RootNodes(Gnuplot_actor& actor, const Grid_2D& g) {
 	return _SUCCESS;
 }
 
+int GnuplotActor_LeafNodes(Gnuplot_actor& actor, const Grid_2D& g) {
+	actor.command() = "using 1:2 title \"\" ";
+	for (Grid_2D::const_iterator_leaf iter = g.begin_leaf();
+			iter != g.end_leaf(); ++iter) {
+		GnuplotActorDataPushBack(actor.data(), *(iter->cell));
+	}
+	return _SUCCESS;
+}
+
+int GnuplotActor_Stencil(Gnuplot_actor& actor, const Stencil_2D1& s) {
+	actor.command() = "using 1:2 title \"\" ";
+	for (st i = 0; i < s.size(); ++i) {
+		Stencil_2D1::const_pNode pn = s.at_1d(i);
+		if (pn != nullptr) {
+			GnuplotActorDataPushBack(actor.data(), *(pn->cell));
+		}
+	}
+	return _SUCCESS;
+}
+
 int GnuplotShow_RootNodes(const Grid_2D& grid) {
 	// creat an actor
 	Gnuplot_actor actor;
@@ -67,6 +87,45 @@ int GnuplotShow_RootNodes(const Grid_2D& grid) {
 	gp.cmd(ss.str() + "\n");
 	ss.str("");
 	gp.output_inline_data(actor);
+
+	return _SUCCESS;
+}
+
+int GnuplotShow_LeafNodes(const Grid_2D& grid) {
+	// creat an actor
+	Gnuplot_actor actor;
+	GnuplotActor_LeafNodes(actor, grid);
+	//
+	Gnuplot gp;
+	gp.set_equal_ratio();
+	std::ostringstream ss;
+	ss << "plot \"-\" " << actor.command() << "with lines lw 1";
+	gp.cmd(ss.str() + "\n");
+	ss.str("");
+	gp.output_inline_data(actor);
+
+	return _SUCCESS;
+}
+
+int GnuplotShow(const std::list<Gnuplot_actor> lga) {
+	//
+	Gnuplot gp;
+	gp.set_equal_ratio();
+	std::ostringstream ss;
+	ss << "plot ";
+	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+			iter != lga.end(); ++iter) {
+		ss << "\"-\" " << iter->command() << "with lines lw 1";
+		if (lga.size() >= 2 && (iter != (--lga.end()))) {
+			ss << ",\\\n";
+		}
+	}
+	gp.cmd(ss.str() + "\n");
+	ss.str("");
+	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+			iter != lga.end(); ++iter) {
+		gp.output_inline_data((*iter));
+	}
 
 	return _SUCCESS;
 }

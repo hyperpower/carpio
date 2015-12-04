@@ -21,6 +21,7 @@ public:
 	typedef VALUE vt;
 	typedef Grid_<COO_VALUE, VALUE, DIM> Self;
 	typedef Grid_<COO_VALUE, VALUE, DIM> *pSelf;
+	typedef const Grid_<COO_VALUE, VALUE, DIM> * const_pSelf;
 	typedef Cell_<COO_VALUE, Dim> Cell;
 	typedef Cell *pCell;
 	typedef Data_<VALUE, Dim> Data;
@@ -267,29 +268,26 @@ protected:
 
 		typedef Grid_<COV, V, D> Grid;
 		typedef Grid_<COV, V, D>* pGrid;
+		typedef const Grid_<COV, V, D>* const_pGrid;
 
 		typedef Node value_type;
 		typedef _Ptr pointer;
 		typedef _Ref reference;
 
-		pGrid _f;
+		const_pGrid _f;
 		st _idx;
-		pNode _ptr;
+		_Ptr _ptr;
 
 		iterator_leaf_() {
 			_ptr = nullptr;
 			_f = nullptr;
 			_idx = 0;
 		}
-		iterator_leaf_(const pGrid _f, st _idx, pNode _ptr) {
-			this->_ptr = _ptr;
-			this->_f = _f;
-			this->_idx = _idx;
+		iterator_leaf_(const_pGrid f, st idx, _Ptr ptr) :
+				_f(f), _idx(idx), _ptr(ptr) {
 		}
-		iterator_leaf_(const iterator& _x) {
-			this->_ptr = _x._ptr;
-			this->_f = _x._f;
-			this->_idx = _x._idx;
+		iterator_leaf_(const iterator& _x) :
+			_f(_x._f), _idx(_x._idx), _ptr(_x._ptr){
 		}
 	protected:
 		pNode _incr_root() {
@@ -309,7 +307,7 @@ protected:
 			if (_ptr == end) {
 				return;  //will not increase
 			}
-			pNode s = GetpNodeSiblingPlus(_ptr);
+			_Ptr s = GetpNodeSiblingPlus(_ptr);
 			if (s->father != nullptr) {
 				_ptr = GetFirstLeaf(s);
 			} else {
@@ -376,9 +374,10 @@ public:
 	}
 	const_iterator_leaf begin_leaf() const {
 		size_type idx = this->get_first_root_pNode_idx1d();
-		pNode pt = this->get_first_root_pNode();
-		pNode pn = GetFirstLeaf(pt);
-		return iterator_leaf(this, idx, pn);
+		const Node* pt = this->get_first_root_pNode();
+		const Node* pn = GetFirstLeaf(pt);
+		const_pSelf pg = this;
+		return const_iterator_leaf(pg, idx, pn);
 	}
 	iterator_leaf last_leaf() {
 		size_type idx = this->get_last_root_pNode_idx1d();
@@ -390,7 +389,7 @@ public:
 		size_type idx = this->get_last_root_pNode_idx1d();
 		pNode pt = this->get_first_root_pNode();
 		pNode pn = GetFirstLeaf(pt);
-		return iterator_leaf(this, idx, pn);
+		return const_iterator_leaf(this, idx, pn);
 	}
 	iterator_leaf end_leaf() {
 		size_type idx = this->get_last_root_pNode_idx1d();
@@ -399,10 +398,9 @@ public:
 	}
 	const_iterator_leaf end_leaf() const {
 		size_type idx = this->get_last_root_pNode_idx1d();
-		pNode pt = this->get_first_root_pNode();
-		return iterator_leaf(this, idx, pt);
+		const pNode pt = this->get_last_root_pNode();
+		return const_iterator_leaf(this, idx, pt);
 	}
-
 
 };
 

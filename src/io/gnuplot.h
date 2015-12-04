@@ -41,6 +41,9 @@ public:
 	Gnuplot_actor(const std::string& pcmd, const std::list<std::string>& data) :
 			_pcmd(pcmd), _data(data) {
 	}
+	Gnuplot_actor(const Gnuplot_actor& ga) :
+			_pcmd(ga._pcmd), _data(ga._data) {
+	}
 	/*
 	 *  is empty
 	 */

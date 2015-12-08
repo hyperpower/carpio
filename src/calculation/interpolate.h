@@ -15,6 +15,7 @@ namespace carpio {
  *  Stencil:  ---X---C---X---->
  */
 int _1Node(Float& res,const st& idx, const Stencil_2D1& stc, Float x, Float y);
+int _1Node(PData_2D& res, const Stencil_2D1& stc);
 
 /*
  *  There are two nodes in the stencil, x is
@@ -25,7 +26,7 @@ int _1Node(Float& res,const st& idx, const Stencil_2D1& stc, Float x, Float y);
  *                ^
  *                x
  */
-int _2NodeOnAxes(Float& res, Stencil_2D1& stc, Float x);
+int _2NodeOnAxes(PData_2D& res, const Stencil_2D1& stc);
 
 /*
  *  There are two nodes in the stencil, x is

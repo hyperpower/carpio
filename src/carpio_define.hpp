@@ -17,6 +17,7 @@ namespace carpio{
 
 #define ASSERT(expr) assert(expr)
 #define ASSERT_MSG(expr, msg) assert((expr)&&(msg))
+#define SHOULD_NOT_REACH assert((false)&&(" >! Should not reach"))
 #define CAST(type, p)          ((type)p)
 #define CAST_REF(type, p)      (*((type)p))
 #define _IF_TRUE_RETRUN(expr)  if(expr){return;};

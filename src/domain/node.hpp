@@ -82,6 +82,11 @@ inline bool is_z_m(st i) {
 	return (i | 3) == 3;
 }
 
+static const int _E_ = 1;
+static const int _F_C_ = 2;
+static const int _C_F_ = 3;
+
+
 #define _TEMPLATE_COOV_V_DIM_ template<typename COO_VALUE, typename VALUE, int DIM>
 #define _COOV_V_DIM_ COO_VALUE, VALUE, DIM
 
@@ -773,7 +778,7 @@ protected:
 		 */
 		bool is_in_on(const vt x,
 				const vt y = 0,
-				const vt z = 0) const{
+				const vt z = 0) const {
 			bool res = this->cell->is_in_on(x,y,z);
 			if(this->is_leaf()||res == false) {
 				return res;
@@ -788,13 +793,18 @@ protected:
 			this->_traversal(this, fun, dummy);
 			return res;
 		}
+		cvt cp(Axes axes) const {  //center point
+			return this->cell->get(_C_, axes);
+		}
 		/*
 		 *  overload the function of data
 		 */
 		ref_vt cd(st i) { //center data
+			ASSERT(this->data!=nullptr);
 			return this->data->center(i);
 		}
 		const_ref_vt cd(st i) const { //center data
+			ASSERT(this->data!=nullptr);
 			return this->data->center(i);
 		}
 	};

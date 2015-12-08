@@ -95,6 +95,8 @@ public:
 
 	typedef COO_VALUE cvt;
 	typedef VALUE vt;
+	typedef VALUE& ref_vt;
+	typedef const VALUE& const_ref_vt;
 	typedef Node_<_COOV_V_DIM_> Self;
 	typedef Node_<_COOV_V_DIM_> *pSelf;
 	typedef Cell_<COO_VALUE, Dim> Cell;
@@ -766,6 +768,35 @@ protected:
 			this->_traversal_conditional(this, fun_con, argsc, fun, args);
 		}
 
+		/*
+		 *  overload the function of cell
+		 */
+		bool is_in_on(const vt x,
+				const vt y = 0,
+				const vt z = 0) const{
+			bool res = this->cell->is_in_on(x,y,z);
+			if(this->is_leaf()||res == false) {
+				return res;
+			}
+			std::function<void(const_pNode, int)> fun =
+			[&res,&x,&y,&z](const_pNode pn, int dummy) {
+				if (pn->is_leaf() && res==false) {
+					res = pn->cell->is_in_on(x,y,z);
+				}
+			};
+			int dummy = 1;
+			this->_traversal(this, fun, dummy);
+			return res;
+		}
+		/*
+		 *  overload the function of data
+		 */
+		ref_vt cd(st i) { //center data
+			return this->data->center(i);
+		}
+		const_ref_vt cd(st i) const { //center data
+			return this->data->center(i);
+		}
 	};
 
 	/*

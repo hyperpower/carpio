@@ -126,7 +126,6 @@ int GnuplotShow(const std::list<Gnuplot_actor> lga) {
 			iter != lga.end(); ++iter) {
 		gp.output_inline_data((*iter));
 	}
-
 	return _SUCCESS;
 }
 

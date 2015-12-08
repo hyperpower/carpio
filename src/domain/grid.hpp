@@ -149,17 +149,17 @@ public:
 	}
 
 	const pNode get_last_root_pNode() const {
-		for (st i = nodes.size() - 1; i >= 0; --i) {
-			if (nodes.at_1d(i) != nullptr) {
-				return nodes.at_1d(i);
+		for (double i = nodes.size() - 1; i >= 0; --i) {
+			if (nodes.at_1d(st(i)) != nullptr) {
+				return nodes.at_1d(st(i));
 			}
 		}
 		return nullptr;
 	}
 	pNode get_last_root_pNode() {
-		for (st i = nodes.size() - 1; i >= 0; --i) {
-			if (nodes.at_1d(i) != nullptr) {
-				return nodes.at_1d(i);
+		for (double i = nodes.size() - 1; i >= 0; --i) {
+			if (nodes.at_1d(st(i)) != nullptr) {
+				return nodes.at_1d(st(i));
 			}
 		}
 		return nullptr;
@@ -408,6 +408,8 @@ public:
  *  Function out of class =================================================
  */
 
+
+
 template<typename COO_VALUE, typename VALUE, int DIM>
 Node_<COO_VALUE, VALUE, DIM> *
 GetpNodeAt(Grid_<COO_VALUE, VALUE, DIM> *pg, const COO_VALUE &x,
@@ -425,6 +427,8 @@ GetpNodeAt(Grid_<COO_VALUE, VALUE, DIM> *pg, const COO_VALUE &x,
 	return nullptr;
 
 }
+
+
 
 template<typename COO_VALUE, typename VALUE, int DIM>
 const Node_<COO_VALUE, VALUE, DIM> *

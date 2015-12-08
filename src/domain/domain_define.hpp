@@ -4,6 +4,8 @@
 #include "../carpio_define.hpp"
 #include "../algebra/arithmetic.hpp"
 
+#include <string>
+
 namespace carpio {
 
 typedef short code;
@@ -111,7 +113,6 @@ static const Direction _YP_ = 18; //010 010
 static const Direction _ZM_ = 32; //100 000
 static const Direction _ZP_ = 36; //100 100
 
-
 inline Direction ToDirection(const Plane &p, const Orientation &o1,
 		const Orientation &o2) {
 	ASSERT(o1 != _C_);
@@ -218,6 +219,15 @@ inline Direction DirectionInOrder(const size_t i) {
 	return XYZDirectionInOrder(i - 18);
 }
 
+inline std::string ToString(const Axes& a) {
+	if (a == _X_) {
+		return "x";
+	}
+	if (a == _Y_) {
+		return "y";
+	}
+	return "z";
+}
 //default type
 typedef double CooValueType;
 typedef double ValueType;

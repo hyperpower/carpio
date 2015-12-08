@@ -86,12 +86,13 @@ protected:
 		_steps_f[0] = sf;
 		_steps_b[0] = sb;
 		_pnodes.reconstruct(sf + sb + 1);
-		_pnodes.at_1d(sb).pnode = pnc;
 		// set null
 		for (st i = 0; i < _pnodes.size(); ++i) {
 			_pnodes.at_1d(i).pnode = nullptr;
 			_pnodes.at_1d(i).type = 0;   //whish is not created by this class
 		}
+		// set center node
+		_pnodes.at_1d(sb).pnode = pnc;
 		//find neighbor forward
 		pNode pc = pnc;
 		for (st i = 0; i < sf; ++i) {
@@ -130,34 +131,165 @@ protected:
 	/*
 	 * iterator
 	 */
+
 public:
-	pNode operator()(st i, st j = 0, st k= 0){
+	pNode operator()(st i, st j = 0, st k = 0) {
 		return _pnodes(i, j, k).pnode;
 	}
-	const_pNode operator()(st i, st j= 0, st k= 0) const{
+	const_pNode operator()(st i, st j = 0, st k = 0) const {
 		return _pnodes(i, j, k).pnode;
 	}
-	pNode at_1d(st i){
+	pNode at_1d(st i) {
 		return _pnodes.at_1d(i).pnode;
 	}
-	const_pNode at_1d(st i) const{
+	const_pNode at_1d(st i) const {
 		return _pnodes.at_1d(i).pnode;
 	}
 	st size() const {
 		return _pnodes.size();
 	}
+	st null_nodes() const {
+		st res = 0;
+		for (st i = 0; i < _pnodes.size(); ++i) {
+			if (at_1d(i) == nullptr) {
+				res++;
+			}
+		}
+		return res;
+	}
+	st non_null_nodes() const {
+		st res = 0;
+		for (st i = 0; i < _pnodes.size(); ++i) {
+			if (at_1d(i) != nullptr) {
+				res++;
+			}
+		}
+		return res;
+	}
+	st dim() const {
+		return Dim;
+	}
+	/*
+	 *  get
+	 */
+	pNode center_pnode() {
+		if (Dim == 1) {
+			return _pnodes(_steps_b[0], 0, 0).pnode;
+		} else if (Dim == 2) {
+			return _pnodes(_steps_b[0], _steps_b[1], 0).pnode;
+		} else {
+			return _pnodes(_steps_b[0], _steps_b[1], _steps_b[2]).pnode;
+		}
+	}
+	const_pNode center_pnode() const {
+		if (Dim == 1) {
+			return _pnodes(_steps_b[0], 0, 0).pnode;
+		} else if (Dim == 2) {
+			return _pnodes(_steps_b[0], _steps_b[1], 0).pnode;
+		} else {
+			return _pnodes(_steps_b[0], _steps_b[1], _steps_b[2]).pnode;
+		}
+	}
+	Axes axes(st i = 0) const {
+		return _axes[i];
+	}
+protected:
+	bool _is_valid_axes(Axes a) {
+		for (st i = 0; i < _axes.size(); ++i) {
+			if (_axes[i] == a) {
+				return true;
+			}
+		}
+		return false;
+	}
+	st _to_arraylist_idx(Axes a) const {
+		st i = 0;
+		for (; i < _axes.size(); ++i) {
+			if (_axes[i] == a) {
+				return i;
+			}
+		}
+		ASSERT_MSG(false, "Not valid axes");
+		return i;
+	}
+public:
+	pNode forward_pnode(st step, Axes a = _X_) {
+		st ai = _to_arraylist_idx(a);
+		if (!(step > 0 && step < _steps_f[ai])) {
+			return nullptr;
+		}
+		if (ai == 0) {
+			return _pnodes(_steps_b[ai] + step, 0, 0).pnode;
+		} else if (ai == 1) { //ai==1
+			return _pnodes(0, _steps_b[ai] + step, 0).pnode;
+		} else {
+			return _pnodes(0, 0, _steps_b[ai] + step).pnode;
+		}
+	}
+	const_pNode forward_pnode(st step, Axes a = _X_) const {
+		st ai = _to_arraylist_idx(a);
+		if (!(step > 0 && step <= _steps_f[ai])) {
+			return nullptr;
+		}
+		if (ai == 0) {
+			return _pnodes(_steps_b[ai] + step, 0, 0).pnode;
+		} else if (ai == 1) { //ai==1
+			return _pnodes(0, _steps_b[ai] + step, 0).pnode;
+		} else {
+			return _pnodes(0, 0, _steps_b[ai] + step).pnode;
+		}
+	}
+	pNode backward_pnode(st step, Axes a = _X_) {
+		st ai = _to_arraylist_idx(a);
+		if (!(step > 0 && step <= _steps_b[ai])) {
+			return nullptr;
+		}
+		if (ai == 0) {
+			return _pnodes(_steps_b[ai] - step, 0, 0).pnode;
+		} else if (ai == 1) { //ai==1
+			return _pnodes(0, _steps_b[ai] - step, 0).pnode;
+		} else {
+			return _pnodes(0, 0, _steps_b[ai] - step).pnode;
+		}
+	}
+	const_pNode backward_pnode(st step, Axes a = _X_) const {
+		st ai = _to_arraylist_idx(a);
+		if (!(step > 0 && step <= _steps_b[ai])) {
+			return nullptr;
+		}
+		if (ai == 0) {
+			return _pnodes(_steps_b[ai] - step, 0, 0).pnode;
+		} else if (ai == 1) { //ai==1
+			return _pnodes(0, _steps_b[ai] - step, 0).pnode;
+		} else {
+			return _pnodes(0, 0, _steps_b[ai] - step).pnode;
+		}
+	}
 	/*
 	 *  show
 	 */
-	void show() const{
-		std::cout<< " stencil dim = " << Dim << "on" <<"\n";
+	void show() const {
+		std::cout << " stencil dim = " << Dim << "\n";
+		std::cout << " size        = " << size() << "\n";
+		std::cout << " null        = " << null_nodes() << "\n";
+		std::cout << " no null     = " << size() - null_nodes() << "\n";
+		if (Dim == 1) {
+			std::cout << " ---";
+			for (st i = 0; i < _pnodes.size(); ++i) {
+				if (i == _steps_b(0) && at_1d(i) != nullptr) {
+					std::cout << "C";
+				} else if (at_1d(i) != nullptr) {
+					std::cout << "O";
+				} else {
+					std::cout << "X";
+				}
+				std::cout << "---";
+			}
+			std::cout << "--> " << ToString(_axes(0)) << "\n";
+		}
 	}
 
-
 };
-
-
-
 
 }
 

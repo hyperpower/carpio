@@ -40,7 +40,10 @@ inline void test_stencil_1d() {
 	adp.adapt();
 	//stencil
 	Grid_<Float, Float, 2>::iterator_leaf il = g.begin_leaf();
-	Stencil_2D1 st(il.get_pointer(),_X_, 1, 1);
+	++il;
+	++il;
+	++il;
+	Stencil_2D1 st(il.get_pointer(),_Y_, 2, 1);
 	st.show();
 	std::cout<<"Stencil \n";
 

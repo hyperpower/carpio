@@ -164,6 +164,13 @@ ArrayListT<T>::ArrayListT(size_type Len)
 template<typename T>
 void ArrayListT<T>::reconstruct(size_type Len)
 {
+	if(Len == 0 && m_Len == 0){
+		return;
+	}
+	if(Len == 0 && NULL != m_p){
+		delete[] m_p;
+		return;
+	}
 	assert(Len > 0);
 	if (NULL != m_p)
 		delete[] m_p;

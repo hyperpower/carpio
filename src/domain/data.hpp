@@ -43,34 +43,49 @@ public:
 		untype = utp;
 	}
 
-	inline vt& center(st i) {
+	inline vt& center(const st& i) {
 		ASSERT(i < _center.size());
 		return _center[i];
 	}
 
-	inline const vt& center(st i) const {
+	inline const vt& center(const st& i) const {
 		ASSERT(i < _center.size());
 		return _center[i];
 	}
 
-	inline vt& face(Direction d, st i) {
+	inline vt& face(const Direction& d, const st& i) {
 		ASSERT(i < this->NumFaces);
 		return _face[i];
 	}
 
-	inline const vt& face(Direction d, st i) const {
+	inline const vt& face(const Direction& d, const st& i) const {
 		ASSERT(i < this->NumFaces);
 		return _face[i];
 	}
 
-	inline vt& vertex(Direction d, st i) {
+	inline vt& vertex(const Direction d, const st i) {
 		ASSERT(i < this->NumVertexes);
 		return _vertex[i];
 	}
 
-	inline const vt& vertex(Direction d, st i) const {
+	inline const vt& vertex(const Direction d, const st i) const {
 		ASSERT(i < this->NumVertexes);
 		return _vertex[i];
+	}
+	/*
+	 *  resize
+	 */
+	void resize_center(st len) {
+		ASSERT(len >= 0);
+		this->_center.resize(len);
+	}
+	void resize_face(st idx, st len) {
+		ASSERT(idx >= 0 && idx < NumFaces);
+		this->_face[idx].resize(len);
+	}
+	void resize_vertex(st idx, st len) {
+		ASSERT(idx >= 0 && idx < NumVertexes);
+		this->_vertex[idx].resize(len);
 	}
 
 	bool empty() const {
@@ -308,9 +323,9 @@ public:
 		return size() - count_valid_val();
 	}
 
-	void set_all_center(){
+	void set_all_center() {
 		for (st i = 0; i < _flag.size(); ++i) {
-			_flag[i] =  Flag_Center;
+			_flag[i] = Flag_Center;
 		}
 	}
 

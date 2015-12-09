@@ -19,6 +19,8 @@ int GnuplotActor_RootNodes(Gnuplot_actor& actor, const Grid_2D& g);
 int GnuplotActor_LeafNodes(Gnuplot_actor& actor, const Grid_2D& g);
 int GnuplotActor_Nodes(Gnuplot_actor& actor, const std::list<pNode_2D>& lpn);
 int GnuplotActor_Stencil(Gnuplot_actor& actor, const Stencil_2D1& s);
+int GnuplotActor_LeafNodesContours(Gnuplot_actor& actor, const Grid_2D& g,
+		st idx);
 
 int GnuplotShow_RootNodes(const Grid_2D& grid);
 int GnuplotShow_LeafNodes(const Grid_2D& grid);

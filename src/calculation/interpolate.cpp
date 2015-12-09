@@ -121,7 +121,9 @@ inline int __2NodeRelation(const Node* pc, const Node* p) {
 	return -1;
 }
 
-//Linear interpolation===========================
+/*
+ * Linear interpolation
+ */
 template<typename TYPE>
 inline Float __LinearInterpolation( //
 		const TYPE& x, //
@@ -138,10 +140,8 @@ int _2NodeOnAxes(PData_2D& res, const Stencil_2D1& stc) {
 	PData_2D pdc(res);
 	_AverangeValueFromCenterLeaf(pdc, pc);
 	// another pnode is close to center
-	int flag = 0;
 	typename Stencil_2D1::const_pNode pn = stc.forward_pnode(1, stc.axes());
 	if (pn == nullptr) {
-		flag = 1;
 		pn = stc.backward_pnode(1, stc.axes());
 	}
 	PData_2D pdn(res);
@@ -169,6 +169,14 @@ int _2NodeOnAxes(PData_2D& res, const Stencil_2D1& stc) {
 		Float y2 = pdn.val(i);
 		res.val(i) = __LinearInterpolation(x, x1, y1, x2, y2);
 	}
+	return _SUCCESS;
+}
+/*
+ * This function construct a stencil
+ * the point must in the Node
+ */
+int _Stencil1f(Stencil_2D1& stc, pNode_2D pn, Cvt x, Cvt y){
+	ASSERT(pn->is_in_on(x, y));
 
 }
 

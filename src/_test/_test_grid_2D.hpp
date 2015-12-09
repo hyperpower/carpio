@@ -5,6 +5,7 @@
 #include "../carpio_define.hpp"
 #include "../io/io_gnuplot_domain.h"
 #include "../domain/stencil.hpp"
+#include "../calculation/scalar.h"
 
 namespace carpio {
 
@@ -57,7 +58,30 @@ inline void test_stencil_1d() {
 	GnuplotShow(lga);
 	// test iterator
 }
+Vt __set(Cvt x, Cvt y, Cvt z){
+	return (sin(x)-0.5)*(x-0.5)+y*y;
+}
+inline void test_interpolate_1d() {
+	Grid_<Float, Float, 2> g(
+			2, 0, 1, //
+			2, 0, 1 );
+	g.connect_root();
+	std::cout<< "num root : "<<g.get_num_root()<<std::endl;
+	Adaptive<Float, Float, 2> adp(&g, 2, 5);
+	adp.adapt();
+	// new value on leaf
+	NewCenterDataOnLeaf(g, 2);
+	// set value on leaf
+	SetScalarOnCenterLeaf(g,0,__set);
+	//
 
+	// show
+	std::list<Gnuplot_actor> lga;
+	Gnuplot_actor ga_leaf;
+	GnuplotActor_LeafNodesContours(ga_leaf, g, 0);
+	lga.push_back(ga_leaf);
+	GnuplotShow(lga);
+}
 }
 
 #endif

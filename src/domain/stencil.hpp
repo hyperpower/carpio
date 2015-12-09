@@ -124,9 +124,13 @@ public:
 	 */
 	Stencil_(pNode pnc, Axes a1, st sf1, st sb1) :
 			_pnodes(), _axes(Dim), _steps_f(Dim), _steps_b(Dim) {
+		ASSERT(Dim==1);
 		_construct_1d(pnc, a1, sf1, sb1);
 	}
+	void reconstruct(pNode pnc, Axes a1, st sf1, st sb1){
+		ASSERT(Dim==1);
 
+	}
 protected:
 	/*
 	 * iterator

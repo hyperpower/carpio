@@ -11,9 +11,11 @@
 #include "data.hpp"
 
 namespace carpio {
+typedef Float Cvt;
+typedef Float Vt;
 
-typedef Cell_<Float, 2> Cell_2D;
-typedef Cell_<Float, 3> Cell_3D;
+typedef Cell_<Cvt, 2> Cell_2D;
+typedef Cell_<Cvt, 3> Cell_3D;
 
 typedef Data_<Float, 2> Data_2D;
 typedef Data_<Float, 3> Data_3D;

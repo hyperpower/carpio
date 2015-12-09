@@ -28,6 +28,7 @@ namespace carpio {
 //
 class Gnuplot_actor {
 protected:
+	std::string _scmd;  //style comand
 	std::string _pcmd;  //plot command
 	std::list<std::string> _data;
 public:
@@ -36,13 +37,17 @@ public:
 	 *  Constructor
 	 */
 	Gnuplot_actor() :
-			_pcmd(""), _data() {
+			_scmd(""), _pcmd(""), _data() {
 	}
 	Gnuplot_actor(const std::string& pcmd, const std::list<std::string>& data) :
-			_pcmd(pcmd), _data(data) {
+			_scmd(""), _pcmd(pcmd), _data(data) {
+	}
+	Gnuplot_actor(const std::string& pcmd, const std::string& scmd,
+			const std::list<std::string>& data) :
+			_scmd(scmd), _pcmd(pcmd), _data(data) {
 	}
 	Gnuplot_actor(const Gnuplot_actor& ga) :
-			_pcmd(ga._pcmd), _data(ga._data) {
+			_scmd(ga._scmd), _pcmd(ga._pcmd), _data(ga._data) {
 	}
 	/*
 	 *  is empty
@@ -54,11 +59,24 @@ public:
 			return false;
 		}
 	}
+	bool empty_style() const {
+		if (_scmd == "") {
+			return true;
+		} else {
+			return false;
+		}
+	}
 	std::string& command() {
 		return _pcmd;
 	}
 	const std::string& command() const {
 		return _pcmd;
+	}
+	std::string& style() {
+		return _scmd;
+	}
+	const std::string& style() const {
+		return _scmd;
 	}
 	std::list<std::string>& data() {
 		return _data;

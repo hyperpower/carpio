@@ -28,6 +28,27 @@ std::string ToString(V1 a, V2 b, const std::string sep) {
 	return sst.str();
 }
 
+template<class V1, class V2, class V3>
+std::string ToString(V1 a, V2 b, V3 c, const std::string sep) {
+	std::ostringstream sst;
+	sst << a << sep << b;
+	return sst.str();
+}
+
+template<class V1, class V2, class V3, class V4, class V5, class V6, class V7>
+std::string ToString(V1 a, V2 b, V3 c, V4 d, V5 e, V6 f, V7 g,
+		const std::string sep) {
+	std::ostringstream sst;
+	sst << a << sep; //1
+	sst << b << sep; //2
+	sst << c << sep; //3
+	sst << d << sep; //4
+	sst << e << sep; //5
+	sst << f << sep; //6
+	sst << g;        //7
+	return sst.str();
+}
+
 }
 
 #endif /* IO_H_ */

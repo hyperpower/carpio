@@ -86,7 +86,6 @@ static const int _E_ = 1;
 static const int _F_C_ = 2;
 static const int _C_F_ = 3;
 
-
 #define _TEMPLATE_COOV_V_DIM_ template<typename COO_VALUE, typename VALUE, int DIM>
 #define _COOV_V_DIM_ COO_VALUE, VALUE, DIM
 
@@ -795,6 +794,9 @@ protected:
 		}
 		cvt cp(Axes axes) const {  //center point
 			return this->cell->get(_C_, axes);
+		}
+		cvt p(Orientation ori, Axes axes) const {  //point
+			return this->cell->get(ori, axes);
 		}
 		/*
 		 *  overload the function of data

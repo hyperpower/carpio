@@ -22,6 +22,14 @@ int GnuplotActorDataPushBack(std::list<std::string>& ldata, const Cell_2D& c) {
 	return _SUCCESS;
 }
 
+int GnuplotActorDataPushBack_Contour(std::list<std::string>& ldata,
+		const_pNode_2D& pn, st idx) {
+	ldata.push_back(
+			ToString(pn->cp(_X_), pn->cp(_Y_), pn->p(_M_, _X_), pn->p(_P_, _X_),
+					pn->p(_M_, _Y_), pn->p(_P_, _Y_), pn->cd(idx), " ")); //point" "));
+	return _SUCCESS;
+}
+
 int GnuplotActor_Cell(Gnuplot_actor& actor, const Cell_2D& c) {
 	actor.command() = "using 1:2 ";
 	GnuplotActorDataPushBack(actor.data(), c);
@@ -64,6 +72,18 @@ int GnuplotActor_LeafNodes(Gnuplot_actor& actor, const Grid_2D& g) {
 	return _SUCCESS;
 }
 
+int GnuplotActor_LeafNodesContours(Gnuplot_actor& actor, const Grid_2D& g,
+		st idx) {
+	actor.command() = "using 1:2:3:4:5:6:7 title \"\" ";
+	actor.style() = "with boxxy fs solid palette";
+	for (Grid_2D::const_iterator_leaf iter = g.begin_leaf();
+			iter != g.end_leaf(); ++iter) {
+		const_pNode_2D pn = iter.get_pointer();
+		GnuplotActorDataPushBack_Contour(actor.data(), pn, idx);
+	}
+	return _SUCCESS;
+}
+
 int GnuplotActor_Stencil(Gnuplot_actor& actor, const Stencil_2D1& s) {
 	actor.command() = "using 1:2 title \"\" ";
 	for (st i = 0; i < s.size(); ++i) {
@@ -92,7 +112,7 @@ int GnuplotShow_RootNodes(const Grid_2D& grid) {
 }
 
 int GnuplotShow_LeafNodes(const Grid_2D& grid) {
-	// creat an actor
+	// Create an actor
 	Gnuplot_actor actor;
 	GnuplotActor_LeafNodes(actor, grid);
 	//
@@ -115,7 +135,12 @@ int GnuplotShow(const std::list<Gnuplot_actor> lga) {
 	ss << "plot ";
 	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
 			iter != lga.end(); ++iter) {
-		ss << "\"-\" " << iter->command() << "with lines lw 1";
+		if (iter->empty_style()) {
+			ss << "\"-\" " << iter->command() << "with lines lw 1";
+		} else {
+			ss << "\"-\" " << iter->command() << iter->style();
+		}
+
 		if (lga.size() >= 2 && (iter != (--lga.end()))) {
 			ss << ",\\\n";
 		}

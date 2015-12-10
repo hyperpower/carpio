@@ -17,17 +17,6 @@ int _1Node(Float& res, const st& idx, const Stencil_2D1& stc, Float x,
 	res = pc->cd(idx);
 	return _SUCCESS;
 }
-int _1Node(PData_2D& res, const Stencil_2D1& stc) {
-	//assert
-	ASSERT(stc.non_null_nodes() == 1);
-	typename Stencil_2D1::const_pNode pc = stc.center_pnode();
-	ASSERT(pc->is_in_on(res.x(), res.y()));
-	// ---
-	for (st i = 0; i < res.size(); ++i) {
-		res.set_val(i, pc->cd(res.idx(i)), res.idx(i), 1);
-	}
-	return _SUCCESS;
-}
 
 /*
  *  There are two nodes in the stencil, x is
@@ -83,6 +72,7 @@ void _AverangeValueFromCenterLeaf(        //
 		_GetPDataFromPNodeCenter(res, pn);
 		return;
 	}
+
 //========================
 	res.set_all_center();
 	st num = 0;
@@ -120,7 +110,15 @@ inline int __2NodeRelation(const Node* pc, const Node* p) {
 	SHOULD_NOT_REACH;
 	return -1;
 }
-
+int _1Node(PData_2D& res, const Stencil_2D1& stc) {
+	//assert
+	ASSERT(stc.non_null_nodes() == 1);
+	typename Stencil_2D1::const_pNode pc = stc.center_pnode();
+	ASSERT(pc->is_in_on(res.x(), res.y()));
+	// ---
+	_AverangeValueFromCenterLeaf(res, pc);
+	return _SUCCESS;
+}
 /*
  * Linear interpolation
  */
@@ -132,19 +130,34 @@ inline Float __LinearInterpolation( //
 		) {
 	return (y1 - y0) / (x1 - x0) * (x - x0) + y0;
 }
+/*
+ * Linear interpolation
+ */
+template<typename CVT, typename VT>
+inline VT __2OrderInterpolation( //
+		const CVT& x, //
+		const CVT& x1, const VT& y1, //
+		const CVT& x2, const VT& y2, //
+		const CVT& x3, const VT& y3  //
+		) {
+	return y1 * (x - x2) * (x - x3) / (x1 - x2) / (x1 - x3)
+			+ y2 * (x - x1) * (x - x3) / (x2 - x1) / (x2 - x3)
+			+ y3 * (x - x1) * (x - x2) / (x3 - x1) / (x3 - x2);
+}
 
 int _2NodeOnAxes(PData_2D& res, const Stencil_2D1& stc) {
 	// assert
 	ASSERT(stc.non_null_nodes() == 2);
 	typename Stencil_2D1::const_pNode pc = stc.center_pnode();
-	PData_2D pdc(res);
+	PData_2D pdc(res.arr_idx(), pc->cp(_X_), pc->cp(_Y_));
 	_AverangeValueFromCenterLeaf(pdc, pc);
+
 	// another pnode is close to center
 	typename Stencil_2D1::const_pNode pn = stc.forward_pnode(1, stc.axes());
 	if (pn == nullptr) {
 		pn = stc.backward_pnode(1, stc.axes());
 	}
-	PData_2D pdn(res);
+	PData_2D pdn(res.arr_idx(), pn->cp(_X_), pn->cp(_Y_));
 	switch (__2NodeRelation(pc, pn)) {
 	case _E_: {
 		_AverangeValueFromCenterLeaf(pdn, pn);
@@ -160,6 +173,7 @@ int _2NodeOnAxes(PData_2D& res, const Stencil_2D1& stc) {
 		break;
 	}
 	}
+
 	// ---
 	for (st i = 0; i < res.size(); ++i) {
 		Float x = res.p(stc.axes(0));
@@ -167,16 +181,164 @@ int _2NodeOnAxes(PData_2D& res, const Stencil_2D1& stc) {
 		Float y1 = pdc.val(i);
 		Float x2 = pdn.p(stc.axes(0));
 		Float y2 = pdn.val(i);
+		res.flag(i) = PData_2D::Flag_Center;
 		res.val(i) = __LinearInterpolation(x, x1, y1, x2, y2);
+	}
+
+	return _SUCCESS;
+}
+
+int _3NodeOnAxes(PData_2D& res, const Stencil_2D1& stc) {
+	// assert
+	ASSERT(stc.non_null_nodes() == 3);
+	typename Stencil_2D1::const_pNode pc = stc.center_pnode();
+	PData_2D pdc(res.arr_idx(), pc->cp(_X_), pc->cp(_Y_));
+	_AverangeValueFromCenterLeaf(pdc, pc);
+	// forward pnode is close to center
+	typename Stencil_2D1::const_pNode pf = stc.forward_pnode(1, stc.axes());
+	ASSERT(pf != nullptr);
+	PData_2D pdf(res.arr_idx(), pf->cp(_X_), pf->cp(_Y_));
+	switch (__2NodeRelation(pc, pf)) {
+	case _E_: {
+		_AverangeValueFromCenterLeaf(pdf, pf);
+		break;
+	}
+	case _F_C_: {
+		//unfinish ==================
+		SHOULD_NOT_REACH;
+		break;
+	}
+	case _C_F_: {
+		_AverangeValueFromCenterLeaf(pdf, pf);
+		break;
+	}
+	}
+	// forward pnode is close to center
+	typename Stencil_2D1::const_pNode pb = stc.backward_pnode(1, stc.axes());
+	ASSERT(pb != nullptr);
+	PData_2D pdb(res.arr_idx(), pb->cp(_X_), pb->cp(_Y_));
+	switch (__2NodeRelation(pc, pb)) {
+	case _E_: {
+		_AverangeValueFromCenterLeaf(pdb, pb);
+		break;
+	}
+	case _F_C_: {
+		//unfinish ==================
+		SHOULD_NOT_REACH;
+		break;
+	}
+	case _C_F_: {
+		_AverangeValueFromCenterLeaf(pdb, pb);
+		break;
+	}
+	}
+	// ---
+	for (st i = 0; i < res.size(); ++i) {
+		Cvt x = res.p(stc.axes(0));
+		Cvt x1 = pdf.p(stc.axes(0));
+		Vt y1 = pdf.val(i);
+		Cvt x2 = pdc.p(stc.axes(0));
+		Vt y2 = pdc.val(i);
+		Cvt x3 = pdb.p(stc.axes(0));
+		Vt y3 = pdb.val(i);
+		res.flag(i) = PData_2D::Flag_Center;
+		res.val(i) = __2OrderInterpolation(x, x1, y1, x2, y2, x3, y3);
 	}
 	return _SUCCESS;
 }
-/*
- * This function construct a stencil
- * the point must in the Node
- */
-int _Stencil1f(Stencil_2D1& stc, pNode_2D pn, Cvt x, Cvt y){
-	ASSERT(pn->is_in_on(x, y));
+
+void InterpolateOnFace_1Order( // 2D QuadTree Node
+		pNode_2D pn,                      //node
+		const Direction& dir,                //face
+		const ArrayListV<st>& arridx,            //data index
+		ArrayListV<Vt>& arrres                //data res
+		) {
+	// assert
+	ASSERT(pn != nullptr);
+	ASSERT(IsFaceDirection(dir));
+	// get PData
+	Cvt x = pn->p(dir, _X_);
+	Cvt y = pn->p(dir, _Y_);
+	PData_2D pdata(arridx, x, y);
+	// stencil
+	Orientation ori;
+	Axes axe;
+	FaceDirectionToOrientationAndAxes(dir, ori, axe);
+	Stencil_2D1 sten(pn, axe, (IsP(ori) ? 1 : 0), (IsM(ori) ? 1 : 0));
+	if (sten.non_null_nodes() == 1) {
+		_1Node(pdata, sten);
+	} else {
+		_2NodeOnAxes(pdata, sten);
+	}
+	arrres = pdata.arr_val();
+}
+
+void InterpolateOnFace_1Order( // 2D QuadTree Node
+		pNode_2D pn,                      //node
+		const Direction& dir,                //face
+		const st& idx,            //data index
+		Vt& res                //data res
+		) {
+	ArrayListV<st> arridx(1);            //data index
+	ArrayListV<Vt> arrres(1);
+	arridx[0] = idx;
+	InterpolateOnFace_1Order(pn, dir, arridx, arrres);
+	res = arrres[0];
+}
+
+void InterpolateOnFace_2Order( // 2D QuadTree Node
+		pNode_2D pn,                      //node
+		const Direction& dir,                //face
+		const ArrayListV<st>& arridx,            //data index
+		ArrayListV<Vt>& arrres                //data res
+		) {
+	// assert
+	ASSERT(pn != nullptr);
+	ASSERT(IsFaceDirection(dir));
+	// get PData
+	Cvt x = pn->p(dir, _X_);
+	Cvt y = pn->p(dir, _Y_);
+	PData_2D pdata(arridx, x, y);
+	// stencil
+	Orientation ori;
+	Axes axe;
+	FaceDirectionToOrientationAndAxes(dir, ori, axe);
+	Stencil_2D1 sten(pn, axe, 1, 1);
+	if (sten.non_null_nodes() == 1) {
+		_1Node(pdata, sten);
+	} else if (sten.non_null_nodes() == 2) {
+		_2NodeOnAxes(pdata, sten);
+	} else {
+		_3NodeOnAxes(pdata, sten);
+	}
+	arrres = pdata.arr_val();
+}
+
+void InterpolateOnFace_2Order( // 2D QuadTree Node
+		pNode_2D pn,                      //node
+		const Direction& dir,             //face
+		const st& idx,            //data index
+		Vt& res                //data res
+		) {
+	ArrayListV<st> arridx(1);            //data index
+	ArrayListV<Vt> arrres(1);
+	arridx[0] = idx;
+	InterpolateOnFace_2Order(pn, dir, arridx, arrres);
+	res = arrres[0];
+}
+
+void Interpolate_1Order(        // 2D QuadTree Node
+		pNode_2D pn,                  //node
+		const Cvt& x, const Cvt& y,              //point
+		const ArrayListV<st>& arridx,            //data index
+		ArrayListV<Vt>& arrres                //data res
+		) {
+	// assert
+	ASSERT(pn != nullptr);
+	ASSERT(pn->is_in_on(x,y));
+	// get PData
+	PData_2D pdata(arridx, x, y
+	// stencil
 
 }
 

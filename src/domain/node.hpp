@@ -795,27 +795,61 @@ protected:
 		cvt cp(Axes axes) const {  //center point
 			return this->cell->get(_C_, axes);
 		}
+		cvt d(Axes axes) const {  //center point
+			return this->cell->get_d(axes);
+		}
 		cvt p(Orientation ori, Axes axes) const {  //point
 			return this->cell->get(ori, axes);
+		}
+		cvt p(Direction dir, Axes axes) const {
+			if( Dim == 2 && axes == _Z_) {
+				return 0.0;
+			}
+			return this->cell->get(ToOrientation(dir, axes), axes);
 		}
 		/*
 		 *  overload the function of data
 		 */
 		ref_vt cd(st i) { //center data
-			ASSERT(this->data!=nullptr);
+			ASSERT(this->data != nullptr);
 			return this->data->center(i);
 		}
 		const_ref_vt cd(st i) const { //center data
-			ASSERT(this->data!=nullptr);
+			ASSERT(this->data != nullptr);
 			return this->data->center(i);
 		}
-	};
+		/*
+		 *  show
+		 */
+		void show(const std::string& name = "" ) const {
+			std::cout << "Node --- "<<name<<"\n";
+			std::cout << "Dimension = " << Dim << "D\n";
+			std::cout << "level      :" << this->_level << "\n";
+			std::cout << "node type  :" << this->_node_type << "\n";
+			std::cout << "idx        :" << this->_idx << "\n";
+			std::cout << "CELL  show =========\n";
+			std::cout << std::scientific;
+			std::cout << "       min    " <<"     max    "<<"     d    "<< "     c    \n";
+			std::cout << "x:" << p(_M_, _X_)<<" "<< p(_P_, _X_) <<" "<<d(_X_)<<" "<<cp(_X_)<< "\n";
+			std::cout << "y:" << p(_M_, _Y_)<<" "<< p(_P_, _Y_) <<" "<<d(_Y_)<<" "<<cp(_Y_)<< "\n";
+			if (Dim == 3) {
+				std::cout << "z:" << p(_M_, _Z_)<<" "<< p(_P_, _Z_) <<" "<<d(_Z_)<<" "<<cp(_Z_)<< "\n";
+			}
+			std::cout << "DATA  show =========\n";
+			if (nullptr == this->data) {
+				std::cout << "No data \n";
+			} else {
+				//this->data->show_info();
+			}
+		}
+
+	}
+	;
 
 	/*
 	 *  functions out of class ================================================
 	 */
-	_TEMPLATE_COOV_V_DIM_
-	int GetDataIdx(const Node_<COO_VALUE, VALUE, DIM> *pn) {
+	_TEMPLATE_COOV_V_DIM_ int GetDataIdx(const Node_<COO_VALUE, VALUE, DIM> *pn) {
 		ASSERT(pn != nullptr);
 		return pn->data->get_idx();
 	}

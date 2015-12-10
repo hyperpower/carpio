@@ -118,19 +118,65 @@ protected:
 			}
 		}
 	}
+	void _find_neighbor_bf(pNode pc, )
+	void _construct_2d(pNode pnc, Axes a1, Axes a2, st sf1, st sb1, st sf2,
+			st sb2) {
+		ASSERT(pnc != nullptr);
+		ASSERT(Dim == 2);
+		_axes[0] = a1;
+		_steps_f[0] = sf1;
+		_steps_b[0] = sb1;
+		_axes[1] = a2;
+		_steps_f[1] = sf2;
+		_steps_b[1] = sb2;
+		_pnodes.reconstruct(sf1 + sb1 + 1, sf2 + sb2 + 1);
+		// set null
+		for (st i = 0; i < _pnodes.size(); ++i) {
+			_pnodes.at_1d(i).pnode = nullptr;
+			_pnodes.at_1d(i).type = 0;   //whish is not created by this class
+		}
+		// set center node
+		_pnodes(sb1,sb2).pnode = pnc;
+		//find neighbor forward
+		pNode pc = pnc;
+		for (st i = 0; i < sf1; ++i) {
+			pNode pnt = nullptr;
+			pnt = _neighbor_forward(pc, a1);
+			if (pnt == nullptr) {
+				break;
+			} else {
+				_pnodes(sb1 + i + 1, sb2).pnode = pnt;
+				pc = pnt;
+			}
+		}
+		//find neighbor backward
+		pc = pnc;
+		for (st i = 0; i < sb1; ++i) {
+			pNode pnt = nullptr;
+			pnt = _neighbor_backward(pc, a1);
+			if (pnt == nullptr) {
+				break;
+			} else {
+				_pnodes(sb1 - i - 1, sb2).pnode = pnt;
+				pc = pnt;
+			}
+		}
+	}
 public:
 	/*
 	 *  1d constructor
 	 */
 	Stencil_(pNode pnc, Axes a1, st sf1, st sb1) :
 			_pnodes(), _axes(Dim), _steps_f(Dim), _steps_b(Dim) {
-		ASSERT(Dim==1);
+		ASSERT(Dim == 1);
 		_construct_1d(pnc, a1, sf1, sb1);
 	}
-	void reconstruct(pNode pnc, Axes a1, st sf1, st sb1){
-		ASSERT(Dim==1);
-
+	Stencil_(pNode pnc, Axes a1, Axes a2, st sf1, st sb1, st sf2, st sb2) :
+			_pnodes(), _axes(Dim), _steps_f(Dim), _steps_b(Dim) {
+		ASSERT(Dim == 2);
+		_construct_2d(pnc, a1, sf1, sb1);
 	}
+
 protected:
 	/*
 	 * iterator

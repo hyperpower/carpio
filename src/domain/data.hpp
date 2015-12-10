@@ -157,13 +157,6 @@ protected:
 			_p[i] = _lp[i];
 		}
 	}
-	bool is_valid_val(st i) const {
-		if (_flag[i] != 0) {
-			return true;
-		} else {
-			return false;
-		}
-	}
 	bool _is_same_size() const {
 		return (_val.size() == _flag.size() && _idx.size() == _flag.size());
 	}
@@ -183,6 +176,12 @@ public:
 	PData_(st n, cvt x, cvt y = 0, cvt z = 0) :
 			_flag(n), _val(n), _idx(n) {
 		_flag.assign(0);
+		_assign_p(x, y, z);
+	}
+	PData_(ArrayListV<st> arridx, cvt x, cvt y = 0, cvt z = 0) :
+			_flag(arridx.size()), _val(arridx.size()), _idx(arridx.size()) {
+		_flag.assign(0);
+		_idx = arridx;
 		_assign_p(x, y, z);
 	}
 	PData_(const Self& _pd) :
@@ -269,12 +268,12 @@ public:
 	}
 
 	inline vt& val(st n) {
-		ASSERT(is_valid_val(n));
+		ASSERT(is_valid(n));
 		return _val[n];
 	}
 
 	inline const vt& val(st n) const {
-		ASSERT(is_valid_val(n));
+		ASSERT(is_valid(n));
 		return _val[n];
 	}
 
@@ -294,10 +293,34 @@ public:
 		return _flag[n];
 	}
 
+	inline ArrayListV<vt>& arr_val() {
+		return _val;
+	}
+
+	inline const ArrayListV<vt>& arr_val() const {
+		return _val;
+	}
+
+	inline ArrayListV<st>& arr_idx() {
+		return _idx;
+	}
+
+	inline const ArrayListV<st>& arr_idx() const {
+		return _idx;
+	}
+
 	inline void set_val(st i, const vt& val, st idx, int flag) {
 		_val[i] = val;
 		_idx[i] = idx;
 		_flag[i] = flag;
+	}
+
+	inline bool is_valid(st i) const {
+		if (_flag[i] == Flag_Invalid) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	inline bool has_valid_val() const {
@@ -329,6 +352,18 @@ public:
 		}
 	}
 
+	/*
+	 *  show
+	 */
+
+	void show_point(std::string name = "") const {
+		if (name != "") {
+			std::cout << name << "\n";
+		}
+		for (st i = 0; i < Dim; ++i) {
+			std::cout << "p" << i << " = " << _p[i] << "\n";
+		}
+	}
 };
 
 }

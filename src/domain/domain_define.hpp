@@ -113,6 +113,21 @@ static const Direction _YP_ = 18; //010 010
 static const Direction _ZM_ = 32; //100 000
 static const Direction _ZP_ = 36; //100 100
 
+inline bool GetBit(const Direction &d, st i) {
+	const Direction ARR_BIT[6] = { 1, 2, 4, 8, 16, 32 };
+	return (d & ARR_BIT[i]) == ARR_BIT[i];
+}
+
+inline bool IsP(const Orientation& ori) {
+	return (ori == _P_);
+}
+inline bool IsM(const Orientation& ori) {
+	return (ori == _M_);
+}
+inline bool IsC(const Orientation& ori) {
+	return (ori == _C_);
+}
+
 inline Direction ToDirection(const Plane &p, const Orientation &o1,
 		const Orientation &o2) {
 	ASSERT(o1 != _C_);
@@ -148,6 +163,43 @@ static const short COUNT_1[8] = { 0, 1, 1, 2, 1, 2, 2, 3 };
 inline bool IsFaceDirection(const Direction &d) {
 	return COUNT_1[(d >> 3)] == 1;
 }
+inline void FaceDirectionToOrientationAndAxes(const Direction &d,
+		Orientation &o, Axes &a) {
+	ASSERT(IsFaceDirection(d));
+	unsigned short hi = d >> 3;
+	if ((hi & 1) == 1) {
+		a = _X_;
+		o = (GetBit(d, 1)) ? _P_ : _M_;
+		return;
+	}
+	if ((hi & 2) == 2) {
+		a = _Y_;
+		o = (GetBit(d, 2)) ? _P_ : _M_;
+		return;
+	}
+
+	if ((hi & 4) == 4) {
+		a = _Z_;
+		o = (GetBit(d, 3)) ? _P_ : _M_;
+		return;
+	}
+	SHOULD_NOT_REACH;
+}
+/*
+ * Does Direction on axes active
+ */
+inline bool IsDirectionOn(const Direction &d, const Axes& a) {
+	unsigned short hi = d >> 3;
+	switch (a) {
+	case _X_:
+		return ((hi & 1) == 1);
+	case _Y_:
+		return ((hi & 2) == 2);
+	case _Z_:
+		return ((hi & 4) == 4);
+	}
+	return false;
+}
 
 inline bool IsFacePDirection(const Direction &d) {
 	unsigned short hi = d >> 3;
@@ -173,6 +225,21 @@ inline bool IsPlaneDirection(const Direction &d) {
 
 inline bool IsXYZDirection(const Direction &d) {
 	return (d >> 3) == 7;
+}
+
+inline Orientation ToOrientation(const Direction &d, const Axes &a) {
+	if (IsDirectionOn(d, a)) {
+		switch (a) {
+		case _X_:
+			return (GetBit(d, 1) == true) ? _P_ : _M_;
+		case _Y_:
+			return (GetBit(d, 2) == true) ? _P_ : _M_;
+		case _Z_:
+			return (GetBit(d, 3) == true) ? _P_ : _M_;
+		}
+	} else {
+		return _C_;
+	}
 }
 
 inline Direction FaceDirectionInOrder(const size_t i) {
@@ -227,6 +294,15 @@ inline std::string ToString(const Axes& a) {
 		return "y";
 	}
 	return "z";
+}
+inline std::string ToString(const Orientation& a) {
+	if (a == _M_) {
+		return "m";
+	}
+	if (a == _P_) {
+		return "p";
+	}
+	return "c";
 }
 //default type
 typedef double CooValueType;

@@ -118,7 +118,7 @@ protected:
 			}
 		}
 	}
-	void _find_neighbor_bf(pNode pc, )
+
 	void _construct_2d(pNode pnc, Axes a1, Axes a2, st sf1, st sb1, st sf2,
 			st sb2) {
 		ASSERT(pnc != nullptr);

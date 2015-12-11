@@ -337,7 +337,7 @@ void Interpolate_1Order(        // 2D QuadTree Node
 	ASSERT(pn != nullptr);
 	ASSERT(pn->is_in_on(x,y));
 	// get PData
-	PData_2D pdata(arridx, x, y
+
 	// stencil
 
 }

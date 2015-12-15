@@ -111,36 +111,6 @@ public:
 	}
 };
 
-typedef Point_<Float, 2> Point_2D;
-typedef Point_<Float, 3> Point_3D;
-
-/*
- *  function of the class
- */
-
-/*===============================================
- * Calculate the distance between 2 Points
- // for Point2D
- // @param   p1 Point1
- // @param   p2 Point1
- // @return     Distance
- */
-Float Distance(const Point_2D &p1, const Point_2D &p2) {
-	return sqrt(
-			double(
-					(p1.x() - p2.x()) * (p1.x() - p2.x())
-							+ (p1.y() - p2.y()) * (p1.y() - p2.y())));
-}
-//===============================================
-// Dot multiply (sp-op).(ep-op)
-// for Point2D
-// @param    p1 Point1
-// @param    p2 Point1
-// @return      the resualt of dot multiply
-//-----------------------------------------------
-Float Dot(const Point_2D &sp, const Point_2D &ep, const Point_2D &op) {
-	return ((sp.x() - op.x()) * (ep.x() - op.x()) + (sp.y() - op.y()) * (ep.y() - op.y()));
-}
 
 } //end namespace
 

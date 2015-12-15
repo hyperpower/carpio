@@ -186,6 +186,33 @@ public:
 		return (this->pey() <= v && this->psy() <= v);
 	}
 
+	bool is_vertical() const
+	{
+		ASSERT(!empty());
+		return psx() == pex();
+	}
+
+	bool is_horizontal() const
+	{
+		ASSERT(!empty());
+		return psy() == pey();
+	}
+	bool is_in_box(const Point_<TYPE, DIM> &pt) const {
+		ASSERT(!empty());
+		if (is_horizontal()) {
+			return (((psx() <= pt.x) && (pt.x <= pex()))
+					|| ((pex() <= pt.x) && (pt.x <= psx())));
+		}
+		if (is_vertical()) {
+			return (((psy() <= pt.y) && (pt.y <= pey()))
+					|| ((pey() <= pt.y) && (pt.y <= psy())));
+		}
+		return (((psx() <= pt.x) && (pt.x <= pex()))
+				|| ((pex() <= pt.x) && (pt.x <= psx())))
+				&& (((psy() <= pt.y) && (pt.y <= pey()))
+						|| ((pey() <= pt.y) && (pt.y <= psy())));
+	}
+
 protected:
 	void _set_empty() {
 		ps().x() = 0.0;
@@ -198,9 +225,6 @@ protected:
 		}
 	}
 };
-/*
- *  function out of class
- */
 
 }
 #endif

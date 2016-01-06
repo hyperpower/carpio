@@ -41,6 +41,7 @@ public:
 		}
 		_type = 0;
 	}
+	Shape_()
 
 	/*
 	 * destructor
@@ -71,14 +72,29 @@ public:
 		if (_ps2d == nullptr) {
 			return;
 		}
-		_ps2d->
+		_ps2d->clear();
+	}
+	bool empty() {
+		if (Dim == 2) {
+			return _ps2d->empty();
+		}
+		return true;
 	}
 }
 ;
 
 template<typename VALUE>
 void CreatCircle(Shape_<VALUE, 2>& s, VALUE x, VALUE y, VALUE r, int n) {
-	s
+	Float pi = 3.141592653589793238;
+	typedef typename Polygon_<VALUE>::ArrP ArrPoint;
+	typedef typename Polygon_<VALUE>::Point Poi;
+	ArrPoint arrp;
+	for (int i = 0; i < 360; i++) {
+		Float x = x + r * cos(pi / 180 * i);
+		Float y = y + r * sin(pi / 180 * i);
+		arrp.push_back(Poi(x , y));
+	}
+	return vcir;
 }
 
 }

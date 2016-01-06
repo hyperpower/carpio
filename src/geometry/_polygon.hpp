@@ -45,6 +45,9 @@ public:
 		return *this;
 	}
 	Float area();
+	void clear(){
+		_arrp.resize(0);
+	}
 	bool empty() const {
 		if (_arrp.size() == 0) {
 			return true;

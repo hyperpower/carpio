@@ -3,6 +3,7 @@
 
 #include "../carpio_define.hpp"
 #include "../geometry/geometry.hpp"
+#include "../utility/clipper.hpp"
 
 #include <iostream>
 
@@ -18,6 +19,10 @@ void test_geo() {
 	Segment_<Float, 2> seg2(p2, p3);
 	std::cout << "Is intersect : " << IsIntersect(seg1, seg2) << "\n";
 	std::cout << " =============End test==================\n";
+}
+
+void test_clipper(){
+
 }
 }
 

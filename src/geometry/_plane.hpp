@@ -113,7 +113,7 @@ public:
 	}
 	void show() const {
 		std::cout << this->a() << " X + " << this->b() << " Y + " << this->c()
-				<< " Z = " << this->alpha() << std::endl;
+				<< " Z = " << this->alpha() << "\n";
 	}
 };
 

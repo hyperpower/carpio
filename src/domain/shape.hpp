@@ -10,6 +10,10 @@
 #include <math.h>
 
 namespace carpio {
+/*
+ *  if the shape is 2D, the shape is polygon
+ *  if the shape is 3D, the shape is surface
+ */
 
 template<typename VALUE, st DIM>
 class Shape_ {
@@ -37,6 +41,7 @@ public:
 		}
 		_type = 0;
 	}
+
 	/*
 	 * destructor
 	 */
@@ -46,10 +51,35 @@ public:
 		}
 		_ps2d = nullptr;
 	}
+	/*
+	 * new
+	 */
+	void _new() {
+		if (Dim == 2) {
+			if (_ps2d == nullptr) {
+				return;
+			} else {
+				_ps2d = new S2D();
+			}
+		}
+		_type = 0;
+	}
+	/*
+	 * clear
+	 */
+	void clear() {
+		if (_ps2d == nullptr) {
+			return;
+		}
+		_ps2d->
+	}
+}
+;
 
-};
-
-
+template<typename VALUE>
+void CreatCircle(Shape_<VALUE, 2>& s, VALUE x, VALUE y, VALUE r, int n) {
+	s
+}
 
 }
 #endif

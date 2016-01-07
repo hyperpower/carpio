@@ -4,6 +4,7 @@
 #include "../carpio_define.hpp"
 #include "../geometry/geometry.hpp"
 #include "../utility/clipper.hpp"
+#include "../domain/shape.hpp"
 
 #include <iostream>
 
@@ -21,9 +22,26 @@ void test_geo() {
 	std::cout << " =============End test==================\n";
 }
 
-void test_clipper(){
-
+void test_clipper() {
+	Shape2D cir, cube;
+	CreatCircle(cir, 0.0, 0.0, 1.0, 359);
+	CreatCube(cube, 0.1,0.1,1.3, 0.9);
+	std::list<Gnuplot_actor> lga;
+	Gnuplot_actor ga;
+	GnuplotActor_Shape2D(ga, cir);
+	lga.push_back(ga);
+	GnuplotActor_Shape2D(ga, cube);
+	lga.push_back(ga);
+	//clip
+	Shape2D res;
+	Intersect(cir,cube, res);
+	GnuplotActor_Shape2D(ga, res);
+	lga.push_back(ga);
+	GnuplotShow(lga);
+	std::cout<<std::scientific<<res.volume()<<"\n";
 }
+
+
 }
 
 #endif

@@ -9,6 +9,7 @@
 #include "adaptive.hpp"
 #include "stencil.hpp"
 #include "data.hpp"
+#include "shape.hpp"
 
 namespace carpio {
 typedef Float Cvt;

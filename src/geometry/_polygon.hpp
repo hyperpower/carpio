@@ -33,7 +33,6 @@ public:
 		assert(a.size() >= 3);
 		this->_arrp = a;
 		_trim_same_points();
-		assert(_is_simple(_arrp));
 	}
 
 	Polygon_& operator=(const Polygon_ &a) {
@@ -44,7 +43,16 @@ public:
 		}
 		return *this;
 	}
-	Float area();
+	vt area() const{
+		if (empty()) {
+			return 0.0;
+		}
+		vt s = 0.00;
+		for (int i = 1; i < _arrp.size() - 1; i++) {
+			s = s + Cro(_arrp[i + 1], _arrp[i], _arrp[0]); // det to cro
+		}
+		return abs(s) / 2.00;
+	}
 	void clear(){
 		_arrp.resize(0);
 	}
@@ -142,6 +150,7 @@ protected:
 			_arrp.pop_back();
 		}
 	}
+
 
 	/*
 	 * data

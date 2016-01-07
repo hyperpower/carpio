@@ -81,6 +81,20 @@ enum IntersectType {
 	END_2 = 0x200,
 };
 
+template<typename TYPE>
+bool IsInBox(const TYPE& xmin, const TYPE& xmax, const TYPE& ymin,
+		const TYPE& ymax, const TYPE& x, const TYPE& y) {
+	ASSERT(ymin <= ymax);
+	ASSERT(xmin <= xmax);
+	if (ymin == ymax) {
+		return (xmin <= x) && (x <= xmax);
+	}
+	if (xmin == xmax) {
+		return (ymin <= y) && (y <= ymax);
+	}
+	return ((xmin <= x) && (x <= xmax)) && ((ymin <= y) && (y <= ymax));
+}
+
 template<typename TYPE, st DIM>
 bool IsInBox(const Segment_<TYPE, DIM> &s, const Point_<TYPE, DIM> &pt) {
 	ASSERT(!s.empty());
@@ -152,7 +166,13 @@ bool IsIntersect(const Segment_<TYPE, DIM> &s1, const Segment_<TYPE, DIM> &s2) {
 	int type = IntersectType(s1, s2);
 	return (type | INTERSECT) == type ? true : false;
 }
-
+template<typename TYPE, st DIM>
+bool IsIntersect(const Point_<TYPE, 2>& s1s, const Point_<TYPE, 2>& s1e,
+		const Point_<TYPE, 2>& s2s, const Point_<TYPE, 2>& s2e) {
+	Segment_<TYPE, DIM> s1(s1s, s1e);
+	Segment_<TYPE, DIM> s2(s2s, s2e);
+	return IsIntersect(s1, s2);
+}
 /*
  * Point   -------- Polygon
  */

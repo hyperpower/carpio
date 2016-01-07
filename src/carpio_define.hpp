@@ -12,8 +12,7 @@
 #include <unordered_map>
 #include <assert.h>
 
-
-namespace carpio{
+namespace carpio {
 
 #define ASSERT(expr) assert(expr)
 #define ASSERT_MSG(expr, msg) assert((expr)&&(msg))
@@ -28,7 +27,6 @@ typedef double Float;
 typedef void* utPointer;
 typedef const void* const_utPointer;
 
-
 // std  container
 template<typename T>
 using Vector = std::vector<T>;
@@ -38,8 +36,14 @@ using Vector = std::vector<T>;
 #define _ERROR     1
 #define _WARNING   2
 
-
+template<class TYPE>
+inline TYPE Max(TYPE a, TYPE b) {
+	return a >= b ? a : b;
 }
-
+template<class TYPE>
+inline TYPE Min(TYPE a, TYPE b) {
+	return a <= b ? a : b;
+}
+}
 
 #endif

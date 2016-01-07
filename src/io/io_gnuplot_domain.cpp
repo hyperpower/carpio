@@ -84,6 +84,23 @@ int GnuplotActor_LeafNodesContours(Gnuplot_actor& actor, const Grid_2D& g,
 	return _SUCCESS;
 }
 
+/*
+ * shape
+ */
+int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g) {
+	actor.data().clear();
+	actor.command() = "using 1:2 ";
+	typedef typename Shape2D::S2D::Point Poi;
+	for (st i = 0; i < g.size_vertexs(); ++i) {
+		const Poi& p = g.v(i);
+		actor.data().push_back(ToString(p.x(), p.y(), " "));
+	}
+	const Poi& pstart = g.v(0);
+	actor.data().push_back(ToString(pstart.x(), pstart.y(), " "));
+	actor.data().push_back("");
+	return _SUCCESS;
+}
+
 int GnuplotActor_Stencil(Gnuplot_actor& actor, const Stencil_2D1& s) {
 	actor.command() = "using 1:2 title \"\" ";
 	for (st i = 0; i < s.size(); ++i) {

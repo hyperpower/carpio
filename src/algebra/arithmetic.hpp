@@ -114,6 +114,7 @@ namespace carpio {
         return _PI_ * h * (R * R + r * r + R * r) / 3;
     }
 
+
     template<class TYPE>
     inline TYPE Max(TYPE a, TYPE b, bool (*Comp_ge)(const TYPE &, const TYPE &)) {
         return Comp_ge(a, b) ? a : b;

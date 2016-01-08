@@ -177,6 +177,7 @@ protected:
 				return;
 			} else {
 				(*pfun)(pn, utp);
+				_IF_TRUE_RETRUN(pn==nullptr);
 				if (pn->has_child()) {
 					arrayList avt(NumChildren);
 					pfun_con(avt, pn, utp);
@@ -195,6 +196,7 @@ protected:
 				return;
 			} else {
 				(*pfun)(pn, utp);
+				_IF_TRUE_RETRUN(pn==nullptr);
 				if (pn->has_child()) {
 					for (int i = 0; i < NumChildren; i++) {
 						pNode c = pn->child[i];
@@ -212,6 +214,7 @@ protected:
 				return;
 			} else {
 				fun(pn, args);
+				_IF_TRUE_RETRUN(pn==nullptr);
 				if (pn->has_child()) {
 					for (int i = 0; i < NumChildren; i++) {
 						pNode c = pn->child[i];
@@ -229,6 +232,7 @@ protected:
 				return;
 			} else {
 				fun(pn, args);
+				_IF_TRUE_RETRUN(pn==nullptr);
 				if (pn->has_child()) {
 					for (int i = 0; i < NumChildren; i++) {
 						pNode c = pn->child[i];
@@ -345,13 +349,16 @@ protected:
 			}
 			return false;
 		}
+		inline bool has_child(st idx) const {
+			ASSERT(idx < this->NumChildren);
+			if (this->child[idx] != nullptr) {
+				return true;
+			}
+			return false;
+		}
 
 		inline bool is_leaf() const {
 			return !has_child();
-		}
-
-		inline bool has_child(st idx) const {
-			return this->child[idx] != nullptr;
 		}
 
 		inline bool is_root() const {
@@ -441,6 +448,28 @@ protected:
 							cy + (is_y_p(i) ? nhdx : -nhdx), nhdy,//
 							cz + (is_z_p(i) ? nhdx : -nhdx), nhdz);
 				}
+			}
+		}
+		void new_child(st idx) {
+			ASSERT(idx < this->NumChildren);
+			if (!has_child()) {
+				st ltmp = _level + 1;
+				vt nhdx = this->cell->get_hd(_X_) * 0.5;
+				vt nhdy = this->cell->get_hd(_Y_) * 0.5;
+				vt nhdz = this->cell->get_hd(_Z_) * 0.5;
+				vt cx = this->cell->get(_C_, _X_);
+				vt cy = this->cell->get(_C_, _Y_);
+				vt cz = this->cell->get(_C_, _Z_);
+				pNode f = this;
+				int nt = 1;
+				st l = ltmp;
+				st ridx = _root_idx;
+				st npath = idx;
+				this->child[idx] = new Node_( //
+						f, nt, l, ridx, npath,//
+						cx + (is_x_p(idx) ? nhdx : -nhdx), nhdx,//
+						cy + (is_y_p(idx) ? nhdx : -nhdx), nhdy,//
+						cz + (is_z_p(idx) ? nhdx : -nhdx), nhdz);
 			}
 		}
 

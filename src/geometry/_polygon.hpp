@@ -51,7 +51,7 @@ public:
 		for (int i = 1; i < _arrp.size() - 1; i++) {
 			s = s + Cro(_arrp[i + 1], _arrp[i], _arrp[0]); // det to cro
 		}
-		return abs(s) / 2.00;
+		return Abs(s) / 2.00;
 	}
 	void clear(){
 		_arrp.resize(0);

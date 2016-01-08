@@ -16,7 +16,7 @@ inline void test_grid_2d() {
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
 	Adaptive<Float, Float, 2> adp(&g, 2, 5);
-	adp.adapt();
+	adp.adapt_full();
 
 	//GnuplotShow_RootNodes(g);
 	// test iterator
@@ -37,7 +37,7 @@ inline void test_stencil_1d() {
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
 	Adaptive<Float, Float, 2> adp(&g, 2, 5);
-	adp.adapt();
+	adp.adapt_full();
 	//stencil
 	Grid_<Float, Float, 2>::iterator_leaf il = g.begin_leaf();
 	++il;
@@ -66,7 +66,7 @@ inline void test_interpolate_1d() {
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
 	Adaptive<Float, Float, 2> adp(&g, 2, 5);
-	adp.adapt();
+	adp.adapt_full();
 	// new value on leaf
 	NewCenterDataOnLeaf(g, 2);
 	// set value on leaf
@@ -77,17 +77,38 @@ inline void test_interpolate_1d() {
 	++il;
 	++il;
 	++il;
-	st idx =0;
+	st idx = 0;
 	Float res;
 	il->show();
 	InterpolateOnFace_1Order(il.get_pointer(), _XM_, idx, res);
-	std::cout<<"pnode c  : "<< il->cd(0) <<std::endl;
-	std::cout<<"res      : "<< res <<std::endl;
+	std::cout << "pnode c  : " << il->cd(0) << std::endl;
+	std::cout << "res      : " << res << std::endl;
 	// show
 	std::list<Gnuplot_actor> lga;
 	Gnuplot_actor ga_leaf, ga_stencil;
 	GnuplotActor_LeafNodesContours(ga_leaf, g, 0);
 	lga.push_back(ga_leaf);
+	GnuplotShow(lga);
+}
+
+void test_adapt_solid() {
+	Grid_<Float, Float, 2> g(2, 0.0, 1, //
+			                 2, 0.0, 1);
+	g.connect_root();
+	std::cout << "num root : " << g.get_num_root() << std::endl;
+	Adaptive<Float, Float, 2> adp(&g, 2, 7);
+	//adp.adapt_full();
+	// shape
+	Shape2D cir;
+	CreatCircle(cir, 0.0, 0.0, 1.0, 359);
+	adp.adapt_solid(cir);
+	// show
+	std::list<Gnuplot_actor> lga;
+	Gnuplot_actor ga;
+	GnuplotActor_LeafNodes(ga, g);
+	lga.push_back(ga);
+	GnuplotActor_Shape2D(ga, cir);
+	lga.push_back(ga);
 	GnuplotShow(lga);
 }
 }

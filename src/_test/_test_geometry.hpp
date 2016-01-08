@@ -24,8 +24,8 @@ void test_geo() {
 
 void test_clipper() {
 	Shape2D cir, cube;
-	CreatCircle(cir, 0.0, 0.0, 1.0, 359);
-	CreatCube(cube, 0.1,0.1,1.3, 0.9);
+	CreatCircle(cir, 0.0, 0.0, 1.5, 359);
+	CreatCube(cube, 0.0,0.0,1.0, 1.0);
 	std::list<Gnuplot_actor> lga;
 	Gnuplot_actor ga;
 	GnuplotActor_Shape2D(ga, cir);

@@ -37,12 +37,16 @@ using Vector = std::vector<T>;
 #define _WARNING   2
 
 template<class TYPE>
-inline TYPE Max(TYPE a, TYPE b) {
+inline TYPE Max(const TYPE& a, const TYPE& b) {
 	return a >= b ? a : b;
 }
 template<class TYPE>
-inline TYPE Min(TYPE a, TYPE b) {
+inline TYPE Min(const TYPE& a, const TYPE& b) {
 	return a <= b ? a : b;
+}
+template<class TYPE>
+inline TYPE Abs(const TYPE& s){
+	return s<0?-s:s;
 }
 }
 

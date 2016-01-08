@@ -102,6 +102,9 @@ public:
 	}
 	bool empty() {
 		if (Dim == 2) {
+			if(_ps2d == nullptr){
+				return true;
+			}
 			return _ps2d->empty();
 		}
 		return true;
@@ -229,8 +232,8 @@ template<typename VALUE>
 void ToShape(const ClipperLib::Path& path, Shape_<VALUE, 2>& shape,
 		ClipperLib::cInt coe) {
 	typedef typename Polygon_<VALUE>::ArrP ArrPoint;
-	ArrPoint arrp(path.size() - 1);
-	for (st i = 0; i < arrp.size(); i++) {
+	ArrPoint arrp(path.size());
+	for (st i = 0; i < arrp.size(); ++i) {
 		arrp[i].x() = VALUE(path[i].X / VALUE(coe));
 		arrp[i].y() = VALUE(path[i].Y / VALUE(coe));
 	}
@@ -292,6 +295,48 @@ bool IsIntersect(const Shape_<VALUE, DIM>& sub,
 		return false;
 	} else {
 		return true;
+	}
+}
+
+template<typename VALUE, st DIM>
+void Difference(const Shape_<VALUE, DIM>& sub, const Shape_<VALUE, DIM>& clip,
+		Shape_<VALUE, DIM>& res) {
+	ASSERT(DIM == 2); //temp
+	/*
+	 * 2D clip
+	 */
+	res.clear();
+	typedef VALUE tF;
+	// 2 change the coordinate type
+	tF maxx = Max(sub.max_x(), clip.max_x());
+	tF minx = Min(sub.min_x(), clip.min_x());
+	tF maxy = Max(sub.max_y(), clip.max_y());
+	tF miny = Min(sub.min_y(), clip.min_y());
+	tF max = Max(maxx, maxy);
+	tF min = Min(minx, miny);
+	tF coe = ClipperLib::GetCoe(max, min);
+	ClipperLib::Path psub;
+	ToPath(sub, psub, coe);
+	ClipperLib::Paths pssub(1);
+	pssub[0] = psub;
+	//
+	ClipperLib::Path pclip;
+	ToPath(clip, pclip, coe);
+	ClipperLib::Paths psclip(1);
+	psclip[0] = pclip;
+
+	// 3 using clipper lib
+	ClipperLib::Clipper clpr;
+	clpr.AddPaths(pssub, ClipperLib::ptSubject, true);
+	clpr.AddPaths(psclip, ClipperLib::ptClip, true);
+	ClipperLib::Paths solution;
+	clpr.Execute(ClipperLib::ctDifference, solution, ClipperLib::pftEvenOdd,
+			ClipperLib::pftEvenOdd);
+	// 4 to shape
+	if (!solution.empty()) {
+		if (solution[0].size() > 3) {
+			ToShape(solution[0], res, coe);
+		}
 	}
 }
 

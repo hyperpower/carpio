@@ -111,6 +111,8 @@ void test_adapt_solid() {
 	lga.push_back(ga);
 	GnuplotShow(lga);
 }
+
+
 }
 
 #endif

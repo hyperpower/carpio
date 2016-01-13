@@ -174,7 +174,7 @@ public:
 	Stencil_(pNode pnc, Axes a1, Axes a2, st sf1, st sb1, st sf2, st sb2) :
 			_pnodes(), _axes(Dim), _steps_f(Dim), _steps_b(Dim) {
 		ASSERT(Dim == 2);
-		_construct_2d(pnc, a1, sf1, sb1);
+		_construct_2d(pnc, a1, a2, sf1, sb1, sf2, sb2);
 	}
 
 protected:

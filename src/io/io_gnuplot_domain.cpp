@@ -102,6 +102,7 @@ int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g) {
 }
 
 int GnuplotActor_Stencil(Gnuplot_actor& actor, const Stencil_2D1& s) {
+	actor.clear();
 	actor.command() = "using 1:2 title \"\" ";
 	for (st i = 0; i < s.size(); ++i) {
 		Stencil_2D1::const_pNode pn = s.at_1d(i);

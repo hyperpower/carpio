@@ -84,7 +84,11 @@ public:
 	const std::list<std::string>& data() const {
 		return _data;
 	}
-
+	void clear() {
+		_pcmd = "";
+		_scmd = "";
+		_data.clear();
+	}
 	void show_command() const {
 		std::cout << "Actor command :" << _pcmd << "\n";
 	}

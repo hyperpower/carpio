@@ -93,7 +93,7 @@ inline void test_interpolate_1d() {
 
 void test_adapt_solid() {
 	Grid_<Float, Float, 2> g(2, 0.0, 1, //
-			                 2, 0.0, 1);
+			2, 0.0, 1);
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
 	Adaptive<Float, Float, 2> adp(&g, 2, 7);
@@ -112,6 +112,39 @@ void test_adapt_solid() {
 	GnuplotShow(lga);
 }
 
+void test_stencil_2D() { //jan 13, 2016
+	std::cout << "test stencil 2D   ================\n";
+	Grid_<Float, Float, 2> g(2, 0.0, 1, //
+			2, 0.0, 1);
+	g.connect_root();
+	std::cout << "num root : " << g.get_num_root() << std::endl;
+	Adaptive<Float, Float, 2> adp(&g, 2, 5);
+	//adp.adapt_full();
+	// shape
+	Shape2D cir;
+	CreatCircle(cir, 0.0, 0.0, 1.0, 359);
+	adp.adapt_solid(cir);
+	//stencil ==============================
+	Grid_<Float, Float, 2>::iterator_leaf il = g.begin_leaf();
+	++il;
+	++il;
+	++il;
+	++il;
+	Stencil_2D1 st(il.get_pointer(), _Y_, 2, 1);
+	st.show();
+	std::cout << "Stencil \n";
+
+	// show ================================
+	std::list<Gnuplot_actor> lga;
+	Gnuplot_actor ga;
+	GnuplotActor_LeafNodes(ga, g);
+	lga.push_back(ga);
+	GnuplotActor_Shape2D(ga, cir);
+	lga.push_back(ga);
+	GnuplotActor_Stencil(ga, st);
+	lga.push_back(ga);
+	GnuplotShow(lga);
+}
 
 }
 

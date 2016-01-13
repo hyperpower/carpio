@@ -25,14 +25,13 @@ protected:
 	ArrayListV<vt> _center;
 	ArrayListV<vt> _face[NumFaces];
 	ArrayListV<vt> _vertex[NumVertexes];
-	utPointer untype;
+	ArrayListT<utPointer> _untype;
 public:
 	Data_() {
 		_idx = 0;
-		untype = nullptr;
 	}
 	Data_(const st& nc, const st& nf, const st& nv, utPointer utp) :
-			_center(nc) {
+			_center(nc), _untype(1) {
 		_idx = 0;
 		for (int i = 0; i < NumFaces; ++i) {
 			_face[i].reconstruct(nf);
@@ -40,7 +39,7 @@ public:
 		for (int i = 0; i < NumVertexes; ++i) {
 			_face[i].reconstruct(nv);
 		}
-		untype = utp;
+		_untype[0] = utp;
 	}
 
 	inline vt& center(const st& i) {
@@ -63,15 +62,26 @@ public:
 		return _face[i];
 	}
 
-	inline vt& vertex(const Direction d, const st i) {
+	inline vt& vertex(const Direction d, const st& i) {
 		ASSERT(i < this->NumVertexes);
 		return _vertex[i];
 	}
 
-	inline const vt& vertex(const Direction d, const st i) const {
+	inline const vt& vertex(const Direction d, const st& i) const {
 		ASSERT(i < this->NumVertexes);
 		return _vertex[i];
 	}
+
+	inline utPointer& utp(const st& i) {
+		ASSERT(i < _untype.size());
+		return _untype[i];
+	}
+
+	inline const utPointer& utp(const st& i) const{
+		ASSERT(i < _untype.size());
+		return _untype[i];
+	}
+
 	/*
 	 *  resize
 	 */

@@ -8,7 +8,7 @@
 #include "shape.hpp"
 
 namespace carpio {
-template<typename COO_VALUE, typename VALUE, int DIM>
+template<typename COO_VALUE, typename VALUE, st DIM>
 void _visit_current_info(Node_<COO_VALUE, VALUE, DIM> *pn, utPointer utp) {
 	ArrayListV<st> &arr = CAST_REF(ArrayListV<st>*, utp);
 	st &min_l = arr[0];
@@ -35,12 +35,12 @@ public:
 
 	typedef COO_VALUE coo_value_t;
 	typedef VALUE value_t;
-	typedef Grid_<COO_VALUE, VALUE, DIM> grid;
-	typedef Grid_<COO_VALUE, VALUE, DIM> *pgrid;
-	typedef Cell_<COO_VALUE, Dim> cell_t;
-	typedef cell_t *pcell;
-	typedef Data_<VALUE, Dim> data_t;
-	typedef data_t *pdata;
+	typedef Grid_<COO_VALUE, VALUE, DIM> Grid;
+	typedef Grid_<COO_VALUE, VALUE, DIM> *pGrid;
+	typedef Cell_<COO_VALUE, Dim> Cell;
+	typedef Cell *pCell;
+	typedef Data_<VALUE, Dim> Data;
+	typedef Data *pData;
 	typedef Node_<COO_VALUE, VALUE, DIM> Node;
 	typedef Node_<COO_VALUE, VALUE, DIM> *pNode;
 	typedef typename SpaceT<pNode, Dim>::reference reference;
@@ -63,7 +63,7 @@ protected:
 	//st _min_num_n;
 	//st _max_num_n;
 
-	pgrid _grid;
+	pGrid _grid;
 
 	/**
 	 *  protected function
@@ -121,37 +121,77 @@ public:
 		// 2 all out   -> adapt to min level
 		// 3 all in    -> do not initial
 		// 4 intersect -> adapt to max level
-		std::function<void(pNode, st)> fun = [this, &shape](pNode pn, st max_l) {
-			if(pn->is_leaf()) {
-				Shape2D sn,res;
-				CreatCube(sn,
-						pn->p(_M_,_X_), pn->p(_M_,_Y_),
-						pn->p(_P_,_X_), pn->p(_P_,_Y_));
-				Intersect(sn,shape,res);
-				if(res.empty()) { //node is all out
-					if(pn->get_level() < this->_min_l) {
-						pn->new_full_child();
+		std::function<void(pNode, st)> fun =
+				[this, &shape](pNode pn, st max_l) {
+					if(pn->is_leaf()) {
+						Shape2D sn,res;
+						CreatCube(sn,
+								pn->p(_M_,_X_), pn->p(_M_,_Y_),
+								pn->p(_P_,_X_), pn->p(_P_,_Y_));
+						Intersect(sn,shape,res);
+						if(res.empty()) { //node is all out
+							if(pn->get_level() < this->_min_l) {
+								pn->new_full_child();
+							}
+						} else if(Abs(res.volume() - sn.volume())<1e-8) { // all in
+							if(pn->is_root()) {
+								delete pn;
+								pn=nullptr;
+							} else {
+								pNode f = pn->father;
+								f->child[pn->get_idx()] = nullptr;
+								delete pn;
+								pn=nullptr;
+							}
+						} else {  //intersect
+							if(pn->get_level() < max_l) {
+								pn->new_full_child();
+							}
+						}
 					}
-				} else if(Abs(res.volume() - sn.volume())<1e-8) { // all in
-					if(pn->is_root()){
-						delete pn;
-						pn=nullptr;
-					}else{
-						pNode f =  pn->father;
-						f->child[pn->get_idx()] = nullptr;
-						delete pn;
-						pn=nullptr;
-					}
-				} else {  //intersect
-					if(pn->get_level() < max_l) {
-						pn->new_full_child();
-					}
-				}
-			}
-		};
+				};
 
 		for (int i = 0; i < _grid->size(); i++) {
 			pNode pn = _grid->nodes.at_1d(i);
+			if (pn != nullptr) {
+				pn->traversal(fun, _max_l);
+			}
+		}
+		_update_current_info();
+	}
+	void adapt_vof(const Shape_<VALUE, DIM>& shape) {
+		// 1 adapt to min level
+		// adapt_full();
+		// 2 all out   -> adapt to min level
+		// 3 all in    -> adapt to min level
+		// 4 intersect -> adapt to max level
+		std::function<void(pNode, st)> fun =
+				[this, &shape](pNode pn, st max_l) {
+					if(pn->is_leaf()) {
+						Shape2D sn,res;
+						CreatCube(sn,
+								pn->p(_M_,_X_), pn->p(_M_,_Y_),
+								pn->p(_P_,_X_), pn->p(_P_,_Y_));
+						Intersect(sn,shape,res);
+						if(res.empty()) { //node is all out
+							if(pn->get_level() < this->_min_l) {
+								pn->new_full_child();
+							}
+						} else if(Abs(res.volume() - sn.volume())<1e-8) { // all in
+							if(pn->get_level() < this->_min_l) {
+								pn->new_full_child();
+							}
+						} else {  //intersect
+							if(pn->get_level() < max_l) {
+								pn->new_full_child();
+							}
+						}
+					}
+				};
+
+		for (typename Grid::iterator_leaf iter = _grid->begin_leaf();
+				iter!=_grid->end_leaf();++iter) {
+			pNode pn = iter.get_pointer();
 			if (pn != nullptr) {
 				pn->traversal(fun, _max_l);
 			}

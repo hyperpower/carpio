@@ -13,7 +13,7 @@
 
 namespace carpio {
 
-template<typename COO_VALUE, typename VALUE, int DIM, int DIMST>
+template<typename COO_VALUE, typename VALUE, st DIM, st DIMST>
 class Stencil_ {
 public:
 	static const st Dim = DIMST;  //Dimension of stencil
@@ -119,14 +119,12 @@ protected:
 		}
 	}
 
-	void _construct_2d(pNode pnc, Axes a1, Axes a2, st sf1, st sb1, st sf2,
-			st sb2) {
-		ASSERT(pnc != nullptr);
+	void _construct_2d_initial(st sf1, st sb1, st sf2, st sb2) {
 		ASSERT(Dim == 2);
-		_axes[0] = a1;
+		_axes[0] = _X_;
 		_steps_f[0] = sf1;
 		_steps_b[0] = sb1;
-		_axes[1] = a2;
+		_axes[1] = _Y_;
 		_steps_f[1] = sf2;
 		_steps_b[1] = sb2;
 		_pnodes.reconstruct(sf1 + sb1 + 1, sf2 + sb2 + 1);
@@ -135,30 +133,90 @@ protected:
 			_pnodes.at_1d(i).pnode = nullptr;
 			_pnodes.at_1d(i).type = 0;   //whish is not created by this class
 		}
+	}
+	void _construct_2d_1(pNode pn, st idx, Axes a, st sf, st sb) {
+		ASSERT(Dim == 2);
+		ASSERT(pn != nullptr);
+		st ixc = (a == _X_) ? sb : idx;
+		st iyc = (a == _X_) ? idx : sb;
 		// set center node
-		_pnodes(sb1,sb2).pnode = pnc;
-		//find neighbor forward
-		pNode pc = pnc;
-		for (st i = 0; i < sf1; ++i) {
+		_pnodes(ixc, iyc).pnode = pn;
+		// find neighbor forward;
+		pNode pc = pn;
+		for (st i = 0; i < sf; ++i) {
 			pNode pnt = nullptr;
-			pnt = _neighbor_forward(pc, a1);
+			pnt = _neighbor_forward(pc, a);
 			if (pnt == nullptr) {
 				break;
 			} else {
-				_pnodes(sb1 + i + 1, sb2).pnode = pnt;
+				pNode& ref_pn =
+						(a == _X_) ?
+								_pnodes(ixc + i + 1, iyc).pnode :
+								_pnodes(ixc, iyc + i + 1).pnode;
+				if (ref_pn != nullptr) {
+					if (pnt->get_level() > ref_pn->get_level()) {
+						ref_pn = pnt;
+					}
+				} else {
+					ref_pn = pnt;
+				}
 				pc = pnt;
 			}
 		}
-		//find neighbor backward
-		pc = pnc;
-		for (st i = 0; i < sb1; ++i) {
+		// find neighbor backward;
+		pc = pn;
+		for (st i = 0; i < sb; ++i) {
 			pNode pnt = nullptr;
-			pnt = _neighbor_backward(pc, a1);
+			pnt = _neighbor_backward(pc, a);
 			if (pnt == nullptr) {
 				break;
 			} else {
-				_pnodes(sb1 - i - 1, sb2).pnode = pnt;
+				pNode& ref_pn =
+						(a == _X_) ?
+								_pnodes(ixc - i - 1, iyc).pnode :
+								_pnodes(ixc, iyc - i - 1).pnode;
+				if (ref_pn != nullptr) {
+					if (pnt->get_level() > ref_pn->get_level()) {
+						ref_pn = pnt;
+					}
+				} else {
+					ref_pn = pnt;
+				}
 				pc = pnt;
+			}
+		}
+	}
+	void _construct_2d(pNode pnc, st sf1, st sb1, st sf2, st sb2) {
+		ASSERT(pnc != nullptr);
+		_construct_2d_initial(sf1, sb1, sf2, sb2);
+		// set center node
+		_pnodes(sb1, sb2).pnode = pnc;
+		_construct_2d_1(pnc, sb2, _X_, sf1, sb1);
+		_construct_2d_1(pnc, sb1, _Y_, sf2, sb2);
+		// loop a1, find pnode on a2
+		for (st i = 0; i < sb1; ++i) {
+			pNode pc = _pnodes(i, sb2).pnode;
+			if (pc != nullptr) {
+				_construct_2d_1(pc, i, _Y_, sf2, sb2);
+			}
+		}
+		for (st i = sb1 + 1; i <= sb1 + sf1; ++i) {
+			pNode pc = _pnodes(i, sb2).pnode;
+			if (pc != nullptr) {
+				_construct_2d_1(pc, i, _Y_, sf2, sb2);
+			}
+		}
+		// loop a2, find pnode on a1
+		for (st i = 0; i < sb2; ++i) {
+			pNode pc = _pnodes(sb1, i).pnode;
+			if (pc != nullptr) {
+				_construct_2d_1(pc, i, _X_, sf1, sb1);
+			}
+		}
+		for (st i = sb2 + 1; i <= sb2 + sf2; ++i) {
+			pNode pc = _pnodes(sb1, i).pnode;
+			if (pc != nullptr) {
+				_construct_2d_1(pc, i, _X_, sf1, sb1);
 			}
 		}
 	}
@@ -171,10 +229,10 @@ public:
 		ASSERT(Dim == 1);
 		_construct_1d(pnc, a1, sf1, sb1);
 	}
-	Stencil_(pNode pnc, Axes a1, Axes a2, st sf1, st sb1, st sf2, st sb2) :
+	Stencil_(pNode pnc, st sf1, st sb1, st sf2, st sb2) :
 			_pnodes(), _axes(Dim), _steps_f(Dim), _steps_b(Dim) {
 		ASSERT(Dim == 2);
-		_construct_2d(pnc, a1, a2, sf1, sb1, sf2, sb2);
+		_construct_2d(pnc, sf1, sb1, sf2, sb2);
 	}
 
 protected:
@@ -242,6 +300,12 @@ public:
 	}
 	Axes axes(st i = 0) const {
 		return _axes[i];
+	}
+	void clear() {
+		for (st i = 0; i < _pnodes.size(); ++i) {
+			_pnodes.at_1d(i).pnode = nullptr;
+			_pnodes.at_1d(i).type = 0;   //whish is not created by this class
+		}
 	}
 protected:
 	bool _is_valid_axes(Axes a) {

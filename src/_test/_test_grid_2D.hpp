@@ -7,6 +7,7 @@
 #include "../domain/stencil.hpp"
 #include "../calculation/scalar.h"
 #include "../calculation/interpolate.h"
+#include "../calculation/vof.h"
 
 namespace carpio {
 
@@ -125,12 +126,12 @@ void test_stencil_2D() { //jan 13, 2016
 	CreatCircle(cir, 0.0, 0.0, 1.0, 359);
 	adp.adapt_solid(cir);
 	//stencil ==============================
-	Grid_<Float, Float, 2>::iterator_leaf il = g.begin_leaf();
-	++il;
-	++il;
-	++il;
-	++il;
-	Stencil_2D1 st(il.get_pointer(), _Y_, 2, 1);
+	Float x = 1.51;
+	Float y = 1.51;
+	Float z = 0.0;
+	Grid_<Float, Float, 2>::pNode pn = nullptr;
+	pn = g.get_pnode(x, y, z);
+	Stencil_2D2 st(pn, 3, 3, 3, 3);
 	st.show();
 	std::cout << "Stencil \n";
 
@@ -143,6 +144,41 @@ void test_stencil_2D() { //jan 13, 2016
 	lga.push_back(ga);
 	GnuplotActor_Stencil(ga, st);
 	lga.push_back(ga);
+	GnuplotShow(lga);
+}
+
+void test_adapt_vof() { //jan 13, 2016
+	std::cout << "test adapt initial vof  ================\n";
+	Grid_<Float, Float, 2> g(4, -2.0, 1, //
+			4, -2.0, 1);
+	g.connect_root();
+	std::cout << "num root : " << g.get_num_root() << std::endl;
+	Adaptive<Float, Float, 2> adp(&g, 2, 5);
+	//adp.adapt_full();
+	// shape
+	Shape2D cir;
+	CreatCircle(cir, 0.0, 0.0, 1.0, 359);
+	adp.adapt_solid(cir);
+	// ==============================
+	// shape for vof
+	Shape2D cir2;
+	CreatCircle(cir2, 0.7, 0.0, 1.5, 359);
+	adp.adapt_vof(cir2);
+	g.new_data_on_leaf(1,0,0,1);
+	Vof_<Float, Float, 2> vof(&g,0,0);
+	vof.set_color(cir2);
+
+	// show ================================
+	std::list<Gnuplot_actor> lga;
+	Gnuplot_actor ga;
+	GnuplotActor_LeafNodesContours(ga,g,0);
+	lga.push_back(ga);
+	GnuplotActor_LeafNodes(ga, g);
+	lga.push_back(ga);
+	GnuplotActor_Shape2D(ga, cir);
+	lga.push_back(ga);
+
+
 	GnuplotShow(lga);
 }
 

@@ -9,7 +9,7 @@
 
 namespace carpio {
 
-template<typename COO_VALUE, typename VALUE, int DIM>
+template<typename COO_VALUE, typename VALUE, st DIM>
 class Grid_ {
 public:
 	static const st Dim = DIM;
@@ -252,7 +252,7 @@ public:
 	 *  iterator leaf node
 	 */
 protected:
-	template<typename COV, typename V, int D, class _Ref, class _Ptr>
+	template<typename COV, typename V, st D, class _Ref, class _Ptr>
 	class iterator_leaf_ {
 	public:
 		typedef COV cvt;
@@ -287,7 +287,7 @@ protected:
 				_f(f), _idx(idx), _ptr(ptr) {
 		}
 		iterator_leaf_(const iterator& _x) :
-			_f(_x._f), _idx(_x._idx), _ptr(_x._ptr){
+				_f(_x._f), _idx(_x._idx), _ptr(_x._ptr) {
 		}
 	protected:
 		pNode _incr_root() {
@@ -402,40 +402,37 @@ public:
 		return const_iterator_leaf(this, idx, pt);
 	}
 
+	pNode get_pnode(const cvt& x, const cvt& y, const cvt& z = 0.0) {
+		for (const_iterator iter = this->begin(); iter != this->end(); ++iter) {
+			pNode pn = (*iter);
+			if (pn != nullptr) {
+				if (pn->cell->is_in_on(x, y, z)) {
+					return GetpNodeAt(pn, x, y, z);
+				}
+			}
+		}
+		return nullptr;
+	}
+	/*
+	 * new data
+	 */
+	pNode new_data_on_leaf(const st& nc, const st& nf, const st& nv,
+			const st& nutp) {
+		for (iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
+				++iter) {
+			pNode pn = iter.get_pointer();
+			if (pn != nullptr) {
+				pn->new_data(nc,nf,nv,nutp);
+			}
+		}
+		return nullptr;
+	}
+
 };
 
 /*
  *  Function out of class =================================================
  */
-
-
-
-template<typename COO_VALUE, typename VALUE, int DIM>
-Node_<COO_VALUE, VALUE, DIM> *
-GetpNodeAt(Grid_<COO_VALUE, VALUE, DIM> *pg, const COO_VALUE &x,
-		const COO_VALUE &y = 0, const COO_VALUE &z = 0) {
-	typedef Node_<COO_VALUE, VALUE, DIM> *pnode;
-	for (typename Grid_<COO_VALUE, VALUE, DIM>::iterator iter = pg->begin();
-			iter != pg->end(); ++iter) {
-		pnode pn = (*iter);
-		if (pn != nullptr) {
-			if (pn->cell->is_in_on(x, y, z)) {
-				return GetpNodeAt(pn, x, y, z);
-			}
-		}
-	}
-	return nullptr;
-
-}
-
-
-
-template<typename COO_VALUE, typename VALUE, int DIM>
-const Node_<COO_VALUE, VALUE, DIM> *
-GetpNodeAt(const Grid_<COO_VALUE, VALUE, DIM> *pg, const COO_VALUE &x,
-		const COO_VALUE &y = 0, const COO_VALUE &z = 0) {
-
-}
 
 }
 #endif

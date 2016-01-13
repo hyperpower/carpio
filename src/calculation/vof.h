@@ -1,5 +1,5 @@
-#ifndef SCALAR_H_
-#define SCALAR_H_
+#ifndef _VOF_H_
+#define _VOF_H_
 
 #include "../carpio_define.hpp"
 #include "../domain/domain.hpp"
@@ -152,14 +152,15 @@ public:
 	typedef Vof_face_<COO_VALUE, VALUE, DIM>* pVoff;
 	typedef Vof_face_<COO_VALUE, VALUE, DIM>& ref_Voff;
 
+	typedef Stencil_<COO_VALUE, VALUE, DIM, DIM> Stencil;
 protected:
 	/*
 	 * Data
 	 */
+	pGrid _pg;
+
 	st _c_idx;  //idx c on data
 	st _f_idx;  //idx vof_face on utPoint
-
-	pGrid _pg;
 
 public:
 	/*
@@ -169,9 +170,52 @@ public:
 			_pg(pg), _c_idx(ci), _f_idx(fi) {
 	}
 	/*
+	 * get
+	 */
+	st& c_idx() {
+		return _c_idx;
+	}
+	const st& c_idx() const {
+		return _c_idx;
+	}
+	st& f_idx() {
+		return _f_idx;
+	}
+	const st& f_idx() const {
+		return _f_idx;
+	}
+
+
+	/*
+	 * set initial color function
+	 */
+	void set_color(const Shape_<cvt, Dim>& shape) {
+		for (typename Grid::iterator_leaf iter = _pg->begin_leaf();
+				iter != _pg->end_leaf(); ++iter) {
+			pNode pn = iter.get_pointer();
+			if (pn != nullptr) {
+				Shape2D sn, res;
+				CreatCube(sn, pn->p(_M_, _X_), pn->p(_M_, _Y_), pn->p(_P_, _X_),
+						pn->p(_P_, _Y_));
+				Intersect(sn, shape, res);
+				vt rv = res.volume();
+				vt sv = sn.volume();
+				if (res.empty()) { //node is all out
+					pn->cd(this->_c_idx) = 0.0;
+				} else if (Abs(rv - sv) < 1e-8) { // all in
+					pn->cd(this->_c_idx) = 1.0;
+				} else {  //intersect
+					pn->cd(this->_c_idx) = rv / sv;
+				}
+			}
+		}
+	}
+	/*
 	 *  calculate a and b
 	 */
+	void get_stencil(Stencil& sten, pNode pn){
 
+	}
 	/*
 	 *  construct face
 	 *  C get line equation
@@ -257,3 +301,4 @@ protected:
 };
 
 }
+#endif

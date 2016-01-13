@@ -86,7 +86,7 @@ static const int _E_ = 1;
 static const int _F_C_ = 2;
 static const int _C_F_ = 3;
 
-#define _TEMPLATE_COOV_V_DIM_ template<typename COO_VALUE, typename VALUE, int DIM>
+#define _TEMPLATE_COOV_V_DIM_ template<typename COO_VALUE, typename VALUE, st DIM>
 #define _COOV_V_DIM_ COO_VALUE, VALUE, DIM
 
 _TEMPLATE_COOV_V_DIM_ class Node_ {
@@ -835,6 +835,16 @@ protected:
 				return 0.0;
 			}
 			return this->cell->get(ToOrientation(dir, axes), axes);
+		}
+		/*
+		 *  data
+		 */
+		void new_data(const st& nc, const st& nf, const st& nv, const st& nutp){
+			if(this->data ==nullptr){
+				this->data = new Data(nc,nf,nv,nutp);
+			}else{
+				this->data->reconstruct(nc,nf,nv,nutp);
+			}
 		}
 		/*
 		 *  overload the function of data

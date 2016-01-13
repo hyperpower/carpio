@@ -64,6 +64,7 @@ int GnuplotActor_RootNodes(Gnuplot_actor& actor, const Grid_2D& g) {
 }
 
 int GnuplotActor_LeafNodes(Gnuplot_actor& actor, const Grid_2D& g) {
+	actor.clear();
 	actor.command() = "using 1:2 title \"\" ";
 	for (Grid_2D::const_iterator_leaf iter = g.begin_leaf();
 			iter != g.end_leaf(); ++iter) {
@@ -74,6 +75,7 @@ int GnuplotActor_LeafNodes(Gnuplot_actor& actor, const Grid_2D& g) {
 
 int GnuplotActor_LeafNodesContours(Gnuplot_actor& actor, const Grid_2D& g,
 		st idx) {
+	actor.clear();
 	actor.command() = "using 1:2:3:4:5:6:7 title \"\" ";
 	actor.style() = "with boxxy fs solid palette";
 	for (Grid_2D::const_iterator_leaf iter = g.begin_leaf();
@@ -106,6 +108,17 @@ int GnuplotActor_Stencil(Gnuplot_actor& actor, const Stencil_2D1& s) {
 	actor.command() = "using 1:2 title \"\" ";
 	for (st i = 0; i < s.size(); ++i) {
 		Stencil_2D1::const_pNode pn = s.at_1d(i);
+		if (pn != nullptr) {
+			GnuplotActorDataPushBack(actor.data(), *(pn->cell));
+		}
+	}
+	return _SUCCESS;
+}
+int GnuplotActor_Stencil(Gnuplot_actor& actor, const Stencil_2D2& s) {
+	actor.clear();
+	actor.command() = "using 1:2 title \"\" ";
+	for (st i = 0; i < s.size(); ++i) {
+		Stencil_2D2::const_pNode pn = s.at_1d(i);
 		if (pn != nullptr) {
 			GnuplotActorDataPushBack(actor.data(), *(pn->cell));
 		}

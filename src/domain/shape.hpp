@@ -100,9 +100,9 @@ public:
 		}
 		_ps2d->clear();
 	}
-	bool empty() {
+	bool empty() const{
 		if (Dim == 2) {
-			if(_ps2d == nullptr){
+			if (_ps2d == nullptr) {
 				return true;
 			}
 			return _ps2d->empty();
@@ -141,7 +141,9 @@ public:
 	 */
 	vt volume() const {
 		if (Dim == 2) {
-			return _ps2d->area();
+			if (!this->empty()) {
+				return _ps2d->area();
+			}
 		}
 		return 0.0;
 	}
@@ -289,7 +291,7 @@ void Intersect(const Shape_<VALUE, DIM>& sub, const Shape_<VALUE, DIM>& clip,
 template<typename VALUE, st DIM>
 bool IsIntersect(const Shape_<VALUE, DIM>& sub,
 		const Shape_<VALUE, DIM>& clip) {
-	Shape_<VALUE, DIM>& res;
+	Shape_<VALUE, DIM> res;
 	Intersect(sub, clip, res);
 	if (res.empty()) {
 		return false;

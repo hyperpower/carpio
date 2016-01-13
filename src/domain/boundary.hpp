@@ -7,7 +7,7 @@
 
 namespace carpio {
 
-template<typename COO_VALUE, typename VALUE, int DIM>
+template<typename COO_VALUE, typename VALUE, st DIM>
 struct GhostID_ {
 	typedef int (*pFun_set_bc)(Node_<COO_VALUE, VALUE, DIM>*,
 				GhostID_<COO_VALUE, VALUE, DIM>&, utPointer);
@@ -22,7 +22,7 @@ struct GhostID_ {
 	pFun_set_bc pfun_bc;
 };
 
-template<typename COO_VALUE, typename VALUE, int DIM>
+template<typename COO_VALUE, typename VALUE, st DIM>
 struct GhostID_compare_ {
 	typedef GhostID_<COO_VALUE, VALUE, DIM> Gid;
 	bool operator()(const Gid& lhs,

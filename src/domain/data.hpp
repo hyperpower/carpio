@@ -37,9 +37,30 @@ public:
 			_face[i].reconstruct(nf);
 		}
 		for (int i = 0; i < NumVertexes; ++i) {
-			_face[i].reconstruct(nv);
+			_vertex[i].reconstruct(nv);
 		}
 		_untype[0] = utp;
+	}
+	Data_(const st& nc, const st& nf, const st& nv, const st& nutp) :
+			_center(nc), _untype(nutp) {
+		_idx = 0;
+		for (int i = 0; i < NumFaces; ++i) {
+			_face[i].reconstruct(nf);
+		}
+		for (int i = 0; i < NumVertexes; ++i) {
+			_vertex[i].reconstruct(nv);
+		}
+		_untype.assign(nullptr);
+	}
+	void reconstruct(const st& nc, const st& nf, const st& nv, const st& nutp) {
+		_center.reconstruct(nc);
+		for (int i = 0; i < NumFaces; ++i) {
+			_face[i].reconstruct(nf);
+		}
+		for (int i = 0; i < NumVertexes; ++i) {
+			_vertex[i].reconstruct(nv);
+		}
+		_untype.reconstruct(nutp);
 	}
 
 	inline vt& center(const st& i) {
@@ -77,7 +98,7 @@ public:
 		return _untype[i];
 	}
 
-	inline const utPointer& utp(const st& i) const{
+	inline const utPointer& utp(const st& i) const {
 		ASSERT(i < _untype.size());
 		return _untype[i];
 	}

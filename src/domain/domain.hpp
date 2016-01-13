@@ -36,6 +36,7 @@ typedef Grid_<Float, Float, 2> Grid_2D;
 typedef Grid_<Float, Float, 3> Grid_3D;
 
 typedef Stencil_<Float, Float, 2, 1> Stencil_2D1;
+typedef Stencil_<Float, Float, 2, 2> Stencil_2D2;
 
 
 

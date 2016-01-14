@@ -91,40 +91,16 @@ protected:
 			_pnodes.at_1d(i).pnode = nullptr;
 			_pnodes.at_1d(i).type = 0;   //whish is not created by this class
 		}
-		// set center node
-		_pnodes.at_1d(sb).pnode = pnc;
-		//find neighbor forward
-		pNode pc = pnc;
-		for (st i = 0; i < sf; ++i) {
-			pNode pnt = nullptr;
-			pnt = _neighbor_forward(pc, a);
-			if (pnt == nullptr) {
-				break;
-			} else {
-				_pnodes.at_1d(sb + i + 1).pnode = pnt;
-				pc = pnt;
-			}
-		}
-		//find neighbor backward
-		pc = pnc;
-		for (st i = 0; i < sb; ++i) {
-			pNode pnt = nullptr;
-			pnt = _neighbor_backward(pc, a);
-			if (pnt == nullptr) {
-				break;
-			} else {
-				_pnodes.at_1d(sb - 1 - i).pnode = pnt;
-				pc = pnt;
-			}
-		}
+		_set_1d(pnc);
 	}
 
-	void _construct_2d_initial(st sf1, st sb1, st sf2, st sb2) {
+	void _construct_2d_initial(Axes a1, st sf1, st sb1, Axes a2, st sf2,
+			st sb2) {
 		ASSERT(Dim == 2);
-		_axes[0] = _X_;
+		_axes[0] = a1;
 		_steps_f[0] = sf1;
 		_steps_b[0] = sb1;
-		_axes[1] = _Y_;
+		_axes[1] = a2;
 		_steps_f[1] = sf2;
 		_steps_b[1] = sb2;
 		_pnodes.reconstruct(sf1 + sb1 + 1, sf2 + sb2 + 1);
@@ -134,11 +110,11 @@ protected:
 			_pnodes.at_1d(i).type = 0;   //whish is not created by this class
 		}
 	}
-	void _construct_2d_1(pNode pn, st idx, Axes a, st sf, st sb) {
+	void _set_2d_1(pNode pn, st idx, Axes a, st sf, st sb) {
 		ASSERT(Dim == 2);
 		ASSERT(pn != nullptr);
-		st ixc = (a == _X_) ? sb : idx;
-		st iyc = (a == _X_) ? idx : sb;
+		st ixc = (a == _axes[0]) ? sb : idx;
+		st iyc = (a == _axes[0]) ? idx : sb;
 		// set center node
 		_pnodes(ixc, iyc).pnode = pn;
 		// find neighbor forward;
@@ -186,39 +162,12 @@ protected:
 			}
 		}
 	}
-	void _construct_2d(pNode pnc, st sf1, st sb1, st sf2, st sb2) {
+	void _construct_2d(pNode pnc, Axes a1, st sf1, st sb1, Axes a2, st sf2,
+			st sb2) {
 		ASSERT(pnc != nullptr);
-		_construct_2d_initial(sf1, sb1, sf2, sb2);
+		_construct_2d_initial(a1, sf1, sb1, a2, sf2, sb2);
 		// set center node
-		_pnodes(sb1, sb2).pnode = pnc;
-		_construct_2d_1(pnc, sb2, _X_, sf1, sb1);
-		_construct_2d_1(pnc, sb1, _Y_, sf2, sb2);
-		// loop a1, find pnode on a2
-		for (st i = 0; i < sb1; ++i) {
-			pNode pc = _pnodes(i, sb2).pnode;
-			if (pc != nullptr) {
-				_construct_2d_1(pc, i, _Y_, sf2, sb2);
-			}
-		}
-		for (st i = sb1 + 1; i <= sb1 + sf1; ++i) {
-			pNode pc = _pnodes(i, sb2).pnode;
-			if (pc != nullptr) {
-				_construct_2d_1(pc, i, _Y_, sf2, sb2);
-			}
-		}
-		// loop a2, find pnode on a1
-		for (st i = 0; i < sb2; ++i) {
-			pNode pc = _pnodes(sb1, i).pnode;
-			if (pc != nullptr) {
-				_construct_2d_1(pc, i, _X_, sf1, sb1);
-			}
-		}
-		for (st i = sb2 + 1; i <= sb2 + sf2; ++i) {
-			pNode pc = _pnodes(sb1, i).pnode;
-			if (pc != nullptr) {
-				_construct_2d_1(pc, i, _X_, sf1, sb1);
-			}
-		}
+		_set_2d(pnc);
 	}
 public:
 	/*
@@ -229,10 +178,10 @@ public:
 		ASSERT(Dim == 1);
 		_construct_1d(pnc, a1, sf1, sb1);
 	}
-	Stencil_(pNode pnc, st sf1, st sb1, st sf2, st sb2) :
+	Stencil_(pNode pnc, Axes a1, st sf1, st sb1, Axes a2, st sf2, st sb2) :
 			_pnodes(), _axes(Dim), _steps_f(Dim), _steps_b(Dim) {
 		ASSERT(Dim == 2);
-		_construct_2d(pnc, sf1, sb1, sf2, sb2);
+		_construct_2d(pnc, a1, sf1, sb1, a2, sf2, sb2);
 	}
 
 protected:
@@ -241,6 +190,90 @@ protected:
 	 */
 
 public:
+	/*
+	 * set
+	 */
+	void _set_1d(pNode pnc) {
+		ASSERT(Dim == 1);
+		// set center node
+		_pnodes.at_1d(_steps_b[0]).pnode = pnc;
+		//find neighbor forward
+		pNode pc = pnc;
+		for (st i = 0; i < _steps_f[0]; ++i) {
+			pNode pnt = nullptr;
+			pnt = _neighbor_forward(pc, _axes[0]);
+			if (pnt == nullptr) {
+				break;
+			} else {
+				_pnodes.at_1d(_steps_b[0] + i + 1).pnode = pnt;
+				pc = pnt;
+			}
+		}
+		//find neighbor backward
+		pc = pnc;
+		for (st i = 0; i < _steps_b[0]; ++i) {
+			pNode pnt = nullptr;
+			pnt = _neighbor_backward(pc, _axes[0]);
+			if (pnt == nullptr) {
+				break;
+			} else {
+				_pnodes.at_1d(_steps_b[0] - 1 - i).pnode = pnt;
+				pc = pnt;
+			}
+		}
+	}
+	void _set_2d(pNode pnc) {
+		// set center node
+		Axes a1 = _axes[0];
+		st sf1 = _steps_b[0];
+		st sb1 = _steps_b[0];
+		Axes a2 = _axes[1];
+		st sf2 = _steps_b[1];
+		st sb2 = _steps_b[1];
+
+		_pnodes(sb1, sb2).pnode = pnc;
+		_set_2d_1(pnc, sb2, a1, sf1, sb1);
+		_set_2d_1(pnc, sb1, a2, sf2, sb2);
+		// loop a1, find pnode on a2
+		for (st i = 0; i < sb1; ++i) {
+			pNode pc = _pnodes(i, sb2).pnode;
+			if (pc != nullptr) {
+				_set_2d_1(pc, i, a2, sf2, sb2);
+			}
+		}
+		for (st i = sb1 + 1; i <= sb1 + sf1; ++i) {
+			pNode pc = _pnodes(i, sb2).pnode;
+			if (pc != nullptr) {
+				_set_2d_1(pc, i, a2, sf2, sb2);
+			}
+		}
+		// loop a2, find pnode on a1
+		for (st i = 0; i < sb2; ++i) {
+			pNode pc = _pnodes(sb1, i).pnode;
+			if (pc != nullptr) {
+				_set_2d_1(pc, i, a1, sf1, sb1);
+			}
+		}
+		for (st i = sb2 + 1; i <= sb2 + sf2; ++i) {
+			pNode pc = _pnodes(sb1, i).pnode;
+			if (pc != nullptr) {
+				_set_2d_1(pc, i, a1, sf1, sb1);
+			}
+		}
+	}
+
+	void set(pNode pnc) {
+		ASSERT(pnc != nullptr);
+		this->clear();
+		if (Dim == 1) {
+			_set_1d(pnc);
+		} else if (Dim == 2) {
+			_set_2d(pnc);
+		} else {
+			ASSERT_MSG(false, "unfinish");
+		}
+	}
+
 	pNode operator()(st i, st j = 0, st k = 0) {
 		return _pnodes(i, j, k).pnode;
 	}
@@ -379,6 +412,44 @@ public:
 			return _pnodes(0, 0, _steps_b[ai] - step).pnode;
 		}
 	}
+protected:
+	pNode _get_pnode_1d(st step) {
+		ASSERT(Dim == 1);
+		return _pnodes(_steps_b[0] + step).pnode;
+	}
+	const_pNode _get_pnode_1d(st step) const {
+		ASSERT(Dim == 1);
+		return _pnodes(_steps_b[0] + step).pnode;
+	}
+	pNode _get_pnode_2d(st step1, st step2) {
+		ASSERT(Dim == 2);
+		return _pnodes(_steps_b[0] + step1, _steps_b[1] + step2).pnode;
+	}
+	const_pNode _get_pnode_2d(st step1, st step2) const {
+		ASSERT(Dim == 2);
+		return _pnodes(_steps_b[0] + step1, _steps_b[1] + step2).pnode;
+	}
+public:
+	pNode get_pnode(st step1, st step2 = 0, st step3 = 0) {
+		if (Dim == 1) {
+			return _get_pnode_1d(step1);
+		} else if (Dim == 2) {
+			return _get_pnode_2d(step1, step2);
+		} else {
+			return nullptr; //unfinish
+		}
+	}
+
+	const_pNode get_pnode(st step1, st step2 = 0, st step3 = 0) const{
+		if (Dim == 1) {
+			return _get_pnode_1d(step1);
+		} else if (Dim == 2) {
+			return _get_pnode_2d(step1, step2);
+		} else {
+			return nullptr; //unfinish
+		}
+	}
+
 	/*
 	 *  show
 	 */

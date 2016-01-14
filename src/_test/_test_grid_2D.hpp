@@ -131,7 +131,7 @@ void test_stencil_2D() { //jan 13, 2016
 	Float z = 0.0;
 	Grid_<Float, Float, 2>::pNode pn = nullptr;
 	pn = g.get_pnode(x, y, z);
-	Stencil_2D2 st(pn, 3, 3, 3, 3);
+	Stencil_2D2 st(pn, _X_, 3, 3, _Y_, 3, 3);
 	st.show();
 	std::cout << "Stencil \n";
 
@@ -162,24 +162,49 @@ void test_adapt_vof() { //jan 13, 2016
 	// ==============================
 	// shape for vof
 	Shape2D cir2;
-	CreatCircle(cir2, 0.7, 0.0, 1.5, 359);
+	CreatCircle(cir2, 0.75, 0.0, 1.5, 359);
 	adp.adapt_vof(cir2);
-	g.new_data_on_leaf(1,0,0,1);
-	Vof_<Float, Float, 2> vof(&g,0,0);
+	g.new_data_on_leaf(1, 0, 0, 1);
+	Vof_<Float, Float, 2> vof(&g, 0, 0);
 	vof.set_color(cir2);
+	//stencil ==============================
+	Float x = 1.0;
+	Float y = 1.48;
+	Float z = 0.0;
+	Grid_<Float, Float, 2>::pNode pn = nullptr;
+	pn = g.get_pnode(x, y, z);
+	Stencil_2D2 st(pn, _X_, 1, 1, _Y_, 1, 1);
+	typename Vof_<Float, Float, 2>::Matrix3_3 mat;
+	vof.get_matrix(mat, st);
+	Float mx = 0;
+	Float my = 0;
+	vof.cal_norm_Young(mat, mx, my);
+	mat.show();
+	std::cout << "vector x = " << mx << " y = " << my << std::endl;
+	vof.construct_segments();
 
 	// show ================================
 	std::list<Gnuplot_actor> lga;
 	Gnuplot_actor ga;
-	GnuplotActor_LeafNodesContours(ga,g,0);
-	lga.push_back(ga);
+	//GnuplotActor_LeafNodesContours(ga, g, 0);
+	//lga.push_back(ga);
 	GnuplotActor_LeafNodes(ga, g);
 	lga.push_back(ga);
-	GnuplotActor_Shape2D(ga, cir);
+	//GnuplotActor_Shape2D(ga, cir);
+	//lga.push_back(ga);
+	//GnuplotActor_Shape2D(ga, cir2);
+	//lga.push_back(ga);
+	GnuplotActor_Stencil(ga, st);
 	lga.push_back(ga);
-
-
-	GnuplotShow(lga);
+	GnuplotActor_StencilContour(ga, st, 0);
+	lga.push_back(ga);
+	GnuplotActor_Vof2D(ga, vof);
+	lga.push_back(ga);
+	Gnuplot gp;
+	gp.set_equal_ratio();
+	gp.set_xrange(-1.5, 0);
+	gp.set_yrange(0, 1.5);
+	gp.plot(lga);
 }
 
 }

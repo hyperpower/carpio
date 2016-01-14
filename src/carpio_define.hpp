@@ -21,11 +21,14 @@ namespace carpio {
 #define CAST_REF(type, p)      (*((type)p))
 #define _IF_TRUE_RETRUN(expr)  if(expr){return;};
 #define _IF_FALSE_RETRUN(expr)  if(false==(expr)){return;};
+#define SMALL                  1.0e-8
 // value type
 typedef std::size_t st; //size type
 typedef double Float;
 typedef void* utPointer;
 typedef const void* const_utPointer;
+//
+
 
 // std  container
 template<typename T>
@@ -47,6 +50,14 @@ inline TYPE Min(const TYPE& a, const TYPE& b) {
 template<class TYPE>
 inline TYPE Abs(const TYPE& s){
 	return s<0?-s:s;
+}
+template<class TYPE>
+inline bool IsEqual(const TYPE& a, const TYPE& b){
+	return Abs(a-b)<SMALL;
+}
+template<class TYPE>
+inline bool IsZero(const TYPE& a){
+	return Abs(a-0.0)<SMALL;
 }
 }
 

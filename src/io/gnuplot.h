@@ -306,6 +306,34 @@ public:
 		return *this;
 	}
 
+	Gnuplot& plot(const std::list<Gnuplot_actor>& lga) {
+		if (lga.empty()) {
+			std::cerr << " >Warning! The Gnuplot actor is empty! \n";
+			return *this;
+		}
+		std::ostringstream ss;
+		ss << "plot ";
+		for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+				iter != lga.end(); ++iter) {
+			if (iter->empty_style()) {
+				ss << "\"-\" " << iter->command() << "with lines lw 1";
+			} else {
+				ss << "\"-\" " << iter->command() << iter->style();
+			}
+
+			if (lga.size() >= 2 && (iter != (--lga.end()))) {
+				ss << ",\\\n";
+			}
+		}
+		cmd(ss.str() + "\n");
+		ss.str("");
+		for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+				iter != lga.end(); ++iter) {
+			output_inline_data((*iter));
+		}
+		return *this;
+	}
+
 	Gnuplot& output_inline_data(const Gnuplot_actor& actor) {
 		std::ostringstream sst;
 		for (std::list<std::string>::const_iterator iter = actor._data.begin();

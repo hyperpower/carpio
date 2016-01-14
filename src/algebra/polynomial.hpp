@@ -14,7 +14,7 @@
 #include <stdint.h>
 
 template<class T>
-struct IsZero: std::unary_function<T, bool> {
+struct IsZero_: std::unary_function<T, bool> {
 	bool operator()(T number) const{
 		return (number == 0);
 	}
@@ -22,8 +22,8 @@ struct IsZero: std::unary_function<T, bool> {
 
 namespace carpio {
 template<class COE, class TERM, class EXP,                                    //
-		class ISZERO_COE = IsZero<COE>,                                     //
-		class ISZERO_EXP = IsZero<EXP>,                                     //
+		class ISZERO_COE = IsZero_<COE>,                                     //
+		class ISZERO_EXP = IsZero_<EXP>,                                     //
 		class COMPARE_TERM = std::less<TERM>,                                 //
 		class COMPARE_EXP = std::less<EXP> >                                 //
 class Polynomial {

@@ -839,10 +839,10 @@ protected:
 		/*
 		 *  data
 		 */
-		void new_data(const st& nc, const st& nf, const st& nv, const st& nutp){
-			if(this->data ==nullptr){
+		void new_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+			if(this->data ==nullptr) {
 				this->data = new Data(nc,nf,nv,nutp);
-			}else{
+			} else {
 				this->data->reconstruct(nc,nf,nv,nutp);
 			}
 		}
@@ -856,6 +856,52 @@ protected:
 		const_ref_vt cd(st i) const { //center data
 			ASSERT(this->data != nullptr);
 			return this->data->center(i);
+		}
+		vt cda(st i) const {
+			if(this->data != nullptr) {
+				return this->data->center(i);
+			} else {
+				// averange data from children
+				bool nullflag = true;
+				st count = 0;
+				vt sum = 0.0;
+				std::function<void(const_pNode, st)> fun = [&sum, &nullflag, &count](const_pNode pn, st i) {
+					if(pn->is_leaf()) {
+						if(pn->data != nullptr) {
+							if(pn->data->has_center(i)) {
+								nullflag = false;
+								count ++;
+								sum= sum+ pn->cd(i);
+							}
+						}
+					}
+				};
+				this->traversal(fun,i);
+				ASSERT_MSG(nullflag==false, " >! All children null");
+				return sum/count;
+			}
+		}
+		vt cdva(st i) const { //cell volume weight average
+			if(this->data != nullptr) {
+				return this->data->center(i);
+			} else {
+				// averange data from children
+				bool nullflag = true;
+				vt sum = 0.0;
+				std::function<void(const_pNode, st)> fun = [&sum, &nullflag](const_pNode pn, st i) {
+					if(pn->is_leaf()) {
+						if(pn->data != nullptr) {
+							if(pn->data->has_center(i)) {
+								nullflag = false;
+								sum= sum+ pn->cd(i) * pn->cell->volume();
+							}
+						}
+					}
+				};
+				this->traversal(fun,i);
+				ASSERT_MSG(nullflag==false, " >! All children null");
+				return sum/this->cell->volume();
+			}
 		}
 		/*
 		 *  show

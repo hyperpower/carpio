@@ -19,8 +19,11 @@ public:
 	Plane_() :
 			std::array<vt, 4>() {
 	}
-	Plane_(const vt& a, const vt& b, const vt& c, const vt& alpha) :
-			std::array<vt, 4>(a, b, c, alpha) {
+	Plane_(const vt& a, const vt& b, const vt& c, const vt& alpha) {
+		this->at(0) = a;
+		this->at(1) = b;
+		this->at(2) = c;
+		this->at(3) = alpha;
 	}
 	Plane_(const vt& x, const vt& y, const vt& z, const vt& nx, const vt& ny,
 			const vt& nz) {
@@ -28,8 +31,7 @@ public:
 		this->a() = nx;
 		this->b() = ny;
 		this->c() = nz;
-		this->alpha() = (nx * x + ny * y
-				+ nz * z);
+		this->alpha() = (nx * x + ny * y + nz * z);
 	}
 	void reconstruct(const vt& a, const vt& b, const vt& c, const vt& alpha) {
 		if (a == 0.0 && b == 0.0) {

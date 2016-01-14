@@ -19,8 +19,10 @@ public:
 	Line_() :
 			std::array<vt, 3>() {
 	}
-	Line_(const vt& a, const vt& b, const vt& c) :
-			std::array<vt, 3>(a, b, c) {
+	Line_(const vt& a, const vt& b, const vt& c) {
+		this->at(0) = a;
+		this->at(1) = b;
+		this->at(2) = c;
 	}
 	Line_(vt ax, vt ay, vt bx, vt by) {
 		//assert(!isEqual(ax, bx) || !isEqual(ay,by));

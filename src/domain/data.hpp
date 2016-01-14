@@ -72,6 +72,9 @@ public:
 		ASSERT(i < _center.size());
 		return _center[i];
 	}
+	inline bool has_center(const st& i) const {
+		return i < _center.size();
+	}
 
 	inline vt& face(const Direction& d, const st& i) {
 		ASSERT(i < this->NumFaces);

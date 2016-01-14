@@ -13,8 +13,8 @@ class Segment_: public std::array<Point_<TYPE, DIM>, 2> {
 public:
 	static const st Dim = DIM;
 	typedef TYPE vt;
-	typedef TYPE& reference;
-	typedef const TYPE& const_reference;
+	typedef TYPE& ref_vt;
+	typedef const TYPE& const_ref_vt;
 	typedef Segment_<TYPE, DIM> Self;
 	typedef Segment_<TYPE, DIM>& ref_Self;
 	typedef const Segment_<TYPE, DIM>& const_ref_Self;
@@ -40,6 +40,10 @@ public:
 		reconstruct(s, e);
 	}
 	Segment_(const_ref_Self rhs) {
+		this->ps() = rhs.ps();
+		this->pe() = rhs.pe();
+	}
+	void reconstruct(const_ref_Self rhs) {
 		this->ps() = rhs.ps();
 		this->pe() = rhs.pe();
 	}
@@ -77,25 +81,47 @@ public:
 				(Dim == 3) ? ((pez() + psz()) * 0.5) : 0);
 	}
 
-	vt psx() const {
+	const_ref_vt psx() const {
 		return this->ps().x();
 	}
-	vt pex() const {
+	const_ref_vt pex() const {
 		return this->pe().x();
 	}
-	vt psy() const {
+	const_ref_vt psy() const {
 		ASSERT(Dim >= 2);
 		return this->ps().y();
 	}
-	vt pey() const {
+	const_ref_vt pey() const {
 		ASSERT(Dim >= 2);
 		return this->pe().y();
 	}
-	vt psz() const {
+	const_ref_vt psz() const {
 		ASSERT(Dim >= 3);
 		return this->ps().z();
 	}
-	vt pez() const {
+	const_ref_vt pez() const {
+		ASSERT(Dim >= 3);
+		return this->pe().z();
+	}
+	ref_vt psx() {
+		return this->ps().x();
+	}
+	ref_vt pex() {
+		return this->pe().x();
+	}
+	ref_vt psy() {
+		ASSERT(Dim >= 2);
+		return this->ps().y();
+	}
+	ref_vt pey() {
+		ASSERT(Dim >= 2);
+		return this->pe().y();
+	}
+	ref_vt psz() {
+		ASSERT(Dim >= 3);
+		return this->ps().z();
+	}
+	ref_vt pez() {
 		ASSERT(Dim >= 3);
 		return this->pe().z();
 	}
@@ -114,8 +140,8 @@ public:
 	}
 
 	void scale(vt xfactor, vt yfactor, vt zfactor = 1) {
-		psx() = psx() * xfactor;
-		psy() = psy() * yfactor;
+		this->ps().x() = psx() * xfactor;
+		this->ps().y() = psy() * yfactor;
 		if (Dim == 3) {
 			psz() = psz() * zfactor;
 		}
@@ -128,12 +154,16 @@ public:
 			_set_empty();
 		}
 	}
-	void transfer(vt dx, vt dy, vt dz) {
+	void transfer(vt dx, vt dy, vt dz = 0.0) {
 		if (!empty()) {
 			psx() = psx() + dx;
 			psy() = psy() + dy;
 			pex() = pex() + dx;
 			pey() = pey() + dy;
+		}
+		if (Dim == 3) {
+			psz() = psz() + dz;
+			pez() = pez() + dz;
 		}
 	}
 
@@ -186,14 +216,12 @@ public:
 		return (this->pey() <= v && this->psy() <= v);
 	}
 
-	bool is_vertical() const
-	{
+	bool is_vertical() const {
 		ASSERT(!empty());
 		return psx() == pex();
 	}
 
-	bool is_horizontal() const
-	{
+	bool is_horizontal() const {
 		ASSERT(!empty());
 		return psy() == pey();
 	}

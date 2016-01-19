@@ -20,7 +20,7 @@ void Gnuplot::_init() {
 	std::string this->m_sGNUPlotPath = "C:/program files/gnuplot/bin/";
 #elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
 	this->m_sGNUPlotFileName = "gnuplot";
-	this->m_sGNUPlotPath = "/usr/local/bin/";
+	this->m_sGNUPlotPath = "/usr/local/bin";
 #endif
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
@@ -51,7 +51,7 @@ void Gnuplot::_init() {
 	//
 	// open pipe
 	//
-	std::string tmp = this->m_sGNUPlotPath + this->m_sGNUPlotFileName
+	std::string tmp = this->m_sGNUPlotPath +"/"+ this->m_sGNUPlotFileName
 			+ " -persist";
 
 	// FILE *popen(const char *command, const char *mode);

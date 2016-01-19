@@ -8,6 +8,7 @@
 #include "../calculation/scalar.h"
 #include "../calculation/interpolate.h"
 #include "../calculation/vof.h"
+#include "../domain/boundary.hpp"
 
 namespace carpio {
 
@@ -200,6 +201,50 @@ void test_adapt_vof() { //jan 13, 2016
 	lga.push_back(ga);
 	GnuplotActor_Vof2D(ga, vof);
 	lga.push_back(ga);
+	Gnuplot gp;
+	gp.set_equal_ratio();
+	//gp.set_xrange(-1.5, 0);
+	//gp.set_yrange(0, 1.5);
+	gp.plot(lga);
+}
+
+void test_adp_boundary() {
+	std::cout << "test adapt initial vof  ================\n";
+	Grid_<Float, Float, 2> g(4, -2.0, 1, //
+			4, -2.0, 1);
+	g.connect_root();
+	std::cout << "num root : " << g.get_num_root() << std::endl;
+	Adaptive<Float, Float, 2> adp(&g, 2, 5);
+	//adp.adapt_full();
+    //g.show_info();
+	// shape
+	Shape2D cir;
+	CreatCircle(cir, 0.0, 0.0, 1.0, 359);
+	adp.adapt_solid(cir);
+	// ==============================
+	// shape for vof
+	Shape2D cir2;
+	CreatCircle(cir2, 0.0, 0.0, 1.5, 359);
+	adp.adapt_vof(cir2);
+	g.new_data_on_leaf(1, 0, 0, 1);
+	Vof_<Float, Float, 2> vof(&g, 0, 0);
+	vof.set_color(cir2);
+	// boundary ====
+	Ghost_<Float, Float, 2> ghost(&g);
+
+	// show ================================
+	std::list<Gnuplot_actor> lga;
+	Gnuplot_actor ga;
+	//GnuplotActor_LeafNodesContours(ga, g, 0);
+	//lga.push_back(ga);
+	GnuplotActor_LeafNodes(ga, g);
+	lga.push_back(ga);
+	//GnuplotActor_Shape2D(ga, cir);
+	//lga.push_back(ga);
+	//GnuplotActor_Shape2D(ga, cir2);
+	//lga.push_back(ga);
+	//GnuplotActor_Vof2D(ga, vof);
+	//lga.push_back(ga);
 	Gnuplot gp;
 	gp.set_equal_ratio();
 	//gp.set_xrange(-1.5, 0);

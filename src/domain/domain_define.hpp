@@ -113,6 +113,10 @@ static const Direction _YP_ = 18; //010 010
 static const Direction _ZM_ = 32; //100 000
 static const Direction _ZP_ = 36; //100 100
 
+static const int _E_ = 0;
+static const int _F_C_ = 1;
+static const int _C_F_ = 2;
+
 inline bool GetBit(const Direction &d, st i) {
 	const Direction ARR_BIT[6] = { 1, 2, 4, 8, 16, 32 };
 	return (d & ARR_BIT[i]) == ARR_BIT[i];

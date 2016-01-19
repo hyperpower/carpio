@@ -267,6 +267,23 @@ protected:
 				neighbor[i] = nullptr;
 			}
 		}
+		Node_(pNode f, int nt, st level, st root_idx, st path,    //
+				const Cell& c) {
+			_node_type = nt;
+			_level = level;
+			cell = new Cell(c);
+			father = f;
+			_root_idx = root_idx;
+			_idx = path;
+
+			data = nullptr;
+			for (int i = 0; i < this->NumChildren; i++) {
+				child[i] = nullptr;
+			}
+			for (int i = 0; i < this->NumNeighbors; i++) {
+				neighbor[i] = nullptr;
+			}
+		}
 		/*
 		 *  delete
 		 */
@@ -422,6 +439,21 @@ protected:
 			this->traversal(fun, le);
 			return res;
 		}
+
+		inline st count_leaf_at_level(st le) const {
+			st res = 0;
+			std::function<void(const_pNode, st)> fun = [&res](const_pNode pn, st le) {
+				if(pn->get_level()==le && pn->is_leaf()) {
+					res++;
+				}
+			};
+			this->traversal(fun, le);
+			return res;
+		}
+		/*
+		 * Connect
+		 */
+
 
 		/*
 		 *  new
@@ -801,6 +833,19 @@ protected:
 			this->_traversal_conditional(this, fun_con, argsc, fun, args);
 		}
 
+		st max_level() const {
+			st res = 0;
+			std::function<void(const_pNode, st)> fun =
+			[&res](const_pNode pn, st dummy) {
+				if (pn->get_level()>res) {
+					res = pn->get_level();
+				}
+			};
+			st dummy;
+			this->_traversal(this, fun, dummy);
+			return res;
+		}
+
 		/*
 		 *  overload the function of cell
 		 */
@@ -1098,42 +1143,63 @@ inline std::string ParseFaceType(const FaceType& t) {
 }
 
 template<typename COO_VALUE, typename VALUE, st DIM>
+FaceType GetFaceType(  //
+		const Node_<_COOV_V_DIM_>* p,     //main node
+const Node_<_COOV_V_DIM_>* pn) {
+	if (p == nullptr) {
+		return _Null_;
+	}
+	if (pn == nullptr) {
+		return _Boundary_;
+	}
+	if (pn->get_type() == _Ghost_) {
+		return _Boundary_;
+	}
+	if (p->get_level() > pn->get_level())
+	return _FineCoarse_;
+	if (p->get_level() == pn->get_level() && !pn->has_child())
+	return _Equal_;
+	return _CoarseFine_;
+}
+
+template<typename NODE, typename PNODE>
 class Face_ {
 public:
-	static const st Dim = DIM;
-	static const st NumFaces = DIM + DIM;
-	static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
-	static const st NumNeighbors = NumFaces;
-	static const st NumChildren = NumVertexes;
+	typedef NODE Node;
+	typedef PNODE pNode;
 
-	typedef Node_<_COOV_V_DIM_> Node;
-	typedef Node_<_COOV_V_DIM_>* pNode;
-	typedef const Node_<_COOV_V_DIM_>* const_pNode;
-	typedef Node_<_COOV_V_DIM_>*& ref_pNode;
-	typedef const Node_<_COOV_V_DIM_>*& const_ref_pNode;
-	typedef Face_<_COOV_V_DIM_> Face;
-	typedef Face_<_COOV_V_DIM_>* pFace;
-	typedef Face_<_COOV_V_DIM_>& ref_Face;
-	typedef const Face_<_COOV_V_DIM_>& const_ref_Face;
-	typedef const Face_<_COOV_V_DIM_>* const_pFace;
+	static const st Dim = Node::Dim;
+	static const st NumFaces = Node::NumFaces;
+	static const st NumVertexes = Node::NumVertexes;
+	static const st NumNeighbors = Node::NumNeighbors;
+	static const st NumChildren = Node::NumChildren;
+
+	typedef Face_<Node, pNode> Face;
+	typedef Face_<Node, pNode>* pFace;
+	typedef Face_<Node, pNode>& ref_Face;
+	typedef const Face_<Node, pNode>& const_ref_Face;
+	typedef const Face_<Node, pNode>* const_pFace;
 public:
 	pNode pnode;
 	pNode pneighbor;
 	FaceType face_type;
 	Direction direction;
 
-	Face_() {
-		pnode = nullptr;
-		pneighbor = nullptr;
-		face_type = _Null_;
-		direction = _XM_;
+	Face_() :
+			pnode(nullptr), pneighbor(nullptr), face_type(_Null_), direction(
+					_XM_) {
+
 	}
-	Face_(pNode pn, pNode pnei, Direction d, FaceType ft) {
-		pnode = pn;
-		pneighbor = pnei;
-		face_type = ft;
-		direction = d;
+	Face_(pNode pn, pNode pnei, Direction d, FaceType ft) :
+			pnode(pn), pneighbor(pnei), face_type(ft), direction(d) {
+
 	}
+	//NFace_(pNode pn, Direction d) {
+	//	pnode = pn;
+	//	pneighbor = pnode->get_neighbor(d);
+	//	face_type = GetFaceFype(pnode, pneighbor);
+	//	direction = d;
+	//}
 	Face_(const Face& a) {
 		pnode = a.pnode;
 		pneighbor = a.pneighbor;
@@ -1142,7 +1208,13 @@ public:
 	}
 	//
 	//operator ==================================
-	ref_Face& operator=(const Face&a);
+	ref_Face& operator=(const Face& a) {
+		pnode = a.pnode;
+		pneighbor = a.pneighbor;
+		face_type = a.face_type;
+		direction = a.direction;
+		return *this;
+	}
 	bool operator==(const Face& a) const {
 		return (pnode == a.pnode) && (pneighbor == a.pneighbor)
 				&& (face_type == a.face_type) && (direction == a.direction);
@@ -1154,28 +1226,22 @@ public:
 	/*
 	 * get
 	 */
-	ref_pNode& pori() { //pNode origin
+	pNode& pori() { //pNode origin
 		return pnode;
 	}
-	const_ref_pNode& pori() const { //pNode origin
-		return pnode;
-	}
-	ref_pNode& pnei() { //pNode center
-		return pneighbor;
-	}
-	const_ref_pNode& pnei() const { //pNode center
+	pNode& pnei() { //pNode center
 		return pneighbor;
 	}
 	FaceType& ft() {
 		return face_type;
 	}
-	FaceType& ft() const {
+	const FaceType& ft() const {
 		return face_type;
 	}
 	Direction& dir() {
 		return direction;
 	}
-	const Direction& dir() const{
+	const Direction& dir() const {
 		return direction;
 	}
 	void set(pNode pn, pNode pnei, const Direction& d, const FaceType& ft) {
@@ -1197,26 +1263,11 @@ public:
 		}
 	}
 
-	FaceType get_face_type(  //
-			pNode p,     //main node
-			pNode pn) {
-		if (p == nullptr) {
-			return _Null_;
-		}
-		if (pn == nullptr) {
-			return _Boundary_;
-		}
-		if (pn->get_type() == _Ghost_) {
-			return _Boundary_;
-		}
-		if (p->get_level() > pn->get_level())
-			return _FineCoarse_;
-		if (p->get_level() == pn->get_level() && !pn->has_child())
-			return _Equal_;
-		return _CoarseFine_;
-	}
-
 };
+
+/*
+ * Function out of calss ==================================
+ */
 
 }
 //

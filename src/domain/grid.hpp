@@ -28,8 +28,8 @@ public:
 	typedef Data *pData;
 	typedef Node_<COO_VALUE, VALUE, DIM> Node;
 	typedef Node_<COO_VALUE, VALUE, DIM> *pNode;
-	typedef Face_<COO_VALUE, VALUE, DIM> Face;
-	typedef Face_<COO_VALUE, VALUE, DIM> *pFace;
+	typedef Face_<Node, pNode> Face;
+	typedef Face_<Node, pNode> *pFace;
 	typedef typename SpaceT<pNode, Dim>::reference reference;
 	typedef typename SpaceT<pNode, Dim>::const_reference const_reference;
 	typedef typename SpaceT<pNode, Dim>::size_type size_type;
@@ -113,15 +113,15 @@ public:
 	 *  size
 	 */
 	inline st size_i() const {
-		return nodes.iLen();
+		return nodes.size_i();
 	}
 
 	inline st size_j() const {
-		return nodes.jLen();
+		return nodes.size_j();
 	}
 
 	inline st size_k() const {
-		return (Dim < 3) ? 0 : nodes.kLen();
+		return (Dim < 3) ? 0 : nodes.size_k();
 	}
 
 	inline bool empty() const {
@@ -371,13 +371,13 @@ protected:
 		typedef const Node_<COV, V, D> const_Node;
 		typedef const Node_<COV, V, D>* const_pNode;
 
-		typedef Face_<COV, V, D> Face;
-		typedef Face_<COV, V, D> *pFace;
-		typedef const Face_<COV, V, D> const_Face;
-		typedef const Face_<COV, V, D>* const_pFace;
+		//typedef Face_<COV, V, D> Face;
+		//typedef Face_<COV, V, D> *pFace;
+		//typedef const Face_<COV, V, D> const_Face;
+		//typedef const Face_<COV, V, D>* const_pFace;
 
-		typedef iterator_face_<COV, V, D, Face&, pFace> iterator;
-		typedef iterator_face_<COV, V, D, const_Face&, const_pFace> const_iterator;
+		typedef iterator_face_<COV, V, D, Node&, pNode> iterator;
+		typedef iterator_face_<COV, V, D, const_Node&, const_pNode> const_iterator;
 		typedef iterator_face_<COV, V, D, _Ref, _Ptr> Self;
 
 		typedef Grid_<COV, V, D> Grid;
@@ -388,27 +388,28 @@ protected:
 		typedef _Ptr pointer;
 		typedef _Ref reference;
 
-		const_pGrid _f;
+		const_pGrid _pg;
 		st _idx;
-		_Ptr _pf;
+
+		Face_<Node, _Ptr> _face;
 
 		iterator_face_() {
-			_pf = nullptr;
-			_f = nullptr;
+			_face = nullptr;
+			_pg = nullptr;
 			_idx = 0;
 		}
-		iterator_face_(const_pGrid f, st idx, _Ptr ptr) :
-				_f(f), _idx(idx), _pf(ptr) {
+		iterator_face_(const_pGrid f, st idx, const Face_<Node, _Ptr>& ptr) :
+				_pg(f), _idx(idx), _face(ptr) {
 		}
 		iterator_face_(const iterator& _x) :
-				_f(_x._f), _idx(_x._idx), _pf(_x._ptr) {
+				_pg(_x._pg), _idx(_x._idx), _face(_x._face) {
 		}
 	protected:
 		pNode _incr_root() {
 			st count = 0;
-			for (st ii = (_idx + 1) % _f->size(); count < _f->size();
+			for (st ii = (_idx + 1) % _pg->size(); count < _pg->size();
 					++ii, ++count) {
-				pNode pt = _f->at_1d(ii);
+				pNode pt = _pg->at_1d(ii);
 				if (nullptr != pt) {
 					_idx = ii;
 					return pt;
@@ -418,7 +419,7 @@ protected:
 		}
 
 		Direction face_order_dir(st idx) const {
-			ASSERT(idx<5);
+			ASSERT(idx < 5);
 			const Direction ARR[] = { _XM_, _XP_, _YM_, _YP_, _ZM_, _ZP_ };
 			return ARR[idx];
 		}
@@ -450,54 +451,62 @@ protected:
 			}
 		}
 		void _incr() {
-			pNode end = _f->get_last_root_pNode();
-			if (_pf->po() == end) {
+			pNode end = _pg->get_last_root_pNode();
+			if ((_face.pori()) == end) {
 				return;  //will not increase
 			}
 			//face order
-			st fo = face_order(_pf->dir());
-			if (fo < NumFaces) {
-				_pf->dir() = face_order_dir( fo + 1);
-				_pf->pnei() = _pf->po()->get_neighbor(_pf->dir());
-				_pf->ft() = getFaceType(_face.pnode, _face.pneighbor);
+			st fo = face_order(_face.dir());
+			if (fo < NumFaces - 1) {
+				_face.dir() = face_order_dir(fo + 1);
+				_face.pnei() = (_face.pori())->get_neighbor(_face.dir());
+				_face.ft() = GetFaceType(_face.pori(), _face.pnei());
 				return;
 			} else {
-				_Node* s = getSiblingPlus(_face.pnode);
-				if (s->father != NULL_PTR) {
-					_face.pnode = getFirstLeaf(s);
+				pNode s = GetpNodeSiblingPlus(_face.pori());
+				if (s->father != nullptr) {
+					_face.pori() = GetFirstLeaf(s);
 				} else {
 					if (s == end) {
-						_face.pnode = s;
+						_face.pori() = s;
 					} else {
-						_Tree* pt = getNextpeTree(_f, _idx); //this will change _idx
-						_face.pnode = getFirstLeaf(pt->getpRootNode());
+						pNode root_pt = _incr_root(); //this will change _idx
+						_face.pori() = GetFirstLeaf(root_pt);
 					}
 				}
-				if (_face.pnode != end) {
-					_face.direction = SPD_IM;
-					_face.pneighbor = _face.pnode->getNeighborFast(SPD_IM);
-					_face.face_type = getFaceType(_face.pnode, _face.pneighbor);
+				if (_face.pori() != end) {
+					_face.dir() = _XM_;
+					_face.pnei() = _face.pori()->get_neighbor(_XM_);
+					_face.ft() = GetFaceType(_face.pori(), _face.pnei());
 				} else {            //the last face-----------------
-					_face.direction = SPD_IM;
-					_face.pneighbor = NULL;
-					_face.face_type = SPFT_Boundary;
+					_face.dir() = _XM_;
+					_face.pnei() = nullptr;
+					_face.ft() = _Boundary_;
 				}
 			}
 
 		}
 	public:
 		bool operator==(const iterator_face_& _x) const {
-			return _pf == _x._pf;
+			return _face == _x._face;
 		}
 		bool operator!=(const iterator_face_& _x) const {
-			return _pf != _x._pf;
+			return _face != _x._face;
 		}
 
-		reference operator*() const {
-			return (*_pf);
+		const Face_<Node, _Ptr>& operator*() const {
+			return _face;
 		}
 
-		pointer operator->() const {
+		const Face_<Node, _Ptr>* operator->() const {
+			return &(operator*());
+		}
+
+		Face_<Node, _Ptr>& operator*() {
+			return _face;
+		}
+
+		Face_<Node, _Ptr>* operator->() {
 			return &(operator*());
 		}
 
@@ -513,15 +522,15 @@ protected:
 		}
 
 		bool is_exist() {
-			return _pf != nullptr;
+			return _face != nullptr;
 		}
 
 		pointer get_pointer() {
-			return _pf;
+			return _face;
 		}
 
 		const pointer get_pointer() const {
-			return _pf;
+			return _face;
 		}
 	};
 
@@ -531,6 +540,9 @@ public:
 	 */
 	typedef iterator_leaf_<cvt, vt, Dim, Node&, Node*> iterator_leaf;
 	typedef iterator_leaf_<cvt, vt, Dim, const Node&, const Node*> const_iterator_leaf;
+
+	typedef iterator_face_<cvt, vt, Dim, Node&, Node*> iterator_face;
+	typedef iterator_face_<cvt, vt, Dim, const Node&, Node*> const_iterator_face;
 
 	iterator_leaf begin_leaf() {
 		size_type idx = this->get_first_root_pNode_idx1d();
@@ -568,6 +580,35 @@ public:
 		return const_iterator_leaf(this, idx, pt);
 	}
 
+	iterator_face begin_face() {
+		size_type idx = this->get_first_root_pNode_idx1d();
+		pNode pt = this->get_first_root_pNode();
+		pNode pn = GetFirstLeaf(pt);
+		pNode pnei = pn->get_neighbor(_XM_);
+		Face f(pn, pnei, _XM_, GetFaceType(pn, pnei));
+		return iterator_face(this, idx, f);
+	}
+	const_iterator_face begin_face() const {
+		size_type idx = this->get_first_root_pNode_idx1d();
+		const Node* pt = this->get_first_root_pNode();
+		const Node* pn = GetFirstLeaf(pt);
+		const_pSelf pg = this;
+		return const_iterator_leaf(pg, idx, pn);
+	}
+
+	iterator_face end_face() {
+		size_type idx = this->get_last_root_pNode_idx1d();
+		pNode pt = this->get_last_root_pNode();
+		//pNode pnei = pn->get_neighbor(_XM_);
+		Face f(pt, nullptr, _XM_, _Boundary_);
+		return iterator_face(this, idx, f);
+	}
+	const_iterator_face end_face() const {
+		size_type idx = this->get_last_root_pNode_idx1d();
+		const pNode pt = this->get_last_root_pNode();
+		return const_iterator_leaf(this, idx, pt);
+	}
+
 	pNode get_pnode(const cvt& x, const cvt& y, const cvt& z = 0.0) {
 		for (const_iterator iter = this->begin(); iter != this->end(); ++iter) {
 			pNode pn = (*iter);
@@ -593,7 +634,99 @@ public:
 		}
 		return nullptr;
 	}
+	/*
+	 * show
+	 */
+	st count_empty() const {
+		st res = 0;
+		for (int i = 0; i < nodes.size(); i++) {
+			if (nodes.at_1d(i) == nullptr) {
+				res++;
+			}
+		}
+		return res;
+	}
+	st count_non_empty() const {
+		st res = 0;
+		for (int i = 0; i < nodes.size(); i++) {
+			if (nodes.at_1d(i) != nullptr) {
+				res++;
+			}
+		}
+		return res;
+	}
+	st count_leaf() const {
+		st res = 0;
+		for (int i = 0; i < nodes.size(); i++) {
+			if (nodes.at_1d(i) != nullptr) {
+				res += nodes.at_1d(i)->count_leaf();
+			}
+		}
+		return res;
+	}
 
+	void show_info() const {
+		std::cout << "=>Grid Info: <========\n";
+		std::cout << "Dim          :" << Dim << "\n";
+		std::cout << "Size         :" << this->size_i() << " x "
+				<< this->size_j();
+		if (Dim == 3) {
+			std::cout << " x " << this->size_k() << "\n";
+		} else {
+			std::cout << "\n";
+		}
+		std::cout << "Num of Tree space    :" << this->size() << "\n";
+		std::cout << "Num of non empty Tree:" << count_non_empty() << "\n";
+		std::cout << "Num of leaf          :" << this->count_leaf()
+				<< std::endl;
+
+		//Leaf information---------------------------
+		_IF_TRUE_RETRUN(this->empty());
+
+		pNode pt = this->get_first_root_pNode();
+		_IF_TRUE_RETRUN(pt == nullptr);
+		int _maxlevel = pt->max_level();
+		arrayList_int num_node(_maxlevel + 1);
+		arrayList_int num_leaf(_maxlevel + 1);
+		for (int i = 0; i < size(); i++) {
+			pNode tree = this->nodes.at_1d(i);
+			if (tree != nullptr) {
+				for (int il = 0; il <= _maxlevel; il++) {
+					num_node[il] += tree->count_level(il);
+					num_leaf[il] += tree->count_leaf_at_level(il);
+				}
+			}
+		}
+		std::cout << "level   Num   leaf   ratio%\n";
+		int totalnode = 0;
+		int totalleaf = 0;
+		for (int i = 0; i <= _maxlevel; i++) {
+			int nn = num_node[i];
+			std::cout.flags(std::ios::right);
+			std::cout.width(4);
+			std::cout << i;
+			std::cout.width(7);
+			std::cout << nn;
+			std::cout.width(7);
+			int nl = num_leaf[i];
+			std::cout << nl;
+			std::cout.width(7);
+			std::cout.precision(1);
+			std::cout.setf(std::ios::fixed, std::ios::floatfield);
+			std::cout << Float(nl) / Float(nn) * 100 << std::endl;
+			totalnode += nn;
+			totalleaf += nl;
+		}
+		std::cout.flags(std::ios::right);
+		std::cout.width(11);
+		std::cout << totalnode;
+		std::cout.width(7);
+		std::cout << totalleaf;
+		std::cout.width(7);
+		std::cout.precision(1);
+		std::cout.setf(std::ios::fixed, std::ios::floatfield);
+		std::cout << Float(totalleaf) / Float(totalnode) * 100 << std::endl;
+	}
 };
 
 /*

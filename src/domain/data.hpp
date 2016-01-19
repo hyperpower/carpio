@@ -52,6 +52,18 @@ public:
 		}
 		_untype.assign(nullptr);
 	}
+	Data_(const Self& s) :
+			_center(s._center.size()), _untype(s._untype.size()) {
+		_idx = s._idx;
+		for (int i = 0; i < NumFaces; ++i) {
+			_face[i] = s._face[i];
+		}
+		for (int i = 0; i < NumVertexes; ++i) {
+			_vertex[i]= s._vertex[i];
+		}
+		_center = s._center;
+		_untype = s._untype;
+	}
 	void reconstruct(const st& nc, const st& nf, const st& nv, const st& nutp) {
 		_center.reconstruct(nc);
 		for (int i = 0; i < NumFaces; ++i) {

@@ -82,9 +82,9 @@ inline bool is_z_m(st i) {
 	return (i | 3) == 3;
 }
 
-static const int _E_ = 1;
-static const int _F_C_ = 2;
-static const int _C_F_ = 3;
+enum NodeType {
+	_Normal_ = 1 << 0, _Ghost_ = 1 << 1, _Cut_ = 1 << 2,
+};
 
 #define _TEMPLATE_COOV_V_DIM_ template<typename COO_VALUE, typename VALUE, st DIM>
 #define _COOV_V_DIM_ COO_VALUE, VALUE, DIM
@@ -1070,7 +1070,155 @@ GetFirstLeaf(const Node_<COO_VALUE, VALUE, DIM> * p) {
 	}
 }
 
+/*
+ * face
+ */
+enum FaceType {
+	_Null_ = -1, _Boundary_ = 0, _Equal_ = 1, _FineCoarse_ = 2, _CoarseFine_ = 3,
+};
+
+inline std::string ParseFaceType(const FaceType& t) {
+	switch (t) {
+	case _Boundary_:
+		return "Boundary";
+		break;
+	case _Equal_:
+		return "Equal";
+		break;
+	case _FineCoarse_:
+		return "FineCorase";
+		break;
+	case _CoarseFine_:
+		return "CoraseFine";
+		break;
+	default:
+		break;
+	}
+	return "Null";
 }
- //
+
+template<typename COO_VALUE, typename VALUE, st DIM>
+class Face_ {
+public:
+	static const st Dim = DIM;
+	static const st NumFaces = DIM + DIM;
+	static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
+	static const st NumNeighbors = NumFaces;
+	static const st NumChildren = NumVertexes;
+
+	typedef Node_<_COOV_V_DIM_> Node;
+	typedef Node_<_COOV_V_DIM_>* pNode;
+	typedef const Node_<_COOV_V_DIM_>* const_pNode;
+	typedef Node_<_COOV_V_DIM_>*& ref_pNode;
+	typedef const Node_<_COOV_V_DIM_>*& const_ref_pNode;
+	typedef Face_<_COOV_V_DIM_> Face;
+	typedef Face_<_COOV_V_DIM_>* pFace;
+	typedef Face_<_COOV_V_DIM_>& ref_Face;
+	typedef const Face_<_COOV_V_DIM_>& const_ref_Face;
+	typedef const Face_<_COOV_V_DIM_>* const_pFace;
+public:
+	pNode pnode;
+	pNode pneighbor;
+	FaceType face_type;
+	Direction direction;
+
+	Face_() {
+		pnode = nullptr;
+		pneighbor = nullptr;
+		face_type = _Null_;
+		direction = _XM_;
+	}
+	Face_(pNode pn, pNode pnei, Direction d, FaceType ft) {
+		pnode = pn;
+		pneighbor = pnei;
+		face_type = ft;
+		direction = d;
+	}
+	Face_(const Face& a) {
+		pnode = a.pnode;
+		pneighbor = a.pneighbor;
+		face_type = a.face_type;
+		direction = a.direction;
+	}
+	//
+	//operator ==================================
+	ref_Face& operator=(const Face&a);
+	bool operator==(const Face& a) const {
+		return (pnode == a.pnode) && (pneighbor == a.pneighbor)
+				&& (face_type == a.face_type) && (direction == a.direction);
+	}
+	bool operator!=(const Face& a) const {
+		return !((pnode == a.pnode) && (pneighbor == a.pneighbor)
+				&& (face_type == a.face_type) && (direction == a.direction));
+	}
+	/*
+	 * get
+	 */
+	ref_pNode& pori() { //pNode origin
+		return pnode;
+	}
+	const_ref_pNode& pori() const { //pNode origin
+		return pnode;
+	}
+	ref_pNode& pnei() { //pNode center
+		return pneighbor;
+	}
+	const_ref_pNode& pnei() const { //pNode center
+		return pneighbor;
+	}
+	FaceType& ft() {
+		return face_type;
+	}
+	FaceType& ft() const {
+		return face_type;
+	}
+	Direction& dir() {
+		return direction;
+	}
+	const Direction& dir() const{
+		return direction;
+	}
+	void set(pNode pn, pNode pnei, const Direction& d, const FaceType& ft) {
+		pnode = pn;
+		pneighbor = pnei;
+		face_type = ft;
+		direction = d;
+	}
+	//show=======================================
+	void show() const {
+		std::cout << "Face show ===============\n";
+		std::cout << "Dim        : " << Dim << '\n';
+		std::cout << "Direction  : " << direction << '\n';
+		std::cout << "Face type  : " << ParseFaceType(face_type) << '\n';
+		std::cout << "Center p x : " << pnode->p(_C_, _X_) << '\n';
+		std::cout << "       p y : " << pnode->p(_C_, _Y_) << '\n';
+		if (Dim == 3) {
+			std::cout << "       p z : " << pnode->p(_C_, _Z_) << '\n';
+		}
+	}
+
+	FaceType get_face_type(  //
+			pNode p,     //main node
+			pNode pn) {
+		if (p == nullptr) {
+			return _Null_;
+		}
+		if (pn == nullptr) {
+			return _Boundary_;
+		}
+		if (pn->get_type() == _Ghost_) {
+			return _Boundary_;
+		}
+		if (p->get_level() > pn->get_level())
+			return _FineCoarse_;
+		if (p->get_level() == pn->get_level() && !pn->has_child())
+			return _Equal_;
+		return _CoarseFine_;
+	}
+
+};
+
+}
+//
 
 #endif /* NODE_H_ */

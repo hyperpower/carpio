@@ -28,6 +28,8 @@ public:
 	typedef Data *pData;
 	typedef Node_<COO_VALUE, VALUE, DIM> Node;
 	typedef Node_<COO_VALUE, VALUE, DIM> *pNode;
+	typedef Face_<COO_VALUE, VALUE, DIM> Face;
+	typedef Face_<COO_VALUE, VALUE, DIM> *pFace;
 	typedef typename SpaceT<pNode, Dim>::reference reference;
 	typedef typename SpaceT<pNode, Dim>::const_reference const_reference;
 	typedef typename SpaceT<pNode, Dim>::size_type size_type;
@@ -359,10 +361,174 @@ protected:
 		}
 	};
 
+	template<typename COV, typename V, st D, class _Ref, class _Ptr>
+	class iterator_face_ {
+	public:
+		typedef COV cvt;
+		typedef VALUE vt;
+		typedef Node_<COV, V, D> Node;
+		typedef Node_<COV, V, D> *pNode;
+		typedef const Node_<COV, V, D> const_Node;
+		typedef const Node_<COV, V, D>* const_pNode;
+
+		typedef Face_<COV, V, D> Face;
+		typedef Face_<COV, V, D> *pFace;
+		typedef const Face_<COV, V, D> const_Face;
+		typedef const Face_<COV, V, D>* const_pFace;
+
+		typedef iterator_face_<COV, V, D, Face&, pFace> iterator;
+		typedef iterator_face_<COV, V, D, const_Face&, const_pFace> const_iterator;
+		typedef iterator_face_<COV, V, D, _Ref, _Ptr> Self;
+
+		typedef Grid_<COV, V, D> Grid;
+		typedef Grid_<COV, V, D>* pGrid;
+		typedef const Grid_<COV, V, D>* const_pGrid;
+
+		typedef Node value_type;
+		typedef _Ptr pointer;
+		typedef _Ref reference;
+
+		const_pGrid _f;
+		st _idx;
+		_Ptr _pf;
+
+		iterator_face_() {
+			_pf = nullptr;
+			_f = nullptr;
+			_idx = 0;
+		}
+		iterator_face_(const_pGrid f, st idx, _Ptr ptr) :
+				_f(f), _idx(idx), _pf(ptr) {
+		}
+		iterator_face_(const iterator& _x) :
+				_f(_x._f), _idx(_x._idx), _pf(_x._ptr) {
+		}
+	protected:
+		pNode _incr_root() {
+			st count = 0;
+			for (st ii = (_idx + 1) % _f->size(); count < _f->size();
+					++ii, ++count) {
+				pNode pt = _f->at_1d(ii);
+				if (nullptr != pt) {
+					_idx = ii;
+					return pt;
+				}
+			}
+			return nullptr;
+		}
+
+		Direction face_order_dir(st idx) const {
+			ASSERT(idx<5);
+			const Direction ARR[] = { _XM_, _XP_, _YM_, _YP_, _ZM_, _ZP_ };
+			return ARR[idx];
+		}
+
+		st face_order(const Direction& dir) const {
+			ASSERT(IsFaceDirection(dir));
+			switch (dir) {
+			case _XM_:
+				return 0;
+				break;
+			case _XP_:
+				return 1;
+				break;
+			case _YM_:
+				return 2;
+				break;
+			case _YP_:
+				return 3;
+				break;
+			case _ZM_:
+				return 4;
+				break;
+			case _ZP_:
+				return 5;
+				break;
+			default:
+				ASSERT_MSG(false, " Error Dirction");
+				return 0;
+			}
+		}
+		void _incr() {
+			pNode end = _f->get_last_root_pNode();
+			if (_pf->po() == end) {
+				return;  //will not increase
+			}
+			//face order
+			st fo = face_order(_pf->dir());
+			if (fo < NumFaces) {
+				_pf->dir() = face_order_dir( fo + 1);
+				_pf->pnei() = _pf->po()->get_neighbor(_pf->dir());
+				_pf->ft() = getFaceType(_face.pnode, _face.pneighbor);
+				return;
+			} else {
+				_Node* s = getSiblingPlus(_face.pnode);
+				if (s->father != NULL_PTR) {
+					_face.pnode = getFirstLeaf(s);
+				} else {
+					if (s == end) {
+						_face.pnode = s;
+					} else {
+						_Tree* pt = getNextpeTree(_f, _idx); //this will change _idx
+						_face.pnode = getFirstLeaf(pt->getpRootNode());
+					}
+				}
+				if (_face.pnode != end) {
+					_face.direction = SPD_IM;
+					_face.pneighbor = _face.pnode->getNeighborFast(SPD_IM);
+					_face.face_type = getFaceType(_face.pnode, _face.pneighbor);
+				} else {            //the last face-----------------
+					_face.direction = SPD_IM;
+					_face.pneighbor = NULL;
+					_face.face_type = SPFT_Boundary;
+				}
+			}
+
+		}
+	public:
+		bool operator==(const iterator_face_& _x) const {
+			return _pf == _x._pf;
+		}
+		bool operator!=(const iterator_face_& _x) const {
+			return _pf != _x._pf;
+		}
+
+		reference operator*() const {
+			return (*_pf);
+		}
+
+		pointer operator->() const {
+			return &(operator*());
+		}
+
+		Self & operator++() {
+			this->_incr();
+			return *this;
+		}
+
+		Self operator++(int) {
+			Self __tmp = *this;
+			this->_incr();
+			return __tmp;
+		}
+
+		bool is_exist() {
+			return _pf != nullptr;
+		}
+
+		pointer get_pointer() {
+			return _pf;
+		}
+
+		const pointer get_pointer() const {
+			return _pf;
+		}
+	};
+
+public:
 	/*
 	 *  typedef of iterator leaf
 	 */
-public:
 	typedef iterator_leaf_<cvt, vt, Dim, Node&, Node*> iterator_leaf;
 	typedef iterator_leaf_<cvt, vt, Dim, const Node&, const Node*> const_iterator_leaf;
 
@@ -422,7 +588,7 @@ public:
 				++iter) {
 			pNode pn = iter.get_pointer();
 			if (pn != nullptr) {
-				pn->new_data(nc,nf,nv,nutp);
+				pn->new_data(nc, nf, nv, nutp);
 			}
 		}
 		return nullptr;

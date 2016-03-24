@@ -294,7 +294,7 @@ protected:
 		void _DeleteLeaf() {
 			pNode f = this->father;
 			if (f != nullptr) {
-				f->child[get_idx()] = nullptr;
+				f->child[_idx] = nullptr;
 			}
 			delete cell;
 			if (data != nullptr) {
@@ -342,10 +342,13 @@ protected:
 			//return (_path >> int(pow(Dim, _level))) & (NumVertexes - 1);
 			return _idx;
 		}
-
-		inline st get_path() const {
-			return _idx;
+		inline void set_idx(st i) {
+			_idx = i;
 		}
+
+		//inline st get_path() const {
+		//	return _idx;
+		//}
 
 		inline st get_root_idx() const {
 			return _root_idx;
@@ -453,7 +456,23 @@ protected:
 		/*
 		 * Connect
 		 */
-
+		void connect_nodes() {
+			std::function<void(pNode, st)> fun = [&](pNode pn, st le) {
+				if(!pn->is_root()) {
+					//set neighbor
+					pn->neighbor[0] = pn->get_neighbor(_XM_);
+					pn->neighbor[1] = pn->get_neighbor(_XP_);
+					pn->neighbor[2] = pn->get_neighbor(_YM_);
+					pn->neighbor[3] = pn->get_neighbor(_YP_);
+					if(Dim == 3) {
+						pn->neighbor[4] = pn->get_neighbor(_ZM_);
+						pn->neighbor[5] = pn->get_neighbor(_ZP_);
+					}
+				}
+			};
+			st dummy =0;
+			this->traversal(fun, dummy);
+		}
 
 		/*
 		 *  new
@@ -552,21 +571,21 @@ protected:
 		inline bool is_adjacent(const Direction &d) const {
 			// Direction on x y or z
 			unsigned short hi = d >> 3;
-			return ((hi & get_idx()) ^ (hi & d)) == 0;
+			return ((hi & _idx) ^ (hi & d)) == 0;
 		}
 
 		inline st reflect(const Direction &d) const {
 			// Direction on x y or z
-			return get_idx() ^ (d >> 3);
+			return _idx ^ (d >> 3);
 		}
 
 		inline bool has_diagonal_sibling(const Direction &d) const {
 			unsigned short hi = d >> 3;
-			return ((get_idx() ^ hi) & hi) == (LO(d) & hi);
+			return ((_idx ^ hi) & hi) == (LO(d) & hi);
 		}
 
 		inline bool is_out_corner(const Direction &d) const {
-			return (get_idx() & HI(d)) == (HI(d) & LO(d));
+			return (_idx & HI(d)) == (HI(d) & LO(d));
 		}
 
 		inline Direction out_common_direction(const Direction &d) const {
@@ -585,7 +604,7 @@ protected:
 			};
 			unsigned short hi = d >> 3;
 			unsigned short lo = LO(d) & hi;
-			unsigned short id = get_idx() & hi;
+			unsigned short id = _idx & hi;
 			unsigned short com;
 			switch (hi) {
 				case 3: //xy
@@ -607,7 +626,7 @@ protected:
 		}
 
 		inline st diagonal_idx(Direction d) const {
-			return get_idx() ^ HI(d);
+			return _idx ^ HI(d);
 		}
 
 	protected:
@@ -702,9 +721,9 @@ protected:
 
 		pNode get_adj_neighbor(const pNode Current, Direction d) {
 			// face direction
-			std::cout << "--------" << "\n";
-			std::cout << "d n     " << d << "\n";
-			std::cout << "idx adj " << Current->get_idx() << "\n";
+			//std::cout << "--------" << "\n";
+			//std::cout << "d n     " << d << "\n";
+			//std::cout << "idx adj " << Current->get_idx() << "\n";
 			pNode ca = nullptr;//common ancestor
 			if (Current->father != nullptr
 					&& Current->is_adjacent(d)) {
@@ -724,19 +743,19 @@ protected:
 		}
 
 		pNode get_cor_neighbor(const pNode Current, Direction d) {
-			std::cout << "--------" << "\n";
-			std::cout << "d n     " << d << "\n";
-			std::cout << "idx cor " << Current->get_idx() << "\n";
-			pNode ca = nullptr;    //common ancestor
+			//std::cout << "--------" << "\n";
+			//std::cout << "d n     " << d << "\n";
+			//std::cout << "idx cor " << Current->get_idx() << "\n";
+			pNode ca = nullptr;//common ancestor
 			int flag = 0;
 			if (Current->father != nullptr &&
 					!Current->has_diagonal_sibling(d)) {
 				//Find a common ancestor
 				if (Current->is_out_corner(d)) {
-					std::cout << "cor " << Current->get_idx() << "\n";
+					//	std::cout << "cor " << Current->get_idx() << "\n";
 					ca = get_cor_neighbor(Current->father, d);
 				} else {
-					std::cout << "adj " << Current->get_idx() << "\n";
+					//	std::cout << "adj " << Current->get_idx() << "\n";
 					ca = get_adj_neighbor(Current->father,
 							Current->out_common_direction(d));
 				}
@@ -807,7 +826,41 @@ protected:
 		pNode get_neighbor(Direction d) {
 			return get_neighbor(this, d);
 		}
-
+		pNode get_neighbor_adj_fast(const pNode Current, Direction d) {
+			pNode res=nullptr;
+			switch(d) {
+				case _XM_: {res = Current->neighbor[0];break;}
+				case _XP_: {res = Current->neighbor[1];break;}
+				case _YM_: {ASSERT(Dim>=2);res = Current->neighbor[2];break;}
+				case _YP_: {ASSERT(Dim>=2);res = Current->neighbor[3];break;}
+				case _ZM_: {ASSERT(Dim>=3);res = Current->neighbor[4];break;}
+				case _ZP_: {ASSERT(Dim>=3);res = Current->neighbor[5];break;}
+				default:
+				res = nullptr;break;
+			}
+			return res;
+		}
+		pNode get_neighbor_adj_cor_fast(const pNode Current, Direction d) {
+			if (IsFaceDirection(d)) {
+				return get_adj_neighbor_fast(Current, d);
+			}
+			if (IsPlaneDirection(d)) {
+				return get_cor_neighbor(Current, d);
+			}
+			return nullptr;
+		}
+		pNode get_neighbor_fast(const pNode Current, Direction d) {
+			ASSERT(d > 7);
+			Direction nd = d & 63;
+			if ( IsXYZDirection(nd)) {
+				return get_cor_neighbor_xyz(Current, nd);
+			} else {
+				return get_neighbor_adj_cor_fast(Current, nd);
+			}
+		}
+		pNode get_neighbor_fast(Direction d) {
+			return get_neighbor_fast(this, d);
+		}
 		/*
 		 *  Traverse
 		 */
@@ -894,6 +947,10 @@ protected:
 		/*
 		 *  overload the function of data
 		 */
+		st size_cd() const {
+			ASSERT(this->data != nullptr);
+			return this->data->size();
+		}
 		ref_vt cd(st i) { //center data
 			ASSERT(this->data != nullptr);
 			return this->data->center(i);

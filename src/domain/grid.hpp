@@ -250,6 +250,14 @@ public:
 			}
 		}
 	}
+	void connect_nodes() {
+		for (st i = 0; i < nodes.size(); i++) {
+			pNode pn = nodes.at_1d(i);
+			if (pn != nullptr) {
+				pn->connect_nodes();
+			}
+		}
+	}
 	/*
 	 *  iterator leaf node
 	 */

@@ -163,7 +163,7 @@ void test_adapt_vof() { //jan 13, 2016
 	// ==============================
 	// shape for vof
 	Shape2D cir2;
-	CreatCircle(cir2, 0.0, 0.0, 1.5, 359);
+	CreatCircle(cir2, 0.7, 0.0, 1.5, 359);
 	adp.adapt_vof(cir2);
 	g.new_data_on_leaf(1, 0, 0, 1);
 	Vof_<Float, Float, 2> vof(&g, 0, 0);
@@ -203,8 +203,8 @@ void test_adapt_vof() { //jan 13, 2016
 	lga.push_back(ga);
 	Gnuplot gp;
 	gp.set_equal_ratio();
-	//gp.set_xrange(-1.5, 0);
-	//gp.set_yrange(0, 1.5);
+	gp.set_xrange(-1.5, 0);
+	gp.set_yrange(0, 1.5);
 	gp.plot(lga);
 }
 
@@ -229,6 +229,7 @@ void test_adp_boundary() {
 	g.new_data_on_leaf(1, 0, 0, 1);
 	Vof_<Float, Float, 2> vof(&g, 0, 0);
 	vof.set_color(cir2);
+	g.connect_nodes();
 	// boundary ====
 	Ghost_<Float, Float, 2> ghost(&g);
 

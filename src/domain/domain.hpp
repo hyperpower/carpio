@@ -10,6 +10,7 @@
 #include "stencil.hpp"
 #include "data.hpp"
 #include "shape.hpp"
+#include "boundary.hpp"
 
 namespace carpio {
 typedef Float Cvt;
@@ -38,7 +39,48 @@ typedef Grid_<Float, Float, 3> Grid_3D;
 typedef Stencil_<Float, Float, 2, 1> Stencil_2D1;
 typedef Stencil_<Float, Float, 2, 2> Stencil_2D2;
 
+template<typename COO_VALUE, typename VALUE, st DIM>
+class Domain_ {
+public:
+	static const st Dim = DIM;
+	static const st NumFaces = DIM + DIM;
+	static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
+	static const st NumNeighbors = NumFaces;
 
+	typedef COO_VALUE cvt;
+	typedef VALUE vt;
+	typedef Domain_<COO_VALUE, VALUE, DIM> Self;
+	typedef Domain_<COO_VALUE, VALUE, DIM>* pSelf;
+	typedef Grid_<COO_VALUE, VALUE, DIM> Grid;
+	typedef Grid_<COO_VALUE, VALUE, DIM> *pGrid;
+	typedef const Grid_<COO_VALUE, VALUE, DIM> * const_pGrid;
+	typedef Cell_<COO_VALUE, Dim> Cell;
+	typedef Cell *pCell;
+	typedef Data_<VALUE, Dim> Data;
+	typedef Data *pData;
+	typedef Node_<COO_VALUE, VALUE, DIM> Node;
+	typedef Node_<COO_VALUE, VALUE, DIM> *pNode;
+	typedef Ghost_<COO_VALUE, VALUE, DIM> Ghost;
+	typedef Ghost_<COO_VALUE, VALUE, DIM> *pGhost;
+	typedef Face_<Node, pNode> Face;
+	typedef Face_<Node, pNode> *pFace;
+	typedef Shape_<COO_VALUE, DIM> Shape;
+	typedef Shape_<COO_VALUE, DIM>* pShape;
+
+public:
+	// data
+	// 2D : the domain is bounded by a shape
+	//      the shape doesn't have holes.
+	pShape p_shape_bound;
+	// Innner solid
+	std::list<pShape> list_p_shape;
+	// Grid: the calculation region
+	pGrid p_grid;
+	// Ghost nodes
+	pGhost p_ghost;
+
+
+};
 
 }
 

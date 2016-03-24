@@ -14,6 +14,8 @@ public:
 	typedef st size_type;
 	typedef TYPE vt;
 	typedef TYPE& reference;
+	typedef TYPE* pointer;
+	typedef const TYPE* const_pointer;
 	typedef const TYPE& const_reference;
 
 	//constructor
@@ -109,8 +111,13 @@ public:
 	inline size_type size() const {
 		return size_type(Dim);
 	}
+	inline pointer ptr() {
+		return this->data();
+	}
+	inline const_pointer ptr() const {
+		return this->data();
+	}
 };
-
 
 } //end namespace
 

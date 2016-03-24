@@ -106,7 +106,9 @@ protected:
 		pNode ghostnode = new Node(nullptr, ghost_node_type,
 				pn->get_level(), pn->get_root_idx(), pn->get_idx(), c);
 		ghostnode->father = pn;
-		ghostnode->data = new Data(*(pn->data));
+		if(pn->data!=nullptr){
+			ghostnode->data = new Data(*(pn->data));
+		}
 		return ghostnode;
 	}
 	/*
@@ -115,7 +117,7 @@ protected:
 	void new_ghost_nodes(pGrid pg) {
 		for (typename Grid::iterator_face iter = pg->begin_face();
 				iter != pg->end_face(); ++iter) {
-			/*if (iter->ft() == _Boundary_) {
+			if (iter->ft() == _Boundary_) {
 				pNode po = (*iter).pori();
 				GhostID gid;
 				gid.root_idx = po->get_root_idx(); //the root idx of the origin node
@@ -125,12 +127,12 @@ protected:
 				gid.direction = iter->dir(); //The direction only on x, y or z
 				gid.bc_type = 0;
 				gid.pfun_bc = nullptr;
+
 				pNode pghost = new_ghost_node(po, iter->dir());
 				//change the index id ------------------------
 				//pn->data->aCenterData[Idx_IDX] = -gid.node_idx - 1; //negative
-				_ghostmap.insert(GhostNode(gid, pghost));
-			}*/
-
+			 	_ghostmap.insert(GhostNode(gid, pghost));
+			}
 		}
 	}
 
@@ -139,6 +141,36 @@ public:
 		new_ghost_nodes(pg);
 	}
 
+};
+
+template<typename VALUE>
+class BoundaryCondition_ {
+public:
+	typedef VALUE vt;
+	// Vbc
+	// 1 Bondary conditon type
+	// 2 value
+	typedef std::pair<st, VALUE> Vbc; //variable boundary condition
+	ArrayListT<Vbc> _abc;
+	// ArrayListV<pFun> _bc_fun;
+public:
+	// Constructor
+	// The number of the variable
+	BoundaryCondition_(st n):_abc(n){
+
+	}
+	// Set
+	/*
+	 * Set boundary condtion 1
+	 *    i  :  index of the variable
+	 *    val:  the value
+	 */
+	void set_bc_1(st i, vt val){
+
+	}
+	void set_bc_2(st i, vt val){
+
+	}
 };
 
 }

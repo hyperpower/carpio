@@ -250,6 +250,10 @@ ArrayListT<T>& ArrayListT<T>::operator=(const ArrayListT<T> &a)
 	if (this == &a) {
 		return *this;
 	}
+	if (a.m_Len <= 0){
+		this->resize(0);
+		return *this;
+	}
 	if (m_Len == a.size()) {
 		//unrolled loop
 		_copy(m_Len, a.getPointer(), m_p);

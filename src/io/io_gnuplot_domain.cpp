@@ -40,19 +40,22 @@ int GnuplotActorDataPushBack_Contour(std::list<std::string>& ldata,
 }
 
 int GnuplotActor_Cell(Gnuplot_actor& actor, const Cell_2D& c) {
-	actor.command() = "using 1:2 ";
+	actor.clear();
+	actor.command() = "using 1:2 title \"\" ";
 	GnuplotActorDataPushBack(actor.data(), c);
 	return _SUCCESS;
 }
 
 int GnuplotActor_Node(Gnuplot_actor& actor, const Node_2D& node) {
-	actor.command() = "using 1:2 ";
+	actor.clear();
+	actor.command() = "using 1:2 title \"\" ";
 	GnuplotActorDataPushBack(actor.data(), *(node.cell));
 	return _SUCCESS;
 }
 
 int GnuplotActor_Nodes(Gnuplot_actor& actor, const std::list<pNode_2D>& lpn) {
-	actor.command() = "using 1:2 ";
+	actor.clear();
+	actor.command() = "using 1:2 title \"\" ";
 	for (std::list<pNode_2D>::const_iterator iter = lpn.begin();
 			iter != lpn.end(); ++iter) {
 		pNode_2D pn = (*iter);
@@ -62,6 +65,7 @@ int GnuplotActor_Nodes(Gnuplot_actor& actor, const std::list<pNode_2D>& lpn) {
 }
 
 int GnuplotActor_RootNodes(Gnuplot_actor& actor, const Grid_2D& g) {
+	actor.clear();
 	actor.command() = "using 1:2 title \"\" ";
 	for (Grid_2D::const_iterator iter = g.begin(); iter != g.end(); ++iter) {
 		Grid_2D::pNode proot = (*iter);
@@ -113,8 +117,12 @@ int GnuplotActor_LeafNodesContours(Gnuplot_actor& actor, const Grid_2D& g,
  * shape
  */
 int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g) {
-	actor.data().clear();
+	actor.clear();
 	actor.command() = "using 1:2 title \"\"";
+	if(g.empty()){
+		actor.data().push_back("");
+		return _ERROR;
+	}
 	typedef typename Shape2D::S2D::Point Poi;
 	for (st i = 0; i < g.size_vertexs(); ++i) {
 		const Poi& p = g.v(i);
@@ -200,6 +208,32 @@ int GnuplotShow(const std::list<Gnuplot_actor>& lga) {
 	//
 	Gnuplot gp;
 	gp.set_equal_ratio();
+	std::ostringstream ss;
+	ss << "plot ";
+	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+			iter != lga.end(); ++iter) {
+		if (iter->empty_style()) {
+			ss << "\"-\" " << iter->command() << "with lines lw 2";
+		} else {
+			ss << "\"-\" " << iter->command() << iter->style();
+		}
+
+		if (lga.size() >= 2 && (iter != (--lga.end()))) {
+			ss << ",\\\n";
+		}
+	}
+	gp.cmd(ss.str() + "\n");
+	ss.str("");
+	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+			iter != lga.end(); ++iter) {
+		gp.output_inline_data((*iter));
+	}
+	return _SUCCESS;
+}
+
+int GnuplotShow(Gnuplot& gp, const std::list<Gnuplot_actor>& lga) {
+	//
+	//gp.set_equal_ratio();
 	std::ostringstream ss;
 	ss << "plot ";
 	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();

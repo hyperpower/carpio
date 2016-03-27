@@ -7,7 +7,7 @@
 #include <math.h>
 
 namespace carpio {
-//Point T ====================================
+//Vector T ====================================
 template<typename TYPE, st DIM>
 class Vector_: public std::array<TYPE, DIM> {
 public:

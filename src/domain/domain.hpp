@@ -71,13 +71,25 @@ public:
 	// data
 	// 2D : the domain is bounded by a shape
 	//      the shape doesn't have holes.
-	pShape p_shape_bound;
+	pShape pshape_bound;
 	// Innner solid
-	std::list<pShape> list_p_shape;
+	std::list<pShape> l_pshape_inner;
 	// Grid: the calculation region
-	pGrid p_grid;
+	pGrid pgrid;
 	// Ghost nodes
-	pGhost p_ghost;
+	pGhost pghost;
+
+protected:
+	// Requirement
+	// The inner solid should be all in the shape bound
+	void _check_solids(){
+
+	}
+public:
+	Domain_(pShape bound, std::list<pShape> l_ph, pGrid pg){
+
+	}
+
 
 
 };

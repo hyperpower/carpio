@@ -8,6 +8,7 @@
 #include "_segment.hpp"
 #include "_plane.hpp"
 #include "_polygon.hpp"
+#include "_polygon_boolean.hpp"
 #include "_relation.hpp"
 
 namespace carpio {

@@ -28,6 +28,7 @@ public:
 	typedef Data *pData;
 	typedef Node_<COO_VALUE, VALUE, DIM> Node;
 	typedef Node_<COO_VALUE, VALUE, DIM> *pNode;
+	typedef Path_<Dim> Path;
 	typedef Face_<Node, pNode> Face;
 	typedef Face_<Node, pNode> *pFace;
 	typedef typename SpaceT<pNode, Dim>::reference reference;
@@ -59,12 +60,14 @@ public:
 			for (st j = 0; j < ((Dim >= 2) ? nj : 1); j++) {
 				for (st k = 0; k < ((Dim == 3) ? nk : 1); k++) {
 					// new
+					Path p(1);
 					nodes.at_1d(i_1d) =  //
 							new Node(nullptr, // father
 									0, // type
 									0, //level
 									i_1d, //root idx
-									0, //path
+									0, //child idx
+									p,
 									ox + (i + 0.5) * dx, 0.5 * dx, //x
 									oy + (j + 0.5) * dy, 0.5 * dy, //y
 									oz + (k + 0.5) * dz, 0.5 * dz); //z
@@ -76,7 +79,7 @@ public:
 
 protected:
 	void _delete() {
-		for (int i = 0; i < nodes.size(); i++) {
+		for (st i = 0; i < nodes.size(); i++) {
 			if (nodes.at_1d(i) != nullptr) {
 				delete nodes.at_1d(i);
 			}

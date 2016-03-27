@@ -25,7 +25,7 @@ void test_geo() {
 void test_clipper() {
 	Shape2D cir, cube;
 	CreatCircle(cir, 0.0, 0.0, 1.5, 359);
-	CreatCube(cube, 0.0,0.0,1.0, 1.0);
+	CreatCube(cube, 1.5,1.5,2.5,2.5);
 	std::list<Gnuplot_actor> lga;
 	Gnuplot_actor ga;
 	GnuplotActor_Shape2D(ga, cir);
@@ -39,6 +39,7 @@ void test_clipper() {
 	lga.push_back(ga);
 	GnuplotShow(lga);
 	std::cout<<std::scientific<<res.volume()<<"\n";
+	std::cout<<std::scientific<<cir.volume()<<"\n";
 }
 
 

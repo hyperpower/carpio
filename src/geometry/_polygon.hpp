@@ -48,7 +48,7 @@ public:
 			return 0.0;
 		}
 		vt s = 0.00;
-		for (int i = 1; i < _arrp.size() - 1; i++) {
+		for (st i = 1; i < _arrp.size() - 1; i++) {
 			s = s + Cro(_arrp[i + 1], _arrp[i], _arrp[0]); // det to cro
 		}
 		return Abs(s) / 2.00;

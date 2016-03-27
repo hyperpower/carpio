@@ -70,7 +70,7 @@ protected:
 	 */
 	void _update_current_info() {
 		ArrayListV<st> arr_info(4);
-		for (int i = 0; i < _grid->size(); i++) {
+		for (st i = 0; i < _grid->size(); i++) {
 			pNode pn = _grid->nodes.at_1d(i);
 			if (pn != nullptr) {
 				//
@@ -107,7 +107,7 @@ public:
 				pn->new_full_child();
 			}
 		};
-		for (int i = 0; i < _grid->size(); i++) {
+		for (st i = 0; i < _grid->size(); i++) {
 			pNode pn = _grid->nodes.at_1d(i);
 			if (pn != nullptr) {
 				pn->traversal(fun, _min_l);
@@ -133,7 +133,7 @@ public:
 							if(pn->get_level() < this->_min_l) {
 								pn->new_full_child();
 							}
-						} else if(Abs(res.volume() - sn.volume())<1e-8) { // all in
+						} else if(Abs(res.volume() - sn.volume())<SMALL) { // all in
 							if(pn->is_root()) {
 								delete pn;
 								pn=nullptr;

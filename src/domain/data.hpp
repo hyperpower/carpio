@@ -33,10 +33,10 @@ public:
 	Data_(const st& nc, const st& nf, const st& nv, utPointer utp) :
 			_center(nc), _untype(1) {
 		_idx = 0;
-		for (int i = 0; i < NumFaces; ++i) {
+		for (st i = 0; i < NumFaces; ++i) {
 			_face[i].reconstruct(nf);
 		}
-		for (int i = 0; i < NumVertexes; ++i) {
+		for (st i = 0; i < NumVertexes; ++i) {
 			_vertex[i].reconstruct(nv);
 		}
 		_untype[0] = utp;

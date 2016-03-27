@@ -5,6 +5,7 @@
 #include "domain_define.hpp"
 #include "cell.hpp"
 #include "data.hpp"
+#include "path.hpp"
 #include <functional>
 
 #include <math.h>
@@ -109,6 +110,7 @@ public:
 	typedef Data *pData;
 	typedef Self Node;
 	typedef Self *pNode;
+	typedef Path_<Dim> Path;
 	typedef const Self const_Node;
 	typedef const Self* const_pNode;
 
@@ -122,6 +124,7 @@ protected:
 		st _level;
 		st _root_idx;
 		st _idx;
+		Path _path;
 	public:
 		pNode father;
 		pNode child[NumChildren];
@@ -234,7 +237,7 @@ protected:
 				fun(pn, args);
 				_IF_TRUE_RETRUN(pn==nullptr);
 				if (pn->has_child()) {
-					for (int i = 0; i < NumChildren; i++) {
+					for (st i = 0; i < NumChildren; i++) {
 						pNode c = pn->child[i];
 						if (c != nullptr) {
 							_traversal(c, fun, args);
@@ -248,7 +251,7 @@ protected:
 		/*
 		 *  constructor
 		 */
-		Node_(pNode f, int nt, st level, st root_idx, st path,    //
+		Node_(pNode f, int nt, st level, st root_idx, st c_idx, Path _p,  //
 				const vt &x, const vt &dhx,//
 				const vt &y = 0.0, const vt &dhy = 0.0,//
 				const vt &z = 0.0, const vt &dhz = 0.0) {
@@ -257,24 +260,26 @@ protected:
 			cell = new Cell(x, dhx, y, dhy, z, dhz);
 			father = f;
 			_root_idx = root_idx;
-			_idx = path;
+			_idx = c_idx;
+			_path = _p;
 
 			data = nullptr;
-			for (int i = 0; i < this->NumChildren; i++) {
+			for (st i = 0; i < this->NumChildren; i++) {
 				child[i] = nullptr;
 			}
-			for (int i = 0; i < this->NumNeighbors; i++) {
+			for (st i = 0; i < this->NumNeighbors; i++) {
 				neighbor[i] = nullptr;
 			}
 		}
-		Node_(pNode f, int nt, st level, st root_idx, st path,    //
+		Node_(pNode f, int nt, st level, st root_idx, st child_idx, Path _p, //
 				const Cell& c) {
 			_node_type = nt;
 			_level = level;
 			cell = new Cell(c);
 			father = f;
 			_root_idx = root_idx;
-			_idx = path;
+			_idx = child_idx;
+			_path = _p;
 
 			data = nullptr;
 			for (int i = 0; i < this->NumChildren; i++) {
@@ -477,6 +482,22 @@ protected:
 		/*
 		 *  new
 		 */
+	protected:
+		Path _cal_this_path(st i) {
+			Path res(Dim);
+			res.clear();
+			if(is_x_p(i)&& Dim>=1) {
+				res.set(0);
+			}
+			if(is_y_p(i)&& Dim>=2) {
+				res.set(1);
+			}
+			if(is_z_p(i)&& Dim>=3) {
+				res.set(2);
+			}
+			return res;
+		}
+	public:
 		void new_full_child() {
 			if (!has_child()) {
 				st ltmp = _level + 1;
@@ -491,10 +512,14 @@ protected:
 					int nt = 1;
 					st l = ltmp;
 					st ridx = _root_idx;
-					//st npath = (i << int((pow(Dim, l)))) + _path;
-					st npath = i;
-					this->child[i] = new Node_(//
-							f, nt, l, ridx, npath,//
+					st child_idx = i;
+					Path p;
+					if(!this->is_root()) {
+						p = this->_path;
+					}
+					p.append(this->_cal_this_path(i));
+					this->child[i] = new Node_(		//
+							f, nt, l, ridx, child_idx, p,//
 							cx + (is_x_p(i) ? nhdx : -nhdx), nhdx,//
 							cy + (is_y_p(i) ? nhdx : -nhdx), nhdy,//
 							cz + (is_z_p(i) ? nhdx : -nhdx), nhdz);
@@ -516,6 +541,11 @@ protected:
 				st l = ltmp;
 				st ridx = _root_idx;
 				st npath = idx;
+				Path p;
+				if(!this->is_root()) {
+					p = this->_path;
+				}
+				p.append(this->_cal_this_path(idx));
 				this->child[idx] = new Node_( //
 						f, nt, l, ridx, npath,//
 						cx + (is_x_p(idx) ? nhdx : -nhdx), nhdx,//
@@ -1014,6 +1044,9 @@ protected:
 			std::cout << "level      :" << this->_level << "\n";
 			std::cout << "node type  :" << this->_node_type << "\n";
 			std::cout << "idx        :" << this->_idx << "\n";
+			std::cout << "path       :";
+			this->_path.show(1);
+			std::cout << "\n";
 			std::cout << "CELL  show =========\n";
 			std::cout << std::scientific;
 			std::cout << "       min    " <<"     max    "<<"     d    "<< "     c    \n";
@@ -1083,7 +1116,7 @@ GetpNodeSiblingPlus(const Node_<COO_VALUE, VALUE, DIM> *p) {
 	if (f == nullptr) {
 		return p;
 	}
-	for (int i = p->get_idx() + 1; i < Node::NumChildren; ++i) {
+	for (st i = p->get_idx() + 1; i < Node::NumChildren; ++i) {
 		Node* c = f->child[i];
 		if (c != nullptr) {
 			return c;
@@ -1099,7 +1132,7 @@ GetpNodeSiblingPlus(Node_<COO_VALUE, VALUE, DIM> *p) {
 	if (f == nullptr) {
 		return p;
 	}
-	for (int i = p->get_idx() + 1; i < Node::NumChildren; ++i) {
+	for (st i = p->get_idx() + 1; i < Node::NumChildren; ++i) {
 		Node* c = f->child[i];
 		if (c != nullptr) {
 			return c;
@@ -1115,7 +1148,7 @@ GetFirstChild(Node_<COO_VALUE, VALUE, DIM> * p) {
 	if(p==nullptr) {
 		return c;
 	}
-	for (int i = 0; i < Node::NumChildren; ++i) {
+	for (st i = 0; i < Node::NumChildren; ++i) {
 		c = p->child[i];
 		if (c != nullptr) {
 			return c;
@@ -1131,7 +1164,7 @@ GetFirstChild(const Node_<COO_VALUE, VALUE, DIM> * p) {
 	if(p==nullptr) {
 		return c;
 	}
-	for (int i = 0; i < Node::NumChildren; ++i) {
+	for (st i = 0; i < Node::NumChildren; ++i) {
 		c = p->child[i];
 		if (c != nullptr) {
 			return c;

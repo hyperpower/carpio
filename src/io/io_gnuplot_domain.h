@@ -31,6 +31,7 @@ int GnuplotActor_Vof2D(Gnuplot_actor& actor, const Vof_<Float, Float, 2>& vof);
 int GnuplotShow_RootNodes(const Grid_2D& grid);
 int GnuplotShow_LeafNodes(const Grid_2D& grid);
 int GnuplotShow(const std::list<Gnuplot_actor>& lga);
+int GnuplotShow(Gnuplot& ,const std::list<Gnuplot_actor>& lga);
 }
 
 #endif /* IO_H_ */

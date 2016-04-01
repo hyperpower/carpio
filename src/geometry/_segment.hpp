@@ -5,7 +5,7 @@
 #include "geometry_define.hpp"
 #include "_point.hpp"
 #include <array>
-
+#include "math.h"
 namespace carpio {
 
 template<typename TYPE, st DIM>
@@ -36,7 +36,7 @@ public:
 			const vt& ay, const vt& by,  //
 			const vt& az = 0, const vt& bz = 0) {
 		Point s(ax, ay, az);
-		Point e(ax, ay, az);
+		Point e(bx, by, bz);
 		reconstruct(s, e);
 	}
 	Segment_(const_ref_Self rhs) {
@@ -56,7 +56,7 @@ public:
 			const vt& ay, const vt& by,  //
 			const vt& az = 0, const vt& bz = 0) {
 		Point s(ax, ay, az);
-		Point e(ax, ay, az);
+		Point e(bx, by, bz);
 		reconstruct(s, e);
 	}
 
@@ -125,7 +125,15 @@ public:
 		ASSERT(Dim >= 3);
 		return this->pe().z();
 	}
-
+	vt dx() const {
+		return pex() - psx();
+	}
+	vt dy() const {
+		return pey() - psy();
+	}
+	vt dz() const {
+		return pez() - psz();
+	}
 	vt length() const {
 		vt len = 0.0;
 		len = sqrt(
@@ -177,9 +185,19 @@ public:
 	}
 	void show() const {
 		std::cout.precision(4);
-		std::cout << "( " << psx() << ", " << psy() << ", "
-				<< ((Dim == 3) ? psz() : "") << " )--->(" << pex() << ", "
-				<< pey() << ", " << ((Dim == 3) ? psz() : "") << " ) \n";
+		std::cout << "( " << psx() << ", " << psy();
+		if (Dim == 3) {
+			std::cout << ", " << psz();
+		} else {
+			std::cout << "";
+		}
+		std::cout << " )--->(" << this->pex() << ", " << pey();
+		if (Dim == 3) {
+			std::cout << ", " << pez();
+		} else {
+			std::cout << "";
+		}
+		std::cout << " )\n";
 	}
 
 	/*

@@ -16,6 +16,7 @@ public:
 	typedef Point_<TYPE, 2>& ref_Point;
 	typedef const Point_<TYPE, 2>& const_ref_Point;
 	typedef Segment_<TYPE, 2> Segment;
+	typedef Segment_<TYPE, 2>& ref_Segment;
 	typedef TYPE vt;
 	typedef ArrayListT<Point> ArrP;
 
@@ -34,6 +35,11 @@ public:
 		this->_arrp = a;
 		_trim_same_points();
 	}
+	void reconstruct(const ArrP & a) {
+		assert(a.size() >= 3);
+		this->_arrp = a;
+		_trim_same_points();
+	}
 
 	Polygon_& operator=(const Polygon_ &a) {
 		if (this == &a) {
@@ -43,7 +49,7 @@ public:
 		}
 		return *this;
 	}
-	vt area() const{
+	vt area() const {
 		if (empty()) {
 			return 0.0;
 		}
@@ -53,7 +59,7 @@ public:
 		}
 		return Abs(s) / 2.00;
 	}
-	void clear(){
+	void clear() {
 		_arrp.resize(0);
 	}
 	bool empty() const {
@@ -81,7 +87,7 @@ public:
 	inline st size_vertexs() const {
 		return _arrp.size();
 	}
-	inline int size_segments() const {  //
+	inline st size_segments() const {  //
 		return _arrp.size();
 	}
 	const_ref_Point v(st i) const {
@@ -137,7 +143,6 @@ public:
 		return min;
 	}
 
-
 protected:
 	void _trim_same_points() {
 		for (int i = 0; i < _arrp.size() - 1; i++) {
@@ -151,7 +156,6 @@ protected:
 		}
 	}
 
-
 	/*
 	 * data
 	 */
@@ -160,7 +164,36 @@ protected:
 /*
  * Function out of class
  */
+template<typename VALUE>
+void CreatCircle(Polygon_<VALUE>& s, VALUE x0, VALUE y0, VALUE r, int n) {
+	ASSERT(n >= 3);
+	Float pi = 3.141592653589793238;
+	typedef typename Polygon_<VALUE>::ArrP ArrPoint;
+	typedef typename Polygon_<VALUE>::Point Poi;
+	ArrPoint arrp;
+	for (int i = 0; i < n; i++) {
+		Float x = x0 + r * cos(2. * pi / float(n) * i);
+		Float y = y0 + r * sin(2. * pi / float(n) * i);
+		arrp.push_back(Poi(x, y));
+	}
+	s.reconstruct(arrp);
+}
 
+template<typename VALUE>
+void CreatCube(Polygon_<VALUE>& s, VALUE x0, VALUE y0, VALUE x1, VALUE y1) {
+	ASSERT(x1 > x0);
+	ASSERT(y1 > y0);
+	typedef typename Polygon_<VALUE>::ArrP ArrPoint;
+	typedef typename Polygon_<VALUE>::Point Poi;
+	ArrPoint arrp;
+	VALUE dx = x1 - x0;
+	VALUE dy = y1 - y0;
+	arrp.push_back(Poi(x0, y0));
+	arrp.push_back(Poi(x0 + dx, y0));
+	arrp.push_back(Poi(x1, y1));
+	arrp.push_back(Poi(x0, y0 + dy));
+	s.reconstruct(arrp);
+}
 
 }
 

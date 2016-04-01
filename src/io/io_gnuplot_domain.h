@@ -28,10 +28,15 @@ int GnuplotActor_LeafNodesContours(Gnuplot_actor& actor, const Grid_2D& g,
 int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g);
 int GnuplotActor_Vof2D(Gnuplot_actor& actor, const Vof_<Float, Float, 2>& vof);
 
+// this part is creat gnuplot actor for geometry
+int GnuplotActor_Segment2D(Gnuplot_actor& actor, const Segment_2D& g);
+int GnuplotActor_Polygon(Gnuplot_actor& actor, const Polygon& g);
+int GnuplotActor_Polygon_vector(Gnuplot_actor& actor, const Polygon& g);
+
+
 int GnuplotShow_RootNodes(const Grid_2D& grid);
 int GnuplotShow_LeafNodes(const Grid_2D& grid);
-int GnuplotShow(const std::list<Gnuplot_actor>& lga);
-int GnuplotShow(Gnuplot& ,const std::list<Gnuplot_actor>& lga);
+
 }
 
 #endif /* IO_H_ */

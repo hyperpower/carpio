@@ -128,7 +128,9 @@ int OnWhichSide3(const Segment_<TYPE, 2> &s, const Point_<TYPE, 2> &pt) {
 		return 1;
 	}
 }
-
+/*
+ * Segment -------------------  Segment
+ */
 template<typename TYPE>
 int IntersectType(const Segment_<TYPE, 2> &s1, const Segment_<TYPE, 2> &s2) {
 	if (!IsBoxCross(s1, s2)) {
@@ -172,6 +174,52 @@ bool IsIntersect(const Point_<TYPE, 2>& s1s, const Point_<TYPE, 2>& s1e,
 	Segment_<TYPE, DIM> s1(s1s, s1e);
 	Segment_<TYPE, DIM> s2(s2s, s2e);
 	return IsIntersect(s1, s2);
+}
+template<typename TYPE>
+Point_<TYPE, 2> CalIntersect(const Segment_<TYPE, 2> &s1, const Segment_<TYPE, 2> &s2) {
+	assert(IsIntersect(s1, s2));
+	Float x1, x2, y1, y2;
+	Float x3, x4, y3, y4;
+	Float resxx;
+	Float resyy;
+	x1 = Float(s1.psx());
+	y1 = Float(s1.psy());
+	x2 = Float(s1.pex());
+	y2 = Float(s1.pey());
+	x3 = Float(s2.psx());
+	y3 = Float(s2.psy());
+	x4 = Float(s2.pex());
+	y4 = Float(s2.pey());
+	Float b1 = (y2 - y1) * x1 + (x1 - x2) * y1;
+
+	Float b2 = (y4 - y3) * x3 + (x3 - x4) * y3;
+	if (s1.is_horizontal() && s2.is_vertical()) {
+		resxx = x3;
+		resyy = y1;
+	} else if (s2.is_horizontal() && s1.is_vertical()) {
+		resxx = x1;
+		resyy = y3;
+	} else if (s1.is_horizontal()) {
+		resxx = (b2 + (x4 - x3) * y1) / (y4 - y3);
+		resyy = y1;
+	} else if (s1.is_vertical()) {
+		resxx = x1;
+		resyy = (b2 - (y4 - y3) * x1) / (x3 - x4);
+	} else if (s2.is_horizontal()) {
+		resxx = (b1 + (x2 - x1) * y3) / (y2 - y1);
+		resyy = y3;
+	} else if (s2.is_vertical()) {
+		resxx = x3;
+		resyy = (b1 - (y2 - y1) * x3) / (x1 - x2);
+	} else {
+		Float d = (x2 - x1) * (y4 - y3) - (x4 - x3) * (y2 - y1);
+		Float d1 = b2 * (x2 - x1) - b1 * (x4 - x3);
+		Float d2 = b2 * (y2 - y1) - b1 * (y4 - y3);
+		assert(d != 0);
+		resxx = d1 / d;
+		resyy = d2 / d;
+	}
+	return Point_<TYPE, 2>(resxx, resyy);
 }
 /*
  * Point   -------- Polygon
@@ -217,14 +265,28 @@ Float WindingNumber(const Polygon_<TYPE>& poly, const Point_<TYPE, 2>& ref) {
 	Float wn = 0;    // the  winding number counter
 	// loop through all edges of the polygon
 	for (int i = 0; i < poly.size_vertexs() - 1; i++) { // edge from V[i] to  V[i+1]
-		wn += WindingNum(ref, poly.v(i), poly.v(i + 1));
+		wn += _WindingNumber(ref, poly.v(i), poly.v(i + 1));
 	}
-	return wn += WindingNum(ref, poly.v(poly.size_vertexs() - 1), poly(0));
+	wn += _WindingNumber(ref, poly.v(poly.size_vertexs() - 1), poly.v(0));
+	return wn;
 }
 
 template<typename TYPE>
 bool IsOut(const Polygon_<TYPE>& poly, const Point_<TYPE, 2>& ref) {
 	return (0 == WindingNumber(poly, ref)) ? true : false;
+}
+/*
+ *  Is the subject inside of the polygon
+ */
+template<typename TYPE>
+bool IsIn(const Polygon_<TYPE>& poly,const Polygon_<TYPE>& sub){
+	for(st i=0; i<poly.size_vertexs();++i){
+		Float wn =  WindingNumber(poly,sub.v(i));
+		if(0==wn || -1==wn){
+			return false;
+		}
+	}
+	return true;
 }
 
 /*

@@ -23,6 +23,12 @@ void test_path_1() {
 	path1.append(path);
 	path1.show();
 
+	std::cout << " --------------------- \n";
+	path.set();
+	path.show();
+	path1.show();
+	std::cout<< (path < path) <<"\n";
+
 }
 
 inline void test_path_2() {

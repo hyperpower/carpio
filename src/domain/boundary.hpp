@@ -4,7 +4,7 @@
 #include "domain_define.hpp"
 #include "node.hpp"
 #include "cell.hpp"
-
+#include "path.hpp"
 namespace carpio {
 
 template<typename COO_VALUE, typename VALUE, st DIM>
@@ -13,7 +13,8 @@ struct GhostID_ {
 			GhostID_<COO_VALUE, VALUE, DIM>&, utPointer);
 
 	st root_idx;   //the root idx of the origin node
-	st idx;        //the local idx of the origin node
+	//st idx;        //the local idx of the origin node
+	Path_<DIM> path; //the path of the origin node
 	st step;       //the steps of ghost node, we can choose multiple ghost Node,
 				   // usually step = 0
 	Direction direction; //The direction only on x, y or z
@@ -29,8 +30,8 @@ struct GhostID_compare_ {
 		if (lhs.root_idx < rhs.root_idx) {
 			return true;
 		} else if (lhs.root_idx == rhs.root_idx) {
-			return lhs.idx < rhs.idx;
-		} else if (lhs.idx == rhs.idx) {
+			return lhs.path < rhs.path;
+		} else if (lhs.path == rhs.path) {
 			return int(lhs.direction) < int(rhs.direction);
 		} else if (lhs.direction == rhs.direction) {
 			return lhs.step < rhs.step;
@@ -103,10 +104,16 @@ protected:
 			ASSERT(false);
 		}
 		//pNode f, int nt, st level, st root_idx, st path,const Cell& c
-		pNode ghostnode = new Node(nullptr, ghost_node_type,
-				pn->get_level(), pn->get_root_idx(), pn->get_idx(), c);
+		pNode ghostnode = new Node(  //
+				nullptr,//
+				ghost_node_type,  //
+				pn->get_level(),  //
+				pn->get_root_idx(),  //
+				pn->get_idx(),       //
+				pn->get_path(),      //
+				c);
 		ghostnode->father = pn;
-		if(pn->data!=nullptr){
+		if (pn->data != nullptr) {
 			ghostnode->data = new Data(*(pn->data));
 		}
 		return ghostnode;
@@ -121,9 +128,9 @@ protected:
 				pNode po = (*iter).pori();
 				GhostID gid;
 				gid.root_idx = po->get_root_idx(); //the root idx of the origin node
-				gid.idx = po->get_idx(); //the local idx of the origin node
+				gid.path = po->get_path(); //the local idx of the origin node
 				gid.step = 0; //the steps of ghost node, we can choose multiple ghost Node,
-							  // usually step = 0
+							  // usually step =
 				gid.direction = iter->dir(); //The direction only on x, y or z
 				gid.bc_type = 0;
 				gid.pfun_bc = nullptr;
@@ -131,7 +138,7 @@ protected:
 				pNode pghost = new_ghost_node(po, iter->dir());
 				//change the index id ------------------------
 				//pn->data->aCenterData[Idx_IDX] = -gid.node_idx - 1; //negative
-			 	_ghostmap.insert(GhostNode(gid, pghost));
+				_ghostmap.insert(GhostNode(gid, pghost));
 			}
 		}
 	}
@@ -156,7 +163,8 @@ public:
 public:
 	// Constructor
 	// The number of the variable
-	BoundaryCondition_(st n):_abc(n){
+	BoundaryCondition_(st n) :
+			_abc(n) {
 
 	}
 	// Set
@@ -165,10 +173,10 @@ public:
 	 *    i  :  index of the variable
 	 *    val:  the value
 	 */
-	void set_bc_1(st i, vt val){
+	void set_bc_1(st i, vt val) {
 
 	}
-	void set_bc_2(st i, vt val){
+	void set_bc_2(st i, vt val) {
 
 	}
 };

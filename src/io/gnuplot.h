@@ -11,6 +11,8 @@
 #include <cstdlib>              // for getenv()
 #include <list>                 // for std::list
 #include <stdlib.h>
+#include "../carpio_define.hpp"
+#include "io_define.hpp"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
 //defined for 32 and 64-bit environments
@@ -206,6 +208,9 @@ public:
 
 	Gnuplot& set_equal_ratio();
 
+	Gnuplot& set_label(int, const std::string &, const double&,
+			const double&, const std::string &append="");
+
 	//------------------------------------------------------------------------------
 	//
 
@@ -382,7 +387,8 @@ void stringtok(Container &container, std::string const &in,
 	}
 	return;
 }
-
+int GnuplotShow(const std::list<Gnuplot_actor>& lga);
+int GnuplotShow(Gnuplot&, const std::list<Gnuplot_actor>& lga);
 }
 
 #endif

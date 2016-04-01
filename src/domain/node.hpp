@@ -351,9 +351,9 @@ protected:
 			_idx = i;
 		}
 
-		//inline st get_path() const {
-		//	return _idx;
-		//}
+		inline Path get_path() const {
+			return _path;
+		}
 
 		inline st get_root_idx() const {
 			return _root_idx;

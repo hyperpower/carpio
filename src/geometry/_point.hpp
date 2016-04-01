@@ -3,6 +3,7 @@
 
 #include "../carpio_define.hpp"
 #include <array>
+#include <sstream>
 
 namespace carpio {
 //Point T ====================================
@@ -91,6 +92,18 @@ public:
 		} else {
 			std::cout << " )\n";
 		}
+	}
+	std::string to_string() const {
+		std::stringstream sstr;
+		sstr.precision(4);
+		sstr<<"( " << this->at(0) << " , "
+				<< this->at(1);
+		if (Dim == 3) {
+			sstr << " , " << this->at(2) << " )";
+		} else {
+			sstr << " )";
+		}
+		return sstr.str();
 	}
 	template<typename T>
 	void transfer(const T&dx, const T&dy, const T&dz) {

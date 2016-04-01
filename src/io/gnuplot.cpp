@@ -51,7 +51,7 @@ void Gnuplot::_init() {
 	//
 	// open pipe
 	//
-	std::string tmp = this->m_sGNUPlotPath +"/"+ this->m_sGNUPlotFileName
+	std::string tmp = this->m_sGNUPlotPath + "/" + this->m_sGNUPlotFileName
 			+ " -persist";
 
 	// FILE *popen(const char *command, const char *mode);
@@ -77,9 +77,7 @@ void Gnuplot::_init() {
 
 	//set terminal type
 	cmd("set output");
-	cmd(
-			"set terminal " + this->terminal_std
-					+ " enhanced font 'Helvetica,14'");
+	cmd("set terminal " + this->terminal_std + " enhanced font 'Helvetica,14'");
 
 	return;
 }
@@ -207,6 +205,16 @@ Gnuplot& Gnuplot::set_equal_ratio() {
 
 }
 
+Gnuplot& Gnuplot::set_label(int tag, const std::string & label, const double& x,
+		const double& y, const std::string& append) {
+	std::ostringstream cmdstr;
+	cmdstr << "set label " << tag << " \"" << label << "\" at first " << x << ",first "
+			<< y << " " << append;
+	//std::cout<<cmdstr.str();
+	cmd(cmdstr.str());
+	return *this;
+}
+
 /// set x axis label
 Gnuplot& Gnuplot::set_ylabel(const std::string &label) {
 	std::ostringstream cmdstr;
@@ -217,7 +225,7 @@ Gnuplot& Gnuplot::set_ylabel(const std::string &label) {
 	return *this;
 }
 /// set y axis label
-Gnuplot& Gnuplot::set_xlabel(const std::string &label ) {
+Gnuplot& Gnuplot::set_xlabel(const std::string &label) {
 	std::ostringstream cmdstr;
 
 	cmdstr << "set ylabel \"" << label << "\"";
@@ -226,7 +234,7 @@ Gnuplot& Gnuplot::set_xlabel(const std::string &label ) {
 	return *this;
 }
 /// set z axis label
-Gnuplot& Gnuplot::set_zlabel(const std::string &label ) {
+Gnuplot& Gnuplot::set_zlabel(const std::string &label) {
 	std::ostringstream cmdstr;
 
 	cmdstr << "set zlabel \"" << label << "\"";
@@ -295,7 +303,6 @@ Gnuplot& Gnuplot::set(const std::string& str) {
 	return *this;
 }
 
-
 Gnuplot& Gnuplot::set_cbrange(const double iFrom, const double iTo) {
 	std::ostringstream cmdstr;
 	cmdstr << "set cbrange[" << iFrom << ":" << iTo << "]";
@@ -361,5 +368,58 @@ Gnuplot::~Gnuplot() {
 #endif
 		std::cerr << " >! Problem closing communication to gnuplot \n";
 	}
+}
+
+int GnuplotShow(const std::list<Gnuplot_actor>& lga) {
+	//
+	Gnuplot gp;
+	gp.set_equal_ratio();
+	std::ostringstream ss;
+	ss << "plot ";
+	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+			iter != lga.end(); ++iter) {
+		if (iter->empty_style()) {
+			ss << "\"-\" " << iter->command() << "with lines lw 2";
+		} else {
+			ss << "\"-\" " << iter->command() << iter->style();
+		}
+
+		if (lga.size() >= 2 && (iter != (--lga.end()))) {
+			ss << ",\\\n";
+		}
+	}
+	gp.cmd(ss.str() + "\n");
+	ss.str("");
+	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+			iter != lga.end(); ++iter) {
+		gp.output_inline_data((*iter));
+	}
+	return _SUCCESS;
+}
+
+int GnuplotShow(Gnuplot& gp, const std::list<Gnuplot_actor>& lga) {
+	//
+	//gp.set_equal_ratio();
+	std::ostringstream ss;
+	ss << "plot ";
+	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+			iter != lga.end(); ++iter) {
+		if (iter->empty_style()) {
+			ss << "\"-\" " << iter->command() << "with lines lw 1";
+		} else {
+			ss << "\"-\" " << iter->command() << iter->style();
+		}
+
+		if (lga.size() >= 2 && (iter != (--lga.end()))) {
+			ss << ",\\\n";
+		}
+	}
+	gp.cmd(ss.str() + "\n");
+	ss.str("");
+	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+			iter != lga.end(); ++iter) {
+		gp.output_inline_data((*iter));
+	}
+	return _SUCCESS;
 }
 }

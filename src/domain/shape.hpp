@@ -91,6 +91,14 @@ public:
 		}
 		_ps2d = new S2D(arrp);
 	}
+	void set(const Polygon_<VALUE>& poly) {
+		ASSERT(Dim == 2);
+		if (_ps2d != nullptr) {
+			delete _ps2d;
+			_ps2d = nullptr;
+		}
+		_ps2d = new S2D(poly);
+	}
 	/*
 	 * clear
 	 */
@@ -100,7 +108,7 @@ public:
 		}
 		_ps2d->clear();
 	}
-	bool empty() const{
+	bool empty() const {
 		if (Dim == 2) {
 			if (_ps2d == nullptr) {
 				return true;
@@ -153,33 +161,16 @@ public:
 
 template<typename VALUE>
 void CreatCircle(Shape_<VALUE, 2>& s, VALUE x0, VALUE y0, VALUE r, int n) {
-	ASSERT(n >= 3);
-	Float pi = 3.141592653589793238;
-	typedef typename Polygon_<VALUE>::ArrP ArrPoint;
-	typedef typename Polygon_<VALUE>::Point Poi;
-	ArrPoint arrp;
-	for (int i = 0; i < n; i++) {
-		Float x = x0 + r * cos(2. * pi / float(n) * i);
-		Float y = y0 + r * sin(2. * pi / float(n) * i);
-		arrp.push_back(Poi(x, y));
-	}
-	s.set(arrp);
+	Polygon_<VALUE> ply;
+	CreatCube(ply, x0, y0, r, n);
+	s.set(ply);
 }
 
 template<typename VALUE>
 void CreatCube(Shape_<VALUE, 2>& s, VALUE x0, VALUE y0, VALUE x1, VALUE y1) {
-	ASSERT(x1 > x0);
-	ASSERT(y1 > y0);
-	typedef typename Polygon_<VALUE>::ArrP ArrPoint;
-	typedef typename Polygon_<VALUE>::Point Poi;
-	ArrPoint arrp;
-	VALUE dx = x1 - x0;
-	VALUE dy = y1 - y0;
-	arrp.push_back(Poi(x0, y0));
-	arrp.push_back(Poi(x0 + dx, y0));
-	arrp.push_back(Poi(x1, y1));
-	arrp.push_back(Poi(x0, y0 + dy));
-	s.set(arrp);
+	Polygon_<VALUE> ply;
+	CreatCube(ply, x0, y0, x1, y1);
+	s.set(ply);
 }
 
 template<typename TYPE, st DIM>

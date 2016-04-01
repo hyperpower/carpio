@@ -119,7 +119,7 @@ int GnuplotActor_LeafNodesContours(Gnuplot_actor& actor, const Grid_2D& g,
 int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g) {
 	actor.clear();
 	actor.command() = "using 1:2 title \"\"";
-	if(g.empty()){
+	if (g.empty()) {
 		actor.data().push_back("");
 		return _ERROR;
 	}
@@ -204,55 +204,54 @@ int GnuplotActor_Vof2D(Gnuplot_actor& actor, const Vof_<Float, Float, 2>& vof) {
 	return _SUCCESS;
 }
 
-int GnuplotShow(const std::list<Gnuplot_actor>& lga) {
-	//
-	Gnuplot gp;
-	gp.set_equal_ratio();
-	std::ostringstream ss;
-	ss << "plot ";
-	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
-			iter != lga.end(); ++iter) {
-		if (iter->empty_style()) {
-			ss << "\"-\" " << iter->command() << "with lines lw 2";
-		} else {
-			ss << "\"-\" " << iter->command() << iter->style();
-		}
-
-		if (lga.size() >= 2 && (iter != (--lga.end()))) {
-			ss << ",\\\n";
-		}
+int GnuplotActor_Segment2D(Gnuplot_actor& actor, const Segment_2D& g) {
+	actor.clear();
+	actor.command() = "using 1:2 title \"\"";
+	if (g.empty()) {
+		actor.data().push_back("");
+		return _ERROR;
 	}
-	gp.cmd(ss.str() + "\n");
-	ss.str("");
-	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
-			iter != lga.end(); ++iter) {
-		gp.output_inline_data((*iter));
-	}
+	typedef typename Segment_2D::Point Poi;
+	const Poi& ps = g.ps();
+	actor.data().push_back(ToString(ps.x(), ps.y(), " "));
+	const Poi& pe = g.pe();
+	actor.data().push_back(ToString(pe.x(), pe.y(), " "));
+	actor.data().push_back("");
 	return _SUCCESS;
 }
 
-int GnuplotShow(Gnuplot& gp, const std::list<Gnuplot_actor>& lga) {
-	//
-	//gp.set_equal_ratio();
-	std::ostringstream ss;
-	ss << "plot ";
-	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
-			iter != lga.end(); ++iter) {
-		if (iter->empty_style()) {
-			ss << "\"-\" " << iter->command() << "with lines lw 1";
-		} else {
-			ss << "\"-\" " << iter->command() << iter->style();
-		}
-
-		if (lga.size() >= 2 && (iter != (--lga.end()))) {
-			ss << ",\\\n";
-		}
+int GnuplotActor_Polygon(Gnuplot_actor& actor, const Polygon& g) {
+	actor.clear();
+	actor.command() = "using 1:2 title \"\"";
+	if (g.empty()) {
+		actor.data().push_back("");
+		return _ERROR;
 	}
-	gp.cmd(ss.str() + "\n");
-	ss.str("");
-	for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
-			iter != lga.end(); ++iter) {
-		gp.output_inline_data((*iter));
+	typedef typename Polygon::Point Poi;
+	for (st i = 0; i < g.size_vertexs(); ++i) {
+		const Poi& p = g.v(i);
+		actor.data().push_back(ToString(p.x(), p.y(), " "));
+	}
+	const Poi& pstart = g.v(0);
+	actor.data().push_back(ToString(pstart.x(), pstart.y(), " "));
+	actor.data().push_back("");
+	return _SUCCESS;
+}
+int GnuplotActor_Polygon_vector(Gnuplot_actor& actor, const Polygon& g) {
+	actor.clear();
+	actor.command() = "using 1:2:3:4 title \"\"";
+	actor.style() = "with vectors";
+	if (g.empty()) {
+		actor.data().push_back("");
+		return _ERROR;
+	}
+	typedef typename Polygon::Segment Segment;
+	for (st i = 0; i < g.size_segments(); ++i) {
+		Segment p = g.get_segment(i);
+		std::stringstream sstr;
+		sstr<< p.psx()<<" "<< p.psy()<<" "<< p.dx() <<" " <<p.dy();
+		actor.data().push_back(sstr.str());
+		actor.data().push_back("");
 	}
 	return _SUCCESS;
 }

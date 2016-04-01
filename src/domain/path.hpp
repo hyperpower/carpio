@@ -7,6 +7,7 @@
 #include <functional>
 
 #include <math.h>
+#include <sstream>
 #include <inttypes.h>
 
 namespace carpio {
@@ -48,6 +49,21 @@ public:
 	// Destructor - free the memory used for a bit array
 	~Path_() {
 		bit_array_free(_bar);
+	}
+	// Compare
+	bool operator <(const Path_& d) {
+		// comparison functions return:
+		//   1 iff bitarr1 > bitarr2
+		//   0 iff bitarr1 == bitarr2
+		//  -1 iff bitarr1 < bitarr2
+		//                         1     2
+		return -1 == bit_array_cmp(_bar, d._bar);
+	}
+	bool operator >(const Path_& d) {
+		return 1 == bit_array_cmp(_bar, d._bar);
+	}
+	bool operator ==(const Path_& d) {
+		return 0 == bit_array_cmp(_bar, d._bar);
 	}
 	// Size
 	st size() const {
@@ -119,8 +135,8 @@ public:
 		bit_array_copy(_bar, bi(os), app._bar, 0, app.size());
 	}
 	void show(int config = 0) const {
-		std::cout << "(";
-		if (config != 0) {
+		if (config == 2) {
+			std::cout << "(";
 			for (st i = 0; i < this->size(); i++) {
 				if (i % Dim == 0) {
 					std::cout << " ";
@@ -133,10 +149,9 @@ public:
 				} else {
 					std::cout << "x";
 				}
-
 			}
 			std::cout << ")";
-		} else {
+		} else { //the complete output with dim and size information
 			std::cout << "Dim = " << Dim << ", size = " << this->size()
 					<< ", (";
 			for (st i = 0; i < this->size(); i++) {
@@ -156,7 +171,25 @@ public:
 		}
 
 	}
-
+	std::string to_string() const {
+		std::stringstream sstr;
+		sstr << "(";
+		for (st i = 0; i < this->size(); i++) {
+			if (i % Dim == 0) {
+				sstr << " ";
+			}
+			char c = this->get(i);
+			if (c == 0) {
+				sstr << "0";
+			} else if (c == 1) {
+				sstr << "1";
+			} else {
+				sstr << "x";
+			}
+		}
+		sstr << ")";
+		return sstr.str();
+	}
 };
 
 }

@@ -37,7 +37,7 @@ namespace carpio {
                                 1, 0, 1);
         g.connect_root();
 
-        Adaptive<Float, Float, 3> adp(&g, 2, 5);
+        Adaptive_<Float, Float, 3> adp(&g, 2, 5);
 
         adp.adapt();
 
@@ -58,7 +58,7 @@ namespace carpio {
         g.nodes(1,1,1)= nullptr;
         g.connect_root();
 
-        Adaptive<Float, Float, 3> adp(&g, 2, 5);
+        Adaptive_<Float, Float, 3> adp(&g, 2, 5);
 
         adp.adapt();
 

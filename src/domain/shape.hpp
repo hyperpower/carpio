@@ -66,6 +66,15 @@ public:
 		_type = 0;
 	}
 	/*
+	 * edge
+	 */
+	inline st size_segments() const{
+		return _ps2d->size_segments();
+	}
+	typename S2D::Segment seg(st i) const{
+		return _ps2d->get_segment(i);
+	}
+	/*
 	 * vertex
 	 */
 	inline st size_vertexs() const {
@@ -162,7 +171,7 @@ public:
 template<typename VALUE>
 void CreatCircle(Shape_<VALUE, 2>& s, VALUE x0, VALUE y0, VALUE r, int n) {
 	Polygon_<VALUE> ply;
-	CreatCube(ply, x0, y0, r, n);
+	CreatCircle(ply, x0, y0, r, n);
 	s.set(ply);
 }
 

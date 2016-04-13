@@ -36,7 +36,7 @@ inline void test_path_2() {
 			2, 0, 1);
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
-	Adaptive<Float, Float, 2> adp(&g, 3, 9);
+	Adaptive_<Float, Float, 2> adp(&g, 3, 9);
 	adp.adapt_full();
 
 	Grid_<Float, Float, 2>::pNode p = g.get_pnode(0.8, 0.35);

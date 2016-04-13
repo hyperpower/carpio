@@ -212,7 +212,7 @@ protected:
 		}
 
 		template<class Ret, class Args>
-		void _traversal(pNode pn, std::function<Ret(pNode, Args)> fun, Args &args) {
+		void _traversal(pNode pn, std::function<Ret(pNode&, Args)> fun, Args &args) {
 			if (pn == nullptr) {
 				return;
 			} else {
@@ -461,8 +461,9 @@ protected:
 		/*
 		 * Connect
 		 */
+
 		void connect_nodes() {
-			std::function<void(pNode, st)> fun = [&](pNode pn, st le) {
+			std::function<void(pNode&, st)> fun = [&](pNode& pn, st le) {
 				if(!pn->is_root()) {
 					//set neighbor
 					pn->neighbor[0] = pn->get_neighbor(_XM_);
@@ -595,6 +596,36 @@ protected:
 			if (Dim == 3) {
 				neighbor[4] = zm;
 				neighbor[5] = zp;
+			}
+		}
+		void set_neighbor(pNode pn, Direction d) {
+			switch (d) {
+				case _XM_: {
+					this->neighbor[0] = pn;
+					break;
+				}
+				case _XP_: {
+					this->neighbor[1] = pn;
+					break;
+				}
+				case _YM_: {
+					this->neighbor[2] = pn;
+					break;
+				}
+				case _YP_: {
+					this->neighbor[3] = pn;
+					break;
+				}
+				case _ZM_: {
+					ASSERT(Dim==3);
+					this->neighbor[4] = pn;
+					break;
+				}
+				case _ZP_: {
+					ASSERT(Dim==3);
+					this->neighbor[5] = pn;
+					break;
+				}
 			}
 		}
 
@@ -899,7 +930,7 @@ protected:
 		}
 
 		template<class Args>
-		void traversal(std::function<void(pNode, Args)> fun, Args &args) {
+		void traversal(std::function<void(pNode&, Args)> fun, Args &args) {
 			this->_traversal(this, fun, args);
 		}
 
@@ -1273,7 +1304,7 @@ public:
 	pNode pnode;
 	pNode pneighbor;
 	FaceType face_type;
-	Direction direction;
+	Direction direction;  //pnode ---> pneighbor
 
 	Face_() :
 			pnode(nullptr), pneighbor(nullptr), face_type(_Null_), direction(
@@ -1358,7 +1389,23 @@ public:
 /*
  * Function out of calss ==================================
  */
-
+template<class Node, class Ret, class Args>
+void Traversal(Node*& pn, std::function<Ret(Node*&, Args)> fun, Args &args) {
+	if (pn == nullptr) {
+		return;
+	} else {
+		fun(pn, args);
+		_IF_TRUE_RETRUN(pn == nullptr);
+		if (pn->has_child()) {
+			for (st i = 0; i < Node::NumChildren; i++) {
+				Node*& c = pn->child[i];
+				if (c != nullptr) {
+					Traversal(c, fun, args);
+				}
+			}
+		}
+	}
+}
 }
 //
 

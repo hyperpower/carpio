@@ -16,25 +16,27 @@ void _visit_current_info(Node_<COO_VALUE, VALUE, DIM> *pn, utPointer utp) {
 	st &num_n = arr[2];
 	st &num_leaf = arr[3];
 	num_n++;
-	if (pn->get_level() > max_l) {
-		max_l = pn->get_level();
+
+	st cl = pn->get_level();
+	if (cl > max_l) {
+		max_l = cl;
 	}
 	if (pn->is_leaf()) {
-		min_l = (pn->get_level() < min_l) ? pn->get_level() : min_l;
+		min_l = (cl < min_l) ? pn->get_level() : min_l;
 		num_leaf++;
 	}
 }
 
 template<typename COO_VALUE, typename VALUE, st DIM>
-class Adaptive {
+class Adaptive_ {
 public:
 	static const st Dim = DIM;
 	static const st NumFaces = DIM + DIM;
 	static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
 	static const st NumNeighbors = NumFaces;
 
-	typedef COO_VALUE coo_value_t;
-	typedef VALUE value_t;
+	typedef COO_VALUE cvt;
+	typedef VALUE vt;
 	typedef Grid_<COO_VALUE, VALUE, DIM> Grid;
 	typedef Grid_<COO_VALUE, VALUE, DIM> *pGrid;
 	typedef Cell_<COO_VALUE, Dim> Cell;
@@ -87,9 +89,9 @@ public:
 	/*
 	 * constructor
 	 */
-	Adaptive(Grid_<COO_VALUE, VALUE, DIM> *pg,  //the pointer of grid
+	Adaptive_(Grid_<COO_VALUE, VALUE, DIM> *pg,  //the pointer of grid
 			st minl = 1,  //min level
-			st maxl = 5   //max level
+			st maxl = 3   //max level
 			) {
 		_min_l = minl;
 		_max_l = maxl;
@@ -102,7 +104,7 @@ public:
 	 * adapt
 	 */
 	void adapt_full() {
-		std::function<void(pNode, st)> fun = [](pNode pn, st min_l) {
+		std::function<void(pNode&, st)> fun = [](pNode pn, st min_l) {
 			if(pn->is_leaf()&& pn->get_level()<min_l) {
 				pn->new_full_child();
 			}
@@ -115,25 +117,27 @@ public:
 		}
 		_update_current_info();
 	}
-	void adapt_solid(const Shape_<VALUE, DIM>& shape) {
+	void adapt_inner_solid(const Shape_<VALUE, DIM>& shape, vt vr = 1.0) {
 		// 1 adapt to min level
 		// adapt_full();
 		// 2 all out   -> adapt to min level
 		// 3 all in    -> do not initial
 		// 4 intersect -> adapt to max level
-		std::function<void(pNode, st)> fun =
-				[this, &shape](pNode pn, st max_l) {
+		std::function<void(pNode&, st)> fun =
+				[this, &shape, &vr](pNode pn, st max_l) {
 					if(pn->is_leaf()) {
 						Shape2D sn,res;
 						CreatCube(sn,
 								pn->p(_M_,_X_), pn->p(_M_,_Y_),
 								pn->p(_P_,_X_), pn->p(_P_,_Y_));
 						Intersect(sn,shape,res);
-						if(res.empty()) { //node is all out
+						vt vsn = sn.volume();
+						vt vres = res.volume();
+						if(res.empty() || Abs((vsn-vres)/vsn)>=vr) { //node is all out
 							if(pn->get_level() < this->_min_l) {
 								pn->new_full_child();
 							}
-						} else if(Abs(res.volume() - sn.volume())<SMALL) { // all in
+						} else if(Abs((vres-vsn)/vsn)<SMALL) { // all in
 							if(pn->is_root()) {
 								delete pn;
 								pn=nullptr;
@@ -159,14 +163,63 @@ public:
 		}
 		_update_current_info();
 	}
+	void adapt_bound_solid(const Shape_<VALUE, DIM>& shape, vt vr = 1.0) {
+		// 1 adapt to min level
+		// adapt_full();
+		// 2 all out   -> adapt to min level
+		// 3 all in    -> do not initial
+		// 4 intersect -> adapt to max level
+		std::function<void(pNode&, st)> fun =
+				[this, &shape, &vr](pNode& pn, st max_l) {
+					ASSERT(pn!=nullptr);
+					if(pn->is_leaf()) {
+						Shape2D sn,res;
+						CreatCube(sn,
+								pn->p(_M_,_X_), pn->p(_M_,_Y_),
+								pn->p(_P_,_X_), pn->p(_P_,_Y_));
+						Intersect(sn,shape,res);
+						vt vsn = sn.volume();
+						vt vres = res.volume();
+						if(res.empty() || //
+										Abs((vsn-vres)/vsn)>=vr) { //node is all out
+							if(pn->is_root() ) {
+								delete pn;
+								pn=nullptr;
+							} else {
+								pNode f = pn->father;
+								f->child[pn->get_idx()] = nullptr;
+								delete pn;
+								pn=nullptr;
+							}
+						} else if(Abs((vsn-vres))<SMALL) { // all in
+							if(pn->get_level() < this->_min_l) {
+								pn->new_full_child();
+							}
+						} else {  //intersect
+							if(pn->get_level() < max_l) {
+								pn->new_full_child();
+							}
+						}
+					}
+				};
+
+		for (int i = 0; i < _grid->size(); i++) {
+			pNode& pn = _grid->nodes.at_1d(i);
+			if (pn != nullptr) {
+				Traversal(pn, fun, _max_l);
+				//pn->traversal(fun, _max_l);
+			}
+		}
+		_update_current_info();
+	}
 	void adapt_vof(const Shape_<VALUE, DIM>& shape) {
 		// 1 adapt to min level
 		// adapt_full();
 		// 2 all out   -> adapt to min level
 		// 3 all in    -> adapt to min level
 		// 4 intersect -> adapt to max level
-		std::function<void(pNode, st)> fun =
-				[this, &shape](pNode pn, st max_l) {
+		std::function<void(pNode&, st)> fun =
+				[this, &shape](pNode& pn, st max_l) {
 					if(pn->is_leaf()) {
 						Shape2D sn,res;
 						CreatCube(sn,
@@ -190,7 +243,7 @@ public:
 				};
 
 		for (typename Grid::iterator_leaf iter = _grid->begin_leaf();
-				iter!=_grid->end_leaf();++iter) {
+				iter != _grid->end_leaf(); ++iter) {
 			pNode pn = iter.get_pointer();
 			if (pn != nullptr) {
 				pn->traversal(fun, _max_l);

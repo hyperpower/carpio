@@ -51,7 +51,7 @@ public:
 		bit_array_free(_bar);
 	}
 	// Compare
-	bool operator <(const Path_& d) {
+	bool operator <(const Path_& d) const{
 		// comparison functions return:
 		//   1 iff bitarr1 > bitarr2
 		//   0 iff bitarr1 == bitarr2
@@ -59,10 +59,10 @@ public:
 		//                         1     2
 		return -1 == bit_array_cmp(_bar, d._bar);
 	}
-	bool operator >(const Path_& d) {
+	bool operator >(const Path_& d) const{
 		return 1 == bit_array_cmp(_bar, d._bar);
 	}
-	bool operator ==(const Path_& d) {
+	bool operator ==(const Path_& d) const{
 		return 0 == bit_array_cmp(_bar, d._bar);
 	}
 	// Size

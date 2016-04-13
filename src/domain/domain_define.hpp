@@ -309,8 +309,8 @@ inline std::string ToString(const Orientation& a) {
 	return "c";
 }
 //default type
-typedef double CooValueType;
-typedef double ValueType;
+//typedef double CooValueType;
+//typedef double ValueType;
 
 }
 

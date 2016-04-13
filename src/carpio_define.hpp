@@ -29,7 +29,6 @@ typedef void* utPointer;
 typedef const void* const_utPointer;
 //
 
-
 // std  container
 template<typename T>
 using Vector = std::vector<T>;

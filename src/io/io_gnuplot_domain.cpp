@@ -85,6 +85,15 @@ int GnuplotActor_LeafNodes(Gnuplot_actor& actor, const Grid_2D& g) {
 	}
 	return _SUCCESS;
 }
+int GnuplotActor_GhostNodes(Gnuplot_actor& actor, const Ghost_2D& g) {
+	actor.clear();
+	actor.command() = "using 1:2 title \"\" ";
+	for (typename Ghost_2D::const_iterator iter = g.begin();
+			iter != g.end(); ++iter) {
+		GnuplotActorDataPushBack(actor.data(), *(iter->second->cell));
+	}
+	return _SUCCESS;
+}
 
 int GnuplotActor_StencilContour(Gnuplot_actor& actor, const Stencil_2D2& s,
 		st idx) {

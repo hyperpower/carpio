@@ -222,6 +222,25 @@ Point_<TYPE, 2> CalIntersect(const Segment_<TYPE, 2> &s1, const Segment_<TYPE, 2
 	return Point_<TYPE, 2>(resxx, resyy);
 }
 /*
+ * Segment -------- Line
+ */
+template<typename TYPE, st DIM>
+bool IsIntersect(const Segment_<TYPE, DIM> &s1, //
+		const Point_<TYPE, DIM>& ps, //
+		const Point_<TYPE, DIM>& pe) {
+	// ps --> pe are two points on line
+	Segment_<TYPE, DIM> s(ps,pe);
+	int s12s = OnWhichSide3(s, s1.ps());
+	int s12e = OnWhichSide3(s, s1.pe());
+	int sum = s12s+s12e;
+	// co-linear is not intersect
+	if(sum == 0 || sum == -2 || sum==2){
+		return false;
+	}else{
+		return true;
+	}
+}
+/*
  * Point   -------- Polygon
  */
 template<typename TYPE>

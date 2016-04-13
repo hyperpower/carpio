@@ -17,7 +17,7 @@ inline void test_grid_2d() {
 			2, 0, 1);
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
-	Adaptive<Float, Float, 2> adp(&g, 2, 5);
+	Adaptive_<Float, Float, 2> adp(&g, 2, 5);
 	adp.adapt_full();
 
 	//GnuplotShow_RootNodes(g);
@@ -38,7 +38,7 @@ inline void test_stencil_1d() {
 			2, 0, 1);
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
-	Adaptive<Float, Float, 2> adp(&g, 2, 5);
+	Adaptive_<Float, Float, 2> adp(&g, 2, 5);
 	adp.adapt_full();
 	//stencil
 	Grid_<Float, Float, 2>::iterator_leaf il = g.begin_leaf();
@@ -67,7 +67,7 @@ inline void test_interpolate_1d() {
 			2, 0, 1);
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
-	Adaptive<Float, Float, 2> adp(&g, 2, 5);
+	Adaptive_<Float, Float, 2> adp(&g, 2, 5);
 	adp.adapt_full();
 	// new value on leaf
 	NewCenterDataOnLeaf(g, 2);
@@ -98,12 +98,12 @@ void test_adapt_solid() {
 			2, 0.0, 1);
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
-	Adaptive<Float, Float, 2> adp(&g, 2, 7);
+	Adaptive_<Float, Float, 2> adp(&g, 2, 7);
 	//adp.adapt_full();
 	// shape
 	Shape2D cir;
 	CreatCircle(cir, 0.0, 0.0, 1.0, 359);
-	adp.adapt_solid(cir);
+	adp.adapt_inner_solid(cir);
 	// show
 	std::list<Gnuplot_actor> lga;
 	Gnuplot_actor ga;
@@ -120,12 +120,12 @@ void test_stencil_2D() { //jan 13, 2016
 			2, 0.0, 1);
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
-	Adaptive<Float, Float, 2> adp(&g, 2, 5);
+	Adaptive_<Float, Float, 2> adp(&g, 2, 5);
 	//adp.adapt_full();
 	// shape
 	Shape2D cir;
 	CreatCircle(cir, 0.0, 0.0, 1.0, 359);
-	adp.adapt_solid(cir);
+	adp.adapt_inner_solid(cir);
 	//stencil ==============================
 	Float x = 1.51;
 	Float y = 1.51;
@@ -154,12 +154,12 @@ void test_adapt_vof() { //jan 13, 2016
 			4, -2.0, 1);
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
-	Adaptive<Float, Float, 2> adp(&g, 2, 5);
+	Adaptive_<Float, Float, 2> adp(&g, 2, 5);
 	//adp.adapt_full();
 	// shape
 	Shape2D cir;
 	CreatCircle(cir, 0.0, 0.0, 1.0, 359);
-	adp.adapt_solid(cir);
+	adp.adapt_inner_solid(cir);
 	// ==============================
 	// shape for vof
 	Shape2D cir2;
@@ -214,13 +214,13 @@ void test_adp_boundary() {
 			4, -2.0, 1);
 	g.connect_root();
 	std::cout << "num root : " << g.get_num_root() << std::endl;
-	Adaptive<Float, Float, 2> adp(&g, 2, 5);
+	Adaptive_<Float, Float, 2> adp(&g, 2, 5);
 	//adp.adapt_full();
     //g.show_info();
 	// shape
 	Shape2D cir;
 	CreatCircle(cir, 0.0, 0.0, 1.0, 359);
-	adp.adapt_solid(cir);
+	adp.adapt_inner_solid(cir);
 	// ==============================
 	// shape for vof
 	Shape2D cir2;

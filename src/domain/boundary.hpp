@@ -5,12 +5,14 @@
 #include "node.hpp"
 #include "cell.hpp"
 #include "path.hpp"
+#include <functional>
+
 namespace carpio {
 
 template<typename COO_VALUE, typename VALUE, st DIM>
 struct GhostID_ {
-	typedef int (*pFun_set_bc)(Node_<COO_VALUE, VALUE, DIM>*,
-			GhostID_<COO_VALUE, VALUE, DIM>&, utPointer);
+	//typedef int (*pFun_set_bc)(Node_<COO_VALUE, VALUE, DIM>*,
+	//		GhostID_<COO_VALUE, VALUE, DIM>&, utPointer);
 
 	st root_idx;   //the root idx of the origin node
 	//st idx;        //the local idx of the origin node
@@ -18,9 +20,11 @@ struct GhostID_ {
 	st step;       //the steps of ghost node, we can choose multiple ghost Node,
 				   // usually step = 0
 	Direction direction; //The direction only on x, y or z
-
-	int bc_type;
-	pFun_set_bc pfun_bc;
+//--------------------------------------------------------------------
+	//int bc_type;
+	//pFun_set_bc pfun_bc;
+	int shape_idx;
+	int seg_idx;
 };
 
 template<typename COO_VALUE, typename VALUE, st DIM>
@@ -30,14 +34,17 @@ struct GhostID_compare_ {
 		if (lhs.root_idx < rhs.root_idx) {
 			return true;
 		} else if (lhs.root_idx == rhs.root_idx) {
-			return lhs.path < rhs.path;
-		} else if (lhs.path == rhs.path) {
-			return int(lhs.direction) < int(rhs.direction);
-		} else if (lhs.direction == rhs.direction) {
-			return lhs.step < rhs.step;
-		} else {
-			return false;
+			if (lhs.path < rhs.path) {
+				return true;
+			} else if (lhs.path == rhs.path) {
+				if (int(lhs.direction) < int(rhs.direction)) {
+					return true;
+				} else if (int(lhs.direction) == int(rhs.direction)) {
+					return lhs.step < rhs.step;
+				}
+			}
 		}
+		return false;
 	}
 };
 
@@ -70,9 +77,13 @@ public:
 
 	typedef std::pair<GhostID, pNode> GhostNode;
 
-protected:
 	typedef std::map<GhostID, pNode, GhostID_compare> GhostMap;
+	typedef typename GhostMap::iterator iterator;
+	typedef typename GhostMap::const_iterator const_iterator;
+
+protected:
 	GhostMap _ghostmap;
+	pGrid _pgrid;
 	//
 	/*
 	 *  new ghost node
@@ -132,52 +143,176 @@ protected:
 				gid.step = 0; //the steps of ghost node, we can choose multiple ghost Node,
 							  // usually step =
 				gid.direction = iter->dir(); //The direction only on x, y or z
-				gid.bc_type = 0;
-				gid.pfun_bc = nullptr;
-
+				// --------------------------------
+				//gid.bc_type = 0;
+				//gid.pfun_bc = nullptr;
+				gid.shape_idx = -1;
+				gid.seg_idx = -1;
 				pNode pghost = new_ghost_node(po, iter->dir());
 				//change the index id ------------------------
-				//pn->data->aCenterData[Idx_IDX] = -gid.node_idx - 1; //negative
 				_ghostmap.insert(GhostNode(gid, pghost));
 			}
 		}
 	}
 
 public:
-	Ghost_(pGrid pg) {
-		new_ghost_nodes(pg);
+	Ghost_(pGrid pg) :
+			_pgrid(pg) {
+	}
+	~Ghost_() {
+		for (typename GhostMap::iterator it = _ghostmap.begin();
+				it != _ghostmap.end(); ++it) {
+			if (it->second != nullptr) {
+				delete it->second;
+				it->second = nullptr;
+			}
+		}
+	}
+	void build() {
+		ASSERT(_ghostmap.empty());
+		new_ghost_nodes(_pgrid);
+	}
+protected:
+	void _connect(const GhostNode& gn){
+		pNode po =  gn.second->father;
+		pNode pg = gn.second;
+		Direction dir_o= gn.first.direction;
+		po->set_neighbor(pg,dir_o);
+	}
+public:
+	void connect() {
+		// when the ghost is built, the ghost node are already connect to original node.
+		// the father of ghost node is the original one,
+		// so the find_neighbor_fast() can not be used on ghost node.
+		// here, we connect original node to the ghost node
+		// the find_neighbor_fast() can be used on boundary node
+		for (typename GhostMap::iterator it = _ghostmap.begin();
+						it != _ghostmap.end(); ++it) {
+			this->_connect(*it);
+		}
+	}
+
+	iterator begin() {
+		return _ghostmap.begin();
+	}
+	const_iterator begin() const {
+		return _ghostmap.begin();
+	}
+	iterator end() {
+		return _ghostmap.end();
+	}
+	const_iterator end() const {
+		return _ghostmap.end();
 	}
 
 };
 
-template<typename VALUE>
+template<typename COO_VALUE, typename VALUE>
 class BoundaryCondition_ {
 public:
 	typedef VALUE vt;
-	// Vbc
+	typedef COO_VALUE cvt;
+	typedef std::function<vt(cvt, cvt, cvt)> Fun;
+	typedef BoundaryCondition_<cvt, vt> Self;
+protected:
+	// data
 	// 1 Bondary conditon type
-	// 2 value
-	typedef std::pair<st, VALUE> Vbc; //variable boundary condition
-	ArrayListT<Vbc> _abc;
-	// ArrayListV<pFun> _bc_fun;
+	// 2 function
+	int _type;
+	Fun _function;
 public:
 	// Constructor
-	// The number of the variable
-	BoundaryCondition_(st n) :
-			_abc(n) {
+
+	BoundaryCondition_() {
+		// default boundary condition is symmetric boundary condition
+		_type = 2;
+		_function = [](cvt x, cvt y, cvt z) {return 0;};
+	}
+	BoundaryCondition_(int type, Fun fun) :
+			_type(type), _function(fun) {
+	}
+	BoundaryCondition_(const Self& self) :
+			_type(self._type), _function(self._function) {
+	}
+	// get
+	int get_type() const {
+		return _type;
+	}
+	vt get_val(cvt x, cvt y, cvt z) const {
+		return _function(x, y, z);
+	}
+	// set
+	void set_function(Fun fun) {
+		_function = fun;
+	}
+	void set_default_1_bc(const vt& val) {
+		_type = 1;
+		_function = [&val](cvt x, cvt y, cvt z) {return val;};
+	}
+	void set_default_2_bc(const vt& val) {
+		_type = 2;
+		_function = [&val](cvt x, cvt y, cvt z) {return val;};
+	}
+};
+
+template<typename COO_VALUE, typename VALUE>
+class BoundaryIndex_ {
+protected:
+	struct BCID {
+		int shape_idx;
+		int seg_idx;
+		st val_idx;
+	};
+
+	struct BCID_compare {
+		typedef BCID BCid;
+		bool operator()(const BCid& lhs, const BCid& rhs) const {
+			if (lhs.shape_idx < rhs.shape_idx) {
+				return true;
+			} else if (lhs.shape_idx == rhs.shape_idx) {
+				return lhs.seg_idx < rhs.seg_idx;
+			} else if (lhs.seg_idx == rhs.seg_idx) {
+				return int(lhs.val_idx) < int(rhs.val_idx);
+			} else {
+				return false;
+			}
+		}
+	};
+public:
+	typedef COO_VALUE cvt;
+	typedef VALUE vt;
+	typedef BoundaryCondition_<cvt, vt> BoundaryCondition;
+	typedef BoundaryCondition_<cvt, vt>* pBoundaryCondition;
+	//typedef BCID_compare_<cvt,vt> BCID_compare;
+
+	typedef std::map<BCID, pBoundaryCondition, BCID_compare> BCMap;
+protected:
+	BCMap _BCmap;
+	static const BoundaryCondition default_BC;
+
+	typedef typename BCMap::iterator iterator;
+	typedef typename BCMap::const_iterator const_iterator;
+
+public:
+	//constructor
+	BoundaryIndex_() :
+			_BCmap() {
 
 	}
-	// Set
-	/*
-	 * Set boundary condtion 1
-	 *    i  :  index of the variable
-	 *    val:  the value
-	 */
-	void set_bc_1(st i, vt val) {
-
-	}
-	void set_bc_2(st i, vt val) {
-
+	//
+	pBoundaryCondition find(int si, int segi, st vali) {
+		BCID key;
+		key.seg_idx = segi;
+		key.shape_idx = si;
+		key.val_idx = vali;
+		iterator it = _BCmap.find(key);
+		if (it != _BCmap.end()) {
+			// found
+			return (*it);
+		} else {
+			// not found
+			return default_BC;
+		}
 	}
 };
 

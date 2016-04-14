@@ -93,6 +93,15 @@ public:
 		return (this->alpha() - this->a() * x)
 				/ ((this->b() == 0.0) ? SMALL : this->b());
 	}
+	// _X_=v ---> value of _Y_
+	// _Y_=v ---> value of _X_
+	vt cal(Axes a, vt v){
+		if(a==_X_){
+			return cal_y(v);
+		}else{
+			return cal_x(v);
+		}
+	}
 	vt slope() const {
 		return -this->a() / (this->b() + SMALL);
 	}
@@ -107,6 +116,12 @@ public:
 	}
 	vt norm_y() const {
 		return this->b();
+	}
+	vt shear_x() const{
+		return this->b();
+	}
+	vt shear_y() const{
+		return -this->a();
 	}
 	bool empty() const {
 		if (this->a() != 0.0 || this->b() != 0.0) {

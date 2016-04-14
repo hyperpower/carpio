@@ -88,10 +88,34 @@ int GnuplotActor_LeafNodes(Gnuplot_actor& actor, const Grid_2D& g) {
 int GnuplotActor_GhostNodes(Gnuplot_actor& actor, const Ghost_2D& g) {
 	actor.clear();
 	actor.command() = "using 1:2 title \"\" ";
-	for (typename Ghost_2D::const_iterator iter = g.begin();
-			iter != g.end(); ++iter) {
-		GnuplotActorDataPushBack(actor.data(), *(iter->second->cell));
+	for (typename Ghost_2D::const_iterator iter = g.begin(); iter != g.end();
+			++iter) {
+		GnuplotActorDataPushBack(actor.data(), *(iter->second.pghost->cell));
 	}
+	return _SUCCESS;
+}
+
+int GnuplotActor_GhostNodesContour(Gnuplot_actor& actor, const Ghost_2D& g) {
+	actor.clear();
+	actor.command() = "using 1:2:3:4:5:6:7 title \"\" ";
+	actor.style() = "with boxxy fs solid palette";
+	typedef typename Ghost_2D::GhostNode Node;
+	std::function<void(const Node&)> fun = [&](const Node& n) {
+		//
+			typename Ghost_2D::GhostVal gval=n.second;
+			typename Ghost_2D::pNode pn = gval.pghost;
+			typename Ghost_2D::GhostID gid = n.first;
+			//assume segments for each shape less than 10000
+			Float v = gval.shape_idx * 10 + gval.seg_idx;
+			//std::cout<< v << " " <<gval.seg_idx << " " << gval.shape_idx<<"\n";
+			if (pn != nullptr) {
+				actor.data().push_back(
+						ToString(pn->cp(_X_), pn->cp(_Y_), pn->p(_M_, _X_), pn->p(_P_, _X_),
+								pn->p(_M_, _Y_), pn->p(_P_, _Y_), v, " "));
+			}
+		};
+	g.for_each_ghost_node(fun);
+
 	return _SUCCESS;
 }
 
@@ -139,6 +163,24 @@ int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g) {
 	}
 	const Poi& pstart = g.v(0);
 	actor.data().push_back(ToString(pstart.x(), pstart.y(), " "));
+	actor.data().push_back("");
+	return _SUCCESS;
+}
+int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g, st base_idx) {
+	actor.clear();
+	actor.command() = "using 1:2:3 title \"\" ";
+	actor.style() = "with lines lc variable";
+	if (g.empty()) {
+		actor.data().push_back("");
+		return _ERROR;
+	}
+	typedef typename Shape2D::S2D::Point Poi;
+	for (st i = 0; i < g.size_vertexs(); ++i) {
+		const Poi& p = g.v(i);
+		actor.data().push_back(ToString(p.x(), p.y(), i+base_idx ," "));
+	}
+	const Poi& pstart = g.v(0);
+	actor.data().push_back(ToString(pstart.x(), pstart.y(), base_idx, " "));
 	actor.data().push_back("");
 	return _SUCCESS;
 }
@@ -258,7 +300,7 @@ int GnuplotActor_Polygon_vector(Gnuplot_actor& actor, const Polygon& g) {
 	for (st i = 0; i < g.size_segments(); ++i) {
 		Segment p = g.get_segment(i);
 		std::stringstream sstr;
-		sstr<< p.psx()<<" "<< p.psy()<<" "<< p.dx() <<" " <<p.dy();
+		sstr << p.psx() << " " << p.psy() << " " << p.dx() << " " << p.dy();
 		actor.data().push_back(sstr.str());
 		actor.data().push_back("");
 	}

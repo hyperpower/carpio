@@ -88,21 +88,7 @@ typedef short code;
  D_ZYX_PPP = 56 + 7, //111 111
  };*/
 
-enum Orientation {
-	_M_ = 0, //
-	_P_ = 1, //
-	_C_ = 2, //
-};
 
-enum Axes {
-	_X_ = 0, //
-	_Y_ = 1, //
-	_Z_ = 2, //
-};
-
-enum Plane {
-	_XY_ = 24, _YZ_ = 48, _ZX_ = 40,
-};
 
 typedef unsigned short Direction;
 
@@ -130,6 +116,15 @@ inline bool IsM(const Orientation& ori) {
 }
 inline bool IsC(const Orientation& ori) {
 	return (ori == _C_);
+}
+inline Orientation Opposite(const Orientation& ori){
+	if(IsC(ori)){
+		return ori;
+	}else if(IsP(ori)){
+		return _M_;
+	}else{
+		return _P_;
+	}
 }
 
 inline Direction ToDirection(const Plane &p, const Orientation &o1,

@@ -186,11 +186,12 @@ public:
 		 * The line is axi align
 		 * function : vt Intersect(Segment seg, Axis axis, vt ori)
 		 */
-
+		_pghost->set_boundary_index(0,*_pshape_bound);
 
 	}
 
 
+public:
 
 	pGrid p_grid() {
 		return _pgrid;

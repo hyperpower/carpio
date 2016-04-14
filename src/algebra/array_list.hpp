@@ -8,8 +8,6 @@
 #ifndef _ARRAYLIST_H_
 #define _ARRAYLIST_H_
 
-
-
 #include "../carpio_define.hpp"
 
 #include <stddef.h>
@@ -17,16 +15,14 @@
 #include <assert.h>
 #include <iostream>
 
-namespace carpio
-{
+namespace carpio {
 
 /*! \class Array
  \brief A class designed for array.
  It's the basic data structure class.
  */
 template<typename T>
-class ArrayListT
-{
+class ArrayListT {
 public:
 	// type definitions
 	typedef T value_type;
@@ -41,8 +37,7 @@ protected:
 	st m_Len;
 	T *m_p;    //!< The heap for the real data.
 
-	inline int _copy(size_type n, const T * a, T* b)
-	{
+	inline int _copy(size_type n, const T * a, T* b) {
 		//make sure: the length of a and b is equal
 		//           and n>0
 		size_type LN = 7;
@@ -76,12 +71,10 @@ public:
 	//=============================================
 	~ArrayListT();
 	//=============================================
-	T* getPointer()
-	{
+	T* getPointer() {
 		return m_p;
 	}
-	const T* getPointer() const
-	{
+	const T* getPointer() const {
 		return m_p;
 	}
 	//=============================================
@@ -94,20 +87,16 @@ public:
 	//operator=====================================
 	ArrayListT<T>& operator=(const ArrayListT<T> &a);
 	// iterator support============================
-	iterator begin()
-	{
+	iterator begin() {
 		return m_p;
 	}
-	const_iterator begin() const
-	{
+	const_iterator begin() const {
 		return m_p;
 	}
-	iterator end()
-	{
+	iterator end() {
 		return m_p + m_Len;
 	}
-	const_iterator end() const
-	{
+	const_iterator end() const {
 		return m_p + m_Len;
 	}
 
@@ -139,15 +128,13 @@ public:
 };
 
 template<typename T>
-ArrayListT<T>::ArrayListT()
-{
+ArrayListT<T>::ArrayListT() {
 	m_Len = 0;
 	m_p = nullptr;
 }
 
 template<typename T>
-ArrayListT<T>::ArrayListT(const ArrayListT<T>& a)
-{
+ArrayListT<T>::ArrayListT(const ArrayListT<T>& a) {
 	m_Len = a.size();
 	m_p = new T[m_Len];
 	//unrolled loop
@@ -155,19 +142,17 @@ ArrayListT<T>::ArrayListT(const ArrayListT<T>& a)
 }
 
 template<typename T>
-ArrayListT<T>::ArrayListT(size_type Len)
-{
+ArrayListT<T>::ArrayListT(size_type Len) {
 	m_Len = Len;
 	m_p = new T[m_Len];
 }
 
 template<typename T>
-void ArrayListT<T>::reconstruct(size_type Len)
-{
-	if(Len == 0 && m_Len == 0){
+void ArrayListT<T>::reconstruct(size_type Len) {
+	if (Len == 0 && m_Len == 0) {
 		return;
 	}
-	if(Len == 0 && NULL != m_p){
+	if (Len == 0 && NULL != m_p) {
 		delete[] m_p;
 		return;
 	}
@@ -179,8 +164,7 @@ void ArrayListT<T>::reconstruct(size_type Len)
 }
 
 template<typename T>
-ArrayListT<T>::ArrayListT(size_type Len, const T& nd)
-{
+ArrayListT<T>::ArrayListT(size_type Len, const T& nd) {
 	m_Len = Len;
 	m_p = new T[Len];
 	for (size_type i = 0; i < m_Len; i++) {
@@ -189,8 +173,7 @@ ArrayListT<T>::ArrayListT(size_type Len, const T& nd)
 }
 
 template<typename T>
-ArrayListT<T>::ArrayListT(T *nd, size_type Len)
-{
+ArrayListT<T>::ArrayListT(T *nd, size_type Len) {
 	m_Len = Len;
 	m_p = new T[Len];
 	for (size_type i = 0; i < m_Len; i++) {
@@ -199,58 +182,50 @@ ArrayListT<T>::ArrayListT(T *nd, size_type Len)
 }
 
 template<typename T>
-ArrayListT<T>::~ArrayListT()
-{
+ArrayListT<T>::~ArrayListT() {
 	delete[] m_p;
 }
 
 template<typename T>
-const T& ArrayListT<T>::operator[](size_type index) const
-{
+const T& ArrayListT<T>::operator[](size_type index) const {
 	assert(index >= 0 && index < m_Len);
 	return m_p[index];
 }
 
 template<typename T>
-T& ArrayListT<T>::operator[](size_type index)
-{
+T& ArrayListT<T>::operator[](size_type index) {
 	assert(index >= 0 && index < m_Len);
 	return m_p[index];
 }
 
 template<typename T>
-const T& ArrayListT<T>::operator()(size_type index) const
-{
+const T& ArrayListT<T>::operator()(size_type index) const {
 	assert(index >= 0 && index < m_Len);
 	return m_p[index];
 }
 
 template<typename T>
-T& ArrayListT<T>::operator()(size_type index)
-{
+T& ArrayListT<T>::operator()(size_type index) {
 	assert(index >= 0 && index < m_Len);
 	return m_p[index];
 }
 template<typename T>
-const T& ArrayListT<T>::at(size_type index) const
-{
+const T& ArrayListT<T>::at(size_type index) const {
 	assert(index >= 0 && index < m_Len);
 	return m_p[index];
 }
 template<typename T>
-T& ArrayListT<T>::at(size_type index)
-{
+T& ArrayListT<T>::at(size_type index) {
 	assert(index >= 0 && index < m_Len);
 	return m_p[index];
 }
 
 template<typename T>
-ArrayListT<T>& ArrayListT<T>::operator=(const ArrayListT<T> &a)
-{
+ArrayListT<T>& ArrayListT<T>::operator=(const ArrayListT<T> &a) {
 	if (this == &a) {
 		return *this;
 	}
-	if (a.m_Len <= 0){
+	if (a.m_Len <= 0) {
 		this->resize(0);
 		return *this;
 	}
@@ -267,59 +242,50 @@ ArrayListT<T>& ArrayListT<T>::operator=(const ArrayListT<T> &a)
 }
 
 template<typename T>
-void ArrayListT<T>::set(size_type i, const T& value)
-{
+void ArrayListT<T>::set(size_type i, const T& value) {
 	assert(i >= 0 && i < m_Len);
 	m_p[i] = value;
 }
 
 template<typename T>
-void ArrayListT<T>::assign(const T& nd)
-{
+void ArrayListT<T>::assign(const T& nd) {
 	for (size_type i = 0; i < m_Len; i++) {
 		m_p[i] = nd;
 	}
 }
 template<typename T>
-st ArrayListT<T>::size() const
-{
+st ArrayListT<T>::size() const {
 	return m_Len;
 }
 template<typename T>
-T& ArrayListT<T>::front()
-{
+T& ArrayListT<T>::front() {
 	ASSERT(m_Len > 0);
 	return m_p[0];
 }
 template<typename T>
-const T& ArrayListT<T>::front() const
-{
+const T& ArrayListT<T>::front() const {
 	ASSERT(m_Len > 0);
 	return m_p[0];
 }
 template<typename T>
-T& ArrayListT<T>::back()
-{
+T& ArrayListT<T>::back() {
 	ASSERT(m_Len > 0);
 	return m_p[m_Len - 1];
 }
 template<typename T>
-const T& ArrayListT<T>::back() const
-{
+const T& ArrayListT<T>::back() const {
 	ASSERT(m_Len > 0);
 	return m_p[m_Len - 1];
 }
 
 template<typename T>
-T ArrayListT<T>::get(size_type i) const
-{
+T ArrayListT<T>::get(size_type i) const {
 	assert(i >= 0 && i < m_Len);
 	return m_p[i];
 }
 
 template<typename T>
-void ArrayListT<T>::swap(size_type i1, size_type i2)
-{
+void ArrayListT<T>::swap(size_type i1, size_type i2) {
 	assert(i1 >= 0 && i1 < m_Len && i2 >= 0 && i2 < m_Len);
 	if (i1 == i2) {
 		return;
@@ -331,8 +297,7 @@ void ArrayListT<T>::swap(size_type i1, size_type i2)
 }
 
 template<typename T>
-void ArrayListT<T>::reverse()
-{
+void ArrayListT<T>::reverse() {
 	if (empty()) {
 		return;
 	}
@@ -345,8 +310,7 @@ void ArrayListT<T>::reverse()
 }
 
 template<typename T>
-void ArrayListT<T>::push_back(const T& nd)
-{
+void ArrayListT<T>::push_back(const T& nd) {
 	if (m_p == nullptr) {
 		m_Len = 1;
 		m_p = new T[1];
@@ -368,8 +332,7 @@ void ArrayListT<T>::push_back(const T& nd)
 }
 
 template<typename T>
-void ArrayListT<T>::pop_back()
-{
+void ArrayListT<T>::pop_back() {
 	if (m_p == NULL) {
 		return;
 	} else if (m_Len == 1) {
@@ -392,8 +355,7 @@ void ArrayListT<T>::pop_back()
 }
 
 template<typename T>
-void ArrayListT<T>::erase(size_type idx)
-{
+void ArrayListT<T>::erase(size_type idx) {
 	assert(idx >= 0 && idx < m_Len);
 	if (m_Len == 1) {
 		m_Len = 0;
@@ -419,8 +381,7 @@ void ArrayListT<T>::erase(size_type idx)
 }
 
 template<typename T>
-void ArrayListT<T>::resize(size_type new_size)
-{
+void ArrayListT<T>::resize(size_type new_size) {
 	assert(new_size >= 0);
 	if (empty()) {
 		reconstruct(new_size);
@@ -436,8 +397,7 @@ void ArrayListT<T>::resize(size_type new_size)
 }
 
 template<typename T>
-bool ArrayListT<T>::has(const T& nd) const
-{
+bool ArrayListT<T>::has(const T& nd) const {
 	if (m_p == NULL) {
 		return false;
 	} else {
@@ -451,8 +411,7 @@ bool ArrayListT<T>::has(const T& nd) const
 }
 
 template<typename T>
-st ArrayListT<T>::find(const T& nd) const
-{
+st ArrayListT<T>::find(const T& nd) const {
 	if (m_p == NULL) {
 		return -1;
 	} else {
@@ -465,8 +424,7 @@ st ArrayListT<T>::find(const T& nd) const
 	}
 }
 template<typename T>
-st ArrayListT<T>::count_equal(const T& nd) const
-{ //overload ==
+st ArrayListT<T>::count_equal(const T& nd) const { //overload ==
 	size_type res = 0;
 	if (m_p == NULL) {
 		return 0;
@@ -480,8 +438,7 @@ st ArrayListT<T>::count_equal(const T& nd) const
 	return res;
 }
 template<typename T>
-bool ArrayListT<T>::empty() const
-{
+bool ArrayListT<T>::empty() const {
 	if (m_p == NULL && m_Len == 0) {
 		return true;
 	} else {
@@ -490,13 +447,11 @@ bool ArrayListT<T>::empty() const
 }
 
 template<typename T>
-bool ArrayListT<T>::non_empty() const
-{
+bool ArrayListT<T>::non_empty() const {
 	return !empty();
 }
 template<typename T>
-inline bool ArrayListT<T>::check_idx(ArrayListT<T>::size_type idx) const
-{
+inline bool ArrayListT<T>::check_idx(ArrayListT<T>::size_type idx) const {
 	if (idx >= 0 && idx < m_Len) {
 		return true;
 	} else {
@@ -512,8 +467,7 @@ inline bool ArrayListT<T>::check_idx(ArrayListT<T>::size_type idx) const
 //=========================================================
 
 template<typename V>
-class ArrayListV: public ArrayListT<V>
-{
+class ArrayListV: public ArrayListT<V> {
 public:
 	// type definitions
 	typedef V value_type;
@@ -563,29 +517,57 @@ ArrayListV<V> operator*(const V &a, const ArrayListV<V> &x);
 template<typename V>
 ArrayListV<V> operator*(const ArrayListV<V> &x, const V &a);
 template<typename V>
-ArrayListV<V> operator-(const ArrayListV<V> &a,
-		const ArrayListV<V> &b);
+ArrayListV<V> operator-(const ArrayListV<V> &a, const ArrayListV<V> &b);
 //=================================================
 
 template<typename V>
 ArrayListV<V>::ArrayListV() :
-		ArrayListT<V>()
-{
+		ArrayListT<V>() {
 }
 template<typename V>
 ArrayListV<V>::ArrayListV(size_type Len) :
-		ArrayListT<V>(Len)
-{
+		ArrayListT<V>(Len) {
 	this->assign(0);
 }
 template<typename V>
 ArrayListV<V>::ArrayListV(size_type Len, const V& nd) :
-		ArrayListT<V>(Len, nd)
+		ArrayListT<V>(Len, nd) {
+}
+//+=
+template<typename T>
+void _add_equal(st n, const T* src, T* dst) {
+	for (st i = 0; i < n; i++) {
+		dst[i] += src[i];
+	}
+}
+template<typename T>
+int _copy_(st n, const T * a, T* b)
 {
+	//make sure: the length of a and b is equal
+	//           and n>0
+
+	st LN = 7;
+	st m = (n - 1) % LN;
+	for (st i = 0; i <= m; ++i) {
+		b[i] = a[i];
+	}
+	if (n <= LN) {
+		return 1;
+	}
+	st mp1 = m + 1;
+	for (st i = mp1; i < n; i += LN) {
+		b[i] = a[i];
+		b[i + 1] = a[i + 1];
+		b[i + 2] = a[i + 2];
+		b[i + 3] = a[i + 3];
+		b[i + 4] = a[i + 4];
+		b[i + 5] = a[i + 5];
+		b[i + 6] = a[i + 6];
+	}
+	return 2;
 }
 template<typename V>
-ArrayListV<V> ArrayListV<V>::operator+(const ArrayListV<V> &a)
-{
+ArrayListV<V> ArrayListV<V>::operator+(const ArrayListV<V> &a) {
 	assert(a.size() == this->size());
 	ArrayListV<V> res(this->m_Len);
 	_copy_(a.size(), this->m_p, res.m_p);
@@ -593,8 +575,7 @@ ArrayListV<V> ArrayListV<V>::operator+(const ArrayListV<V> &a)
 	return res;
 }
 template<typename V>
-ArrayListV<V> ArrayListV<V>::operator-(const ArrayListV<V> &a)
-{
+ArrayListV<V> ArrayListV<V>::operator-(const ArrayListV<V> &a) {
 	assert(a.size() == this->size());
 	ArrayListV<V> tmp(this->m_Len);
 	for (size_type i = 0; i < this->m_Len; i++) {
@@ -603,8 +584,7 @@ ArrayListV<V> ArrayListV<V>::operator-(const ArrayListV<V> &a)
 	return tmp;
 }
 template<typename V>
-ArrayListV<V> ArrayListV<V>::operator*(const ArrayListV<V> &a)
-{
+ArrayListV<V> ArrayListV<V>::operator*(const ArrayListV<V> &a) {
 	assert(a.size() == this->size());
 	ArrayListV<V> tmp(this->m_Len);
 	for (size_type i = 0; i < this->m_Len; i++) {
@@ -613,8 +593,7 @@ ArrayListV<V> ArrayListV<V>::operator*(const ArrayListV<V> &a)
 	return tmp;
 }
 template<typename V>
-ArrayListV<V> ArrayListV<V>::operator/(const ArrayListV<V> &a)
-{
+ArrayListV<V> ArrayListV<V>::operator/(const ArrayListV<V> &a) {
 	assert(a.size() == this->size());
 	ArrayListV<V> tmp(this->m_Len);
 	for (size_type i = 0; i < this->m_Len; i++) {
@@ -623,8 +602,7 @@ ArrayListV<V> ArrayListV<V>::operator/(const ArrayListV<V> &a)
 	return tmp;
 }
 template<typename V>
-ArrayListV<V> ArrayListV<V>::operator+(const V &a)
-{
+ArrayListV<V> ArrayListV<V>::operator+(const V &a) {
 	ArrayListV<V> sum(this->m_Len);
 	for (size_type i = 0; i < this->m_Len; i++) {
 		sum[i] = this->m_p[i] + a;
@@ -632,8 +610,7 @@ ArrayListV<V> ArrayListV<V>::operator+(const V &a)
 	return sum;
 }
 template<typename V>
-ArrayListV<V> ArrayListV<V>::operator-(const V &a)
-{
+ArrayListV<V> ArrayListV<V>::operator-(const V &a) {
 	ArrayListV<V> sum(this->m_Len);
 	for (size_type i = 0; i < this->m_Len; i++) {
 		sum[i] = this->m_p[i] - a;
@@ -641,8 +618,7 @@ ArrayListV<V> ArrayListV<V>::operator-(const V &a)
 	return sum;
 }
 template<typename V>
-ArrayListV<V> ArrayListV<V>::operator*(const V &a)
-{
+ArrayListV<V> ArrayListV<V>::operator*(const V &a) {
 	ArrayListV<V> sum(this->m_Len);
 	for (size_type i = 0; i < this->m_Len; i++) {
 		sum[i] = this->m_p[i] * a;
@@ -650,8 +626,7 @@ ArrayListV<V> ArrayListV<V>::operator*(const V &a)
 	return sum;
 }
 template<typename V>
-ArrayListV<V> ArrayListV<V>::operator/(const V &a)
-{
+ArrayListV<V> ArrayListV<V>::operator/(const V &a) {
 	ArrayListV<V> sum(this->m_Len);
 	for (size_type i = 0; i < this->m_Len; i++) {
 		sum[i] = this->m_p[i] / a;
@@ -659,8 +634,7 @@ ArrayListV<V> ArrayListV<V>::operator/(const V &a)
 	return sum;
 }
 template<typename V>
-V ArrayListV<V>::sum() const
-{
+V ArrayListV<V>::sum() const {
 	V sum = 0;
 	for (size_type i = 0; i < this->m_Len; i++) {
 		sum += this->m_p[i];
@@ -668,8 +642,7 @@ V ArrayListV<V>::sum() const
 	return sum;
 }
 template<typename V>
-V ArrayListV<V>::min() const
-{
+V ArrayListV<V>::min() const {
 	assert(this->m_p!=NULL);
 	V min = this->m_p[0];
 	for (size_type i = 0; i < this->m_Len; i++) {
@@ -680,8 +653,7 @@ V ArrayListV<V>::min() const
 	return min;
 }
 template<typename V>
-V ArrayListV<V>::max() const
-{
+V ArrayListV<V>::max() const {
 	assert(this->m_p!=NULL);
 	V max = this->m_p[0];
 	for (size_type i = 0; i < this->m_Len; i++) {
@@ -692,8 +664,7 @@ V ArrayListV<V>::max() const
 	return max;
 }
 template<typename V>
-st ArrayListV<V>::findMinIdx() const
-{
+st ArrayListV<V>::findMinIdx() const {
 	assert(this->m_p!=NULL);
 	V min = this->m_p[0];
 	size_type idx = 0;
@@ -706,8 +677,7 @@ st ArrayListV<V>::findMinIdx() const
 	return idx;
 }
 template<typename V>
-st ArrayListV<V>::findMaxIdx() const
-{
+st ArrayListV<V>::findMaxIdx() const {
 	assert(this->m_p!=NULL);
 	V max = this->m_p[0];
 	size_type idx = 0;
@@ -720,15 +690,13 @@ st ArrayListV<V>::findMaxIdx() const
 	return idx;
 }
 template<typename V>
-void ArrayListV<V>::assign_forward(const V& be, const V& step)
-{
+void ArrayListV<V>::assign_forward(const V& be, const V& step) {
 	for (size_type i = 0; i < this->m_Len; i++) {
 		this->m_p[i] = be + i * step;
 	}
 }
 template<typename V>
-void ArrayListV<V>::assign_backward(const V& be, const V& step)
-{
+void ArrayListV<V>::assign_backward(const V& be, const V& step) {
 	for (size_type i = this->m_Len - 1; i != 0; --i) {
 		this->m_p[i] = be + (this->m_Len - 1 - i) * step;
 	}
@@ -736,8 +704,7 @@ void ArrayListV<V>::assign_backward(const V& be, const V& step)
 }
 
 template<typename V>
-st ArrayListV<V>::countEq(const V &a) const
-{
+st ArrayListV<V>::countEq(const V &a) const {
 	if (this->m_p != NULL) {
 		return 0;
 	}
@@ -750,12 +717,11 @@ st ArrayListV<V>::countEq(const V &a) const
 	return count;
 }
 template<typename V>
-void ArrayListV<V>::show() const
-{
+void ArrayListV<V>::show() const {
 	std::cout << "size = " << this->m_Len << "\n";
 	for (int i = 0; i < this->m_Len; i++) {
 		std::cout.width(5);
-		std::cout << i <<" ";
+		std::cout << i << " ";
 		std::cout.width(12);
 		std::cout.precision(8);
 		std::cout << this->m_p[i] << "\n";
@@ -763,16 +729,14 @@ void ArrayListV<V>::show() const
 }
 //=========================================================
 template<typename V>
-ArrayListV<V>& operator*=(ArrayListV<V> &x, const V &a)
-{
+ArrayListV<V>& operator*=(ArrayListV<V> &x, const V &a) {
 	for (st i = 0; i < x.size(); ++i) {
 		x[i] *= a;
 	}
 	return x;
 }
 template<typename V>
-ArrayListV<V>& operator+=(ArrayListV<V> &x, const ArrayListV<V> &y)
-{
+ArrayListV<V>& operator+=(ArrayListV<V> &x, const ArrayListV<V> &y) {
 	assert(x.size() == y.size());
 	for (st i = 0; i < x.size(); i++) {
 		x[i] += y[i];
@@ -780,8 +744,7 @@ ArrayListV<V>& operator+=(ArrayListV<V> &x, const ArrayListV<V> &y)
 	return x;
 }
 template<typename V>
-ArrayListV<V>& operator-=(ArrayListV<V> &x, const ArrayListV<V> &y)
-{
+ArrayListV<V>& operator-=(ArrayListV<V> &x, const ArrayListV<V> &y) {
 	assert(x.size() == y.size());
 	for (st i = 0; i < x.size(); i++) {
 		x[i] -= y[i];
@@ -789,23 +752,20 @@ ArrayListV<V>& operator-=(ArrayListV<V> &x, const ArrayListV<V> &y)
 	return x;
 }
 template<typename V>
-ArrayListV<V> operator*(const V& a, const ArrayListV<V>& x)
-{
+ArrayListV<V> operator*(const V& a, const ArrayListV<V>& x) {
 	ArrayListV<V> res(x);
 	res *= a;
 	return res;
 }
 template<typename V>
-ArrayListV<V> operator*(const ArrayListV<V>& x, const V&a)
-{
+ArrayListV<V> operator*(const ArrayListV<V>& x, const V&a) {
 	ArrayListV<V> res(x);
 	res *= a;
 	return res;
 }
 
 template<typename V>
-ArrayListV<V> operator-(const ArrayListV<V> &a, const ArrayListV<V> &b)
-{
+ArrayListV<V> operator-(const ArrayListV<V> &a, const ArrayListV<V> &b) {
 	ArrayListV<V> res(a);
 	res -= b;
 	return res;

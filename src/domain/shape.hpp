@@ -29,6 +29,8 @@ public:
 	typedef Polygon_<VALUE>* pS2D;
 	typedef Polygon_<VALUE>& ref_S2D;
 	typedef const Polygon_<VALUE>& const_ref_S2D;
+	typedef typename S2D::Segment Seg2D;
+	typedef typename S2D::Point Poi2D;
 protected:
 	pS2D _ps2d;
 	int _type;
@@ -69,9 +71,11 @@ public:
 	 * edge
 	 */
 	inline st size_segments() const{
+		ASSERT(Dim == 2);
 		return _ps2d->size_segments();
 	}
 	typename S2D::Segment seg(st i) const{
+		ASSERT(Dim==2);
 		return _ps2d->get_segment(i);
 	}
 	/*
@@ -163,6 +167,27 @@ public:
 			}
 		}
 		return 0.0;
+	}
+	/*
+	 * special function
+	 */
+	void find_all_seg_across(std::list<st>& l_seg_idx, Axes aix, vt v) const{
+		l_seg_idx.clear();
+		st i=0;
+		int flag = GEL(v, _ps2d->v(i).val(aix));
+		int nf;
+		for(++i;i<_ps2d->size_vertexs(); i++){
+			vt pv = _ps2d->v(i).val(aix);
+			nf = GEL(v, pv);
+			if( flag != nf){
+				l_seg_idx.push_back(i-1);
+				flag = nf;
+			}
+		}
+		nf = GEL(v, _ps2d->v(0).val(aix));
+		if(nf!=flag){
+			l_seg_idx.push_back(_ps2d->size_vertexs()-1);
+		}
 	}
 
 }

@@ -26,7 +26,9 @@ int GnuplotActor_StencilContour(Gnuplot_actor& actor, const Stencil_2D2& s, st i
 int GnuplotActor_LeafNodesContours(Gnuplot_actor& actor, const Grid_2D& g,
 		st idx);
 int GnuplotActor_GhostNodes(Gnuplot_actor& actor, const Ghost_2D& g);
+int GnuplotActor_GhostNodesContour(Gnuplot_actor& actor, const Ghost_2D& g);
 int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g);
+int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g, st base_idx);
 int GnuplotActor_Vof2D(Gnuplot_actor& actor, const Vof_<Float, Float, 2>& vof);
 
 // this part is creat gnuplot actor for geometry

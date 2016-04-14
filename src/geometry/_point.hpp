@@ -33,6 +33,26 @@ public:
 		}
 	}
 
+	const_reference val(Axes axi) const {
+		switch (axi) {
+		case _X_: {
+			return this->at(0);
+		}
+		case _Y_: {
+			ASSERT(Dim>=2);
+			return this->at(1);
+		}
+		case _Z_: {
+			ASSERT(Dim>=3);
+			return this->at(2);
+		}
+		default:{
+			SHOULD_NOT_REACH;
+		}
+		}
+		return this->at(0); //make compile happy;
+	}
+
 	const_reference x() const {
 		return this->at(0);
 	}
@@ -96,8 +116,7 @@ public:
 	std::string to_string() const {
 		std::stringstream sstr;
 		sstr.precision(4);
-		sstr<<"( " << this->at(0) << " , "
-				<< this->at(1);
+		sstr << "( " << this->at(0) << " , " << this->at(1);
 		if (Dim == 3) {
 			sstr << " , " << this->at(2) << " )";
 		} else {

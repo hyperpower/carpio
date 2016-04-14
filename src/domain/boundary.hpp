@@ -5,6 +5,8 @@
 #include "node.hpp"
 #include "cell.hpp"
 #include "path.hpp"
+#include "shape.hpp"
+#include "../geometry/_line.hpp"
 #include <functional>
 
 namespace carpio {
@@ -23,8 +25,8 @@ struct GhostID_ {
 //--------------------------------------------------------------------
 	//int bc_type;
 	//pFun_set_bc pfun_bc;
-	int shape_idx;
-	int seg_idx;
+	st shape_idx;
+	st seg_idx;
 };
 
 template<typename COO_VALUE, typename VALUE, st DIM>
@@ -71,13 +73,21 @@ public:
 	typedef void (*pfunction)(pNode, utPointer);
 	typedef Grid_<COO_VALUE, VALUE, DIM> Grid;
 	typedef Grid_<COO_VALUE, VALUE, DIM> *pGrid;
+	typedef Shape_<COO_VALUE, DIM> Shape;
+	typedef Shape_<COO_VALUE, DIM> *pShape;
 	typedef void (*pfunction_conditional)(arrayList&, pNode, utPointer);
 	typedef GhostID_<COO_VALUE, VALUE, DIM> GhostID;
 	typedef GhostID_compare_<COO_VALUE, VALUE, DIM> GhostID_compare;
 
-	typedef std::pair<GhostID, pNode> GhostNode;
+	struct GhostVal {
+		pNode pghost;
+		st shape_idx;
+		st seg_idx;
+	};
 
-	typedef std::map<GhostID, pNode, GhostID_compare> GhostMap;
+	typedef std::pair<GhostID, GhostVal> GhostNode;
+
+	typedef std::map<GhostID, GhostVal, GhostID_compare> GhostMap;
 	typedef typename GhostMap::iterator iterator;
 	typedef typename GhostMap::const_iterator const_iterator;
 
@@ -146,11 +156,12 @@ protected:
 				// --------------------------------
 				//gid.bc_type = 0;
 				//gid.pfun_bc = nullptr;
-				gid.shape_idx = -1;
-				gid.seg_idx = -1;
+				//gid.shape_idx = -1;
+				//gid.seg_idx = -1;
 				pNode pghost = new_ghost_node(po, iter->dir());
+				GhostVal gval = { pghost, -1, -1 };
 				//change the index id ------------------------
-				_ghostmap.insert(GhostNode(gid, pghost));
+				_ghostmap.insert(GhostNode(gid, gval));
 			}
 		}
 	}
@@ -162,9 +173,9 @@ public:
 	~Ghost_() {
 		for (typename GhostMap::iterator it = _ghostmap.begin();
 				it != _ghostmap.end(); ++it) {
-			if (it->second != nullptr) {
-				delete it->second;
-				it->second = nullptr;
+			if (it->second.pghost != nullptr) {
+				delete it->second.pghost;
+				it->second.pghost = nullptr;
 			}
 		}
 	}
@@ -173,11 +184,11 @@ public:
 		new_ghost_nodes(_pgrid);
 	}
 protected:
-	void _connect(const GhostNode& gn){
-		pNode po =  gn.second->father;
-		pNode pg = gn.second;
-		Direction dir_o= gn.first.direction;
-		po->set_neighbor(pg,dir_o);
+	void _connect(const GhostNode& gn) {
+		pNode pg = gn.second.pghost;
+		pNode po = pg->father;
+		Direction dir_o = gn.first.direction;
+		po->set_neighbor(pg, dir_o);
 	}
 public:
 	void connect() {
@@ -187,7 +198,7 @@ public:
 		// here, we connect original node to the ghost node
 		// the find_neighbor_fast() can be used on boundary node
 		for (typename GhostMap::iterator it = _ghostmap.begin();
-						it != _ghostmap.end(); ++it) {
+				it != _ghostmap.end(); ++it) {
 			this->_connect(*it);
 		}
 	}
@@ -204,8 +215,104 @@ public:
 	const_iterator end() const {
 		return _ghostmap.end();
 	}
+	void set_boundary_index(iterator& iter, st si, st segi) {
+		GhostVal& gval = iter->second;
+		gval.shape_idx = si;
+		gval.seg_idx = segi;
+	}
+	int get_shape_index(iterator& iter) const {
+		return iter->first.shape_index;
+	}
+	int get_shape_index(const_iterator& iter) const {
+		return iter->first.shape_index;
+	}
+	int get_seg_index(iterator& iter) const {
+		return iter->first.shape_index;
+	}
+	int get_seg_index(const_iterator& iter) const {
+		return iter->first.shape_index;
+	}
 
-};
+	/*
+	 * set boundary index
+	 */
+	void set_boundary_index(int shape_idx, const Shape& shape) {
+		for (iterator iter = this->begin(); iter != this->end(); ++iter) {
+			set_seg_index(shape_idx, shape, iter);
+		}
+	}
+	st _choose_a_seg(std::list<st>& ls, const Shape& shape, iterator& iter,
+			int flag) {
+		ASSERT(!ls.empty());
+		if (ls.size() == 1) {
+			return *(ls.begin());
+		} else {
+			pNode pg = iter->second.pghost;
+			for (auto i = ls.begin(); i != ls.end(); ++i) {
+				typename Shape::Seg2D seg = shape.seg(*i);
+				typename Shape::Poi2D poi(pg->cp(_X_), pg->cp(_Y_));
+				int side = OnWhichSide3(seg, poi);
+				if (side != flag) {
+					i = ls.erase(i);
+				}
+			}
+			if (ls.size() > 1) {
+				ASSERT_MSG(false, "unfinish code!");
+				for (auto i = ls.begin(); i != ls.end(); ++i) {
+					// choose the closest one
+					GhostVal& gval = iter->second;
+					const GhostID& gid = iter->first;
+					Orientation ori;
+					Axes axi;
+					Direction dir = gid.direction;
+					FaceDirectionToOrientationAndAxes(dir, ori, axi);
+					//Axes va = VertialAxes2D(axi);
+					typename Shape::Seg2D seg = shape.seg(*i);
+					Line_<cvt> l(seg.ps(), seg.pe());
+
+				}
+			}
+			return *(ls.begin());
+		}
+	}
+	void set_seg_index(int shape_idx, const Shape& shape, iterator& iter) {
+		ASSERT(Dim == 2);
+		// get a line of ghost node
+		Orientation ori;
+		Axes axi;
+		Direction dir = iter->first.direction;
+		FaceDirectionToOrientationAndAxes(dir, ori, axi);
+		Axes va = VertialAxes2D(axi);
+		//Orientation oori = Opposite(ori);
+		std::list<st> ls;
+		GhostVal& gval = iter->second;
+		shape.find_all_seg_across(ls, va, gval.pghost->cp(va));
+		//std::cout<<ls.size()<<"size\n";
+		st seg_idx = 100000;
+		if (!ls.empty()) {
+			seg_idx = _choose_a_seg(ls, shape, iter, -1);
+			set_boundary_index(iter, shape_idx, seg_idx);
+		} else {
+			ASSERT_MSG(false, "unfinish code!");
+			// here, find the boundary by another method
+			//
+			set_boundary_index(iter, shape_idx, 0);
+		}
+
+	}
+
+	void for_each_ghost_node(std::function<void(GhostNode&)> fun) {
+		for (iterator iter = this->begin(); iter != this->end(); ++iter) {
+			fun(*iter);
+		}
+	}
+	void for_each_ghost_node(std::function<void(const GhostNode&)> fun) const {
+		for (const_iterator iter = this->begin(); iter != this->end(); ++iter) {
+			fun((*iter));
+		}
+	}
+}
+;
 
 template<typename COO_VALUE, typename VALUE>
 class BoundaryCondition_ {

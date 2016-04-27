@@ -9,6 +9,7 @@
 #include "../domain/domain.hpp"
 #include "../calculation/vof.h"
 #include "../geometry/geometry.hpp"
+#include "../calculation/poisson.hpp"
 #include "gnuplot.h"
 #include <string>
 #include <fstream>
@@ -25,17 +26,25 @@ int GnuplotActor_Stencil(Gnuplot_actor& actor, const Stencil_2D2& s);
 int GnuplotActor_StencilContour(Gnuplot_actor& actor, const Stencil_2D2& s, st idx);
 int GnuplotActor_LeafNodesContours(Gnuplot_actor& actor, const Grid_2D& g,
 		st idx);
+int GnuplotActor_LeafNodesDataIndex(Gnuplot_actor& actor, const Grid_2D& g);
 int GnuplotActor_GhostNodes(Gnuplot_actor& actor, const Ghost_2D& g);
-int GnuplotActor_GhostNodesContour(Gnuplot_actor& actor, const Ghost_2D& g);
+int GnuplotActor_GhostNodesContours(Gnuplot_actor& actor, const Ghost_2D& g, st vi);
+int GnuplotActor_GhostNodesContour_BoundaryIndex(Gnuplot_actor& actor, const Ghost_2D& g);
+int GnuplotActor_GhostNodesDataIndex(Gnuplot_actor& actor, const Ghost_2D& g);
 int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g);
 int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g, st base_idx);
 int GnuplotActor_Vof2D(Gnuplot_actor& actor, const Vof_<Float, Float, 2>& vof);
+// this part is create gnuplot actor for calculation
+//int GnuplotActor_Expression(Gnuplot_actor& actor, const Poisson_<Float, Float, 2>::Exp& exp);
+int GnuplotActor_Expression(Gnuplot_actor& actor, const Expression_<Float, Float, 2>& exp);
 
 // this part is creat gnuplot actor for geometry
 int GnuplotActor_Segment2D(Gnuplot_actor& actor, const Segment_2D& g);
 int GnuplotActor_Polygon(Gnuplot_actor& actor, const Polygon& g);
 int GnuplotActor_Polygon_vector(Gnuplot_actor& actor, const Polygon& g);
 
+int GnuplotActor_MatrixSCR(Gnuplot_actor&, const MatrixSCR_<Float>&);
+int GnuplotActor_ArrayList(Gnuplot_actor&, const ArrayListV<Float>&);
 
 int GnuplotShow_RootNodes(const Grid_2D& grid);
 int GnuplotShow_LeafNodes(const Grid_2D& grid);

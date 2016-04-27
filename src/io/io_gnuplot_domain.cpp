@@ -39,6 +39,22 @@ int GnuplotActorDataPushBack_Contour(std::list<std::string>& ldata,
 	return _SUCCESS;
 }
 
+int GnuplotActorDataPushBack_Contour(std::list<std::string>& ldata,
+		const_pNode_2D& pn, Float vt) {
+	ldata.push_back(
+			ToString(pn->cp(_X_), pn->cp(_Y_), pn->p(_M_, _X_), pn->p(_P_, _X_),
+					pn->p(_M_, _Y_), pn->p(_P_, _Y_), vt, " ")); //point" "));
+	return _SUCCESS;
+}
+
+int GnuplotActorDataIndexPushBack_Contour(std::list<std::string>& ldata,
+		const_pNode_2D& pn) {
+	ldata.push_back(
+			ToString(pn->cp(_X_), pn->cp(_Y_), pn->p(_M_, _X_), pn->p(_P_, _X_),
+					pn->p(_M_, _Y_), pn->p(_P_, _Y_), pn->d_idx(), " ")); //point" "));
+	return _SUCCESS;
+}
+
 int GnuplotActor_Cell(Gnuplot_actor& actor, const Cell_2D& c) {
 	actor.clear();
 	actor.command() = "using 1:2 title \"\" ";
@@ -95,7 +111,8 @@ int GnuplotActor_GhostNodes(Gnuplot_actor& actor, const Ghost_2D& g) {
 	return _SUCCESS;
 }
 
-int GnuplotActor_GhostNodesContour(Gnuplot_actor& actor, const Ghost_2D& g) {
+int GnuplotActor_GhostNodesContour_BoundaryIndex(Gnuplot_actor& actor,
+		const Ghost_2D& g) {
 	actor.clear();
 	actor.command() = "using 1:2:3:4:5:6:7 title \"\" ";
 	actor.style() = "with boxxy fs solid palette";
@@ -119,6 +136,54 @@ int GnuplotActor_GhostNodesContour(Gnuplot_actor& actor, const Ghost_2D& g) {
 	return _SUCCESS;
 }
 
+int GnuplotActor_GhostNodesContours(Gnuplot_actor& actor, const Ghost_2D& g,
+		st vi) {
+	actor.clear();
+	actor.command() = "using 1:2:3:4:5:6:7 title \"\" ";
+	actor.style() = "with boxxy fs solid palette";
+	typedef typename Ghost_2D::GhostNode Node;
+	std::function<void(const Node&)> fun = [&](const Node& n) {
+		//
+			typename Ghost_2D::GhostVal gval=n.second;
+			typename Ghost_2D::pNode pn = gval.pghost;
+			typename Ghost_2D::GhostID gid = n.first;
+			//assume segments for each shape less than 10000
+			Float v = pn->cda(vi);
+			//std::cout<< v << " " <<gval.seg_idx << " " << gval.shape_idx<<"\n";
+			if (pn != nullptr) {
+				actor.data().push_back(
+						ToString(pn->cp(_X_), pn->cp(_Y_), pn->p(_M_, _X_), pn->p(_P_, _X_),
+								pn->p(_M_, _Y_), pn->p(_P_, _Y_), v, " "));
+			}
+		};
+	g.for_each_ghost_node(fun);
+
+	return _SUCCESS;
+}
+
+int GnuplotActor_GhostNodesDataIndex(Gnuplot_actor& actor, const Ghost_2D& g) {
+	actor.clear();
+	actor.command() = "using 1:2:3:4:5:6:7 title \"\" ";
+	actor.style() = "with boxxy fs solid palette";
+	typedef typename Ghost_2D::GhostNode Node;
+	std::function<void(const Node&)> fun = [&](const Node& n) {
+		//
+			typename Ghost_2D::GhostVal gval=n.second;
+			typename Ghost_2D::pNode pn = gval.pghost;
+			typename Ghost_2D::GhostID gid = n.first;
+			//assume segments for each shape less than 10000
+			Float v = pn->d_idx();
+			//std::cout<< v << " " <<gval.seg_idx << " " << gval.shape_idx<<"\n";
+			if (pn != nullptr) {
+				actor.data().push_back(
+						ToString(pn->cp(_X_), pn->cp(_Y_), pn->p(_M_, _X_), pn->p(_P_, _X_),
+								pn->p(_M_, _Y_), pn->p(_P_, _Y_), v, " "));
+			}
+		};
+	g.for_each_ghost_node(fun);
+
+	return _SUCCESS;
+}
 int GnuplotActor_StencilContour(Gnuplot_actor& actor, const Stencil_2D2& s,
 		st idx) {
 	actor.clear();
@@ -142,6 +207,17 @@ int GnuplotActor_LeafNodesContours(Gnuplot_actor& actor, const Grid_2D& g,
 			iter != g.end_leaf(); ++iter) {
 		const_pNode_2D pn = iter.get_pointer();
 		GnuplotActorDataPushBack_Contour(actor.data(), pn, idx);
+	}
+	return _SUCCESS;
+}
+int GnuplotActor_LeafNodesDataIndex(Gnuplot_actor& actor, const Grid_2D& g) {
+	actor.clear();
+	actor.command() = "using 1:2:3:4:5:6:7 title \"\" ";
+	actor.style() = "with boxxy fs solid palette";
+	for (Grid_2D::const_iterator_leaf iter = g.begin_leaf();
+			iter != g.end_leaf(); ++iter) {
+		const_pNode_2D pn = iter.get_pointer();
+		GnuplotActorDataIndexPushBack_Contour(actor.data(), pn);
 	}
 	return _SUCCESS;
 }
@@ -177,7 +253,7 @@ int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g, st base_idx) {
 	typedef typename Shape2D::S2D::Point Poi;
 	for (st i = 0; i < g.size_vertexs(); ++i) {
 		const Poi& p = g.v(i);
-		actor.data().push_back(ToString(p.x(), p.y(), i+base_idx ," "));
+		actor.data().push_back(ToString(p.x(), p.y(), i + base_idx, " "));
 	}
 	const Poi& pstart = g.v(0);
 	actor.data().push_back(ToString(pstart.x(), pstart.y(), base_idx, " "));
@@ -255,6 +331,18 @@ int GnuplotActor_Vof2D(Gnuplot_actor& actor, const Vof_<Float, Float, 2>& vof) {
 	return _SUCCESS;
 }
 
+int GnuplotActor_Expression(Gnuplot_actor& actor,
+		const Expression_<Float, Float, 2>& exp) {
+	actor.clear();
+	actor.command() = "using 1:2:3:4:5:6:7 title \"\" ";
+	actor.style() = "with boxxy fs solid palette";
+	for (auto iter = exp.begin(); iter != exp.end(); ++iter) {
+		const_pNode_2D pn = iter->first.first;
+		Float val = iter->second;
+		GnuplotActorDataPushBack_Contour(actor.data(), pn, val);
+	}
+	return _SUCCESS;
+}
 int GnuplotActor_Segment2D(Gnuplot_actor& actor, const Segment_2D& g) {
 	actor.clear();
 	actor.command() = "using 1:2 title \"\"";
@@ -268,6 +356,36 @@ int GnuplotActor_Segment2D(Gnuplot_actor& actor, const Segment_2D& g) {
 	const Poi& pe = g.pe();
 	actor.data().push_back(ToString(pe.x(), pe.y(), " "));
 	actor.data().push_back("");
+	return _SUCCESS;
+}
+
+int GnuplotActor_MatrixSCR(Gnuplot_actor& actor, const MatrixSCR_<Float>& m) {
+	actor.clear();
+	actor.command() = "using 1:2:3:4:5:6:7 title \"\" ";
+	actor.style() = "with boxxy fs solid palette";
+	st k = 0;
+	for (st i = 1; i <= m.iLen(); i++) {
+		for (st j = k; j < m.row_ptr(i); j++) {
+			Float xc = i - 1 + 0.5;
+			Float yc = m.col_ind(k) + 0.5;
+			Float xm = i - 1;
+			Float xp = i;
+			Float ym = m.col_ind(k);
+			Float yp = m.col_ind(k) + 1;
+			Float val = m.val(k);
+			actor.data().push_back(ToString(xc, yc, xm, xp, ym, yp, val, " "));
+			k++;
+		}
+	}
+	return _SUCCESS;
+}
+
+int GnuplotActor_ArrayList(Gnuplot_actor& actor, const ArrayListV<Float>& arr) {
+	actor.clear();
+	actor.command() = "using 1:2 title \"\" ";
+	for (st i = 0; i < arr.size(); i++) {
+		actor.data().push_back(ToString(i, arr[i], " "));
+	}
 	return _SUCCESS;
 }
 

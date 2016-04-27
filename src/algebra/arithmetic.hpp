@@ -17,6 +17,9 @@
 # define _PI_           3.14159265358979323846
 
 namespace carpio {
+
+
+
 template<typename TYPE>
 inline int StepFun(TYPE x) {
 	return (x <= 0) ? 0 : 1;

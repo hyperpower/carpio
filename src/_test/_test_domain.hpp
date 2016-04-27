@@ -71,7 +71,7 @@ void test_domain_2() {
 	//lga.push_back(ga);
 	GnuplotActor_GhostNodes(ga, domain.ghost());
 	lga.push_back(ga);
-	GnuplotActor_GhostNodesContour(ga, domain.ghost());
+	GnuplotActor_GhostNodesContour_BoundaryIndex(ga, domain.ghost());
 	lga.push_back(ga);
 	GnuplotActor_Shape2D(ga, shape, 0);
 	lga.push_back(ga);

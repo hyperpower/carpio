@@ -88,6 +88,7 @@ public:
 	}
 
 	inline vt get_d(const Axes &axes) const {
+		ASSERT(axes<Dim);
 		return 2.0 * _hd[axes];
 	}
 

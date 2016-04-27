@@ -15,7 +15,7 @@
 namespace carpio {
 
 template<class VALUE> class MatrixSCO_;
-template<class VALUE> class MatrixSCC_;
+template<class VALUE> class MatrixSCR_;
 
 template<class VALUE>
 class MatrixSCC_ {

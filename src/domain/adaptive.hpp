@@ -212,7 +212,7 @@ public:
 		}
 		_update_current_info();
 	}
-	void adapt_vof(const Shape_<VALUE, DIM>& shape) {
+	void adapt_shape_boundary(const Shape_<VALUE, DIM>& shape) {
 		// 1 adapt to min level
 		// adapt_full();
 		// 2 all out   -> adapt to min level

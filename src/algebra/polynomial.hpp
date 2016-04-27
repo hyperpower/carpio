@@ -15,7 +15,7 @@
 
 template<class T>
 struct IsZero_: std::unary_function<T, bool> {
-	bool operator()(T number) const{
+	bool operator()(T number) const {
 		return (number == 0);
 	}
 };
@@ -26,7 +26,7 @@ template<class COE, class TERM, class EXP,                                    //
 		class ISZERO_EXP = IsZero_<EXP>,                                     //
 		class COMPARE_TERM = std::less<TERM>,                                 //
 		class COMPARE_EXP = std::less<EXP> >                                 //
-class Polynomial {
+class Polynomial_ {
 protected:
 	typedef std::pair<TERM, EXP> Key;
 	typedef COE Value;
@@ -41,7 +41,7 @@ protected:
 
 		ISZERO_EXP __is_zero_exp;
 		bool operator()(const Key& lhs, const Key& rhs) const {
-			if(__is_zero_exp(lhs.second) && __is_zero_exp(rhs.second)){
+			if (__is_zero_exp(lhs.second) && __is_zero_exp(rhs.second)) {
 				return false;
 			}
 			if (_compare_term(lhs.first, rhs.first)) {
@@ -53,11 +53,16 @@ protected:
 		}
 	};
 
-
 	typedef std::map<Key, Value, _compare> Map;
 	Map _map;
 public:
 
+	typedef Polynomial_<COE, TERM, EXP, ISZERO_COE, ISZERO_EXP, COMPARE_TERM,
+			COMPARE_EXP> Self;
+	typedef Polynomial_<COE, TERM, EXP, ISZERO_COE, ISZERO_EXP, COMPARE_TERM,
+			COMPARE_EXP>& ref_Self;
+	typedef const Polynomial_<COE, TERM, EXP, ISZERO_COE, ISZERO_EXP,
+			COMPARE_TERM, COMPARE_EXP>& const_ref_Self;
 	typedef typename Map::const_reference const_reference;
 	typedef typename Map::pointer pointer;
 	typedef typename Map::const_pointer const_pointer;
@@ -81,7 +86,6 @@ public:
 				std::pair<const Key, Value>(std::pair<TERM, EXP>(term, exp),
 						coe) {
 		}
-
 		const COE& coe() const {
 			return this->second;
 		}
@@ -100,17 +104,16 @@ public:
 		TERM& exp() {
 			return this->first.second;
 		}
-
 	};
 
 public:
-	Polynomial() :
+	Polynomial_() :
 			_map() {
 	}
-	Polynomial(const Polynomial& rhs) :
+	Polynomial_(const_ref_Self rhs) :
 			_map(rhs._map) {
 	}
-	Polynomial operator=(const Polynomial& rhs) {
+	Polynomial_ operator=(const_ref_Self rhs) {
 		this->_map = rhs._map;
 		return *this;
 	}
@@ -144,49 +147,69 @@ public:
 	const Value& operator[](const Key& k) const {
 		return _map[k];
 	}
+
+	static bool IsConstant(const iterator& iter) {
+		ISZERO_EXP iz;
+		return iz(iter->first.second);
+	}
+	static bool IsConstant(const const_iterator& iter) {
+		ISZERO_EXP iz;
+		return iz(iter->first.second);
+	}
+
+	static bool IsZeroCoe(const iterator& iter) {
+		ISZERO_COE ic;
+		return ic(iter->second);
+	}
+
 protected:
 	typedef std::pair<iterator, bool> _ret;
 public:
 
 	_ret insert(const std::pair<const Key, Value> &x) {
 		iterator it = _map.find(x.first);
-		if (it != _map.end()){
+		if (it != _map.end()) {
+			it->second = it->second + x.second;
+		}
+		return _map.insert(x);
+	}
+	_ret insert(const Term &x) {
+		iterator it = _map.find(x.first);
+		if (it != _map.end()) {
 			it->second = it->second + x.second;
 		}
 		return _map.insert(x);
 	}
 
-	void plus(const Polynomial &poly) {
-		for (Polynomial::const_iterator iter = poly.begin(); iter != poly.end();
-				++iter) {
-			_ret ret = this->insert((*iter));
-			if (ret.second == false) {
-				(ret.first)->second += iter->second;
-			}
+	void erase(iterator& iter) {
+		_map.erase(iter);
+	}
+
+	void plus(const_ref_Self poly) {
+		for (Polynomial_::const_iterator iter = poly.begin();
+				iter != poly.end(); ++iter) {
+			this->insert((*iter));
 		}
 	}
 
-	void minus(const Polynomial &poly) {
-		for (Polynomial::const_iterator iter = poly.begin(); iter != poly.end();
-				++iter) {
-			Key k = iter->first;
-			Value v = iter->second;
+	void minus(const_ref_Self poly) {
+		for (Polynomial_::const_iterator iter = poly.begin();
+				iter != poly.end(); ++iter) {
+			const Key& k = iter->first;
+			const Value& v = iter->second;
 			Term term(k, -v);       //minus
-			_ret ret = this->insert(term);
-			if (ret.second == false) {
-				(ret.first)->second = (ret.first)->second - v;
-			}
+			this->insert(term);
 		}
 	}
 	void times(const COE& rhs) {   //overload operator*
-		for (Polynomial::const_iterator iter = this->begin();
-				iter != this->end(); ++iter) {
+		for (Polynomial_::iterator iter = this->begin(); iter != this->end();
+				++iter) {
 			iter->second = iter->second * rhs;
 		}
 	}
 	void divide(const COE& rhs) {  //overload operator/
-		for (Polynomial::const_iterator iter = this->begin();
-				iter != this->end(); ++iter) {
+		for (Polynomial_::iterator iter = this->begin(); iter != this->end();
+				++iter) {
 			iter->second = iter->second / rhs;
 		}
 	}
@@ -235,13 +258,24 @@ public:
 		}
 	}
 
-	void concise(){
+	void concise() {
 		trim_zero();
 		merge_const();
 	}
 
-	void show() const;
+	void show() const {
+		// all the valuable should overload <<
+		std::cout << " size = " << this->size() << "\n";
+		for (Polynomial_::const_iterator iter = this->begin();
+				iter != this->end(); ++iter) {
+			std::cout << iter->second << " ";
+			std::cout << iter->first.first << " ";
+			std::cout << iter->first.second << " ";
+			std::cout << "\n";
+		}
+	}
 };
+
 //Polynomial operator-(const Polynomial &, const Polynomial &);
 //Polynomial operator+(const Polynomial &, const Polynomial &);
 //Polynomial operator*(const Float&, const Polynomial&);

@@ -59,7 +59,7 @@ public:
 			_face[i] = s._face[i];
 		}
 		for (int i = 0; i < NumVertexes; ++i) {
-			_vertex[i]= s._vertex[i];
+			_vertex[i] = s._vertex[i];
 		}
 		_center = s._center;
 		_untype = s._untype;
@@ -73,8 +73,14 @@ public:
 			_vertex[i].reconstruct(nv);
 		}
 		_untype.reconstruct(nutp);
+		_untype.assign(nullptr);
 	}
-
+	inline int& idx() {
+		return _idx;
+	}
+	inline const int& idx() const {
+		return _idx;
+	}
 	inline vt& center(const st& i) {
 		ASSERT(i < _center.size());
 		return _center[i];
@@ -113,7 +119,7 @@ public:
 		return _untype[i];
 	}
 
-	inline const utPointer& utp(const st& i) const {
+	inline const_utPointer& utp(const st& i) const {
 		ASSERT(i < _untype.size());
 		return _untype[i];
 	}
@@ -132,6 +138,10 @@ public:
 	void resize_vertex(st idx, st len) {
 		ASSERT(idx >= 0 && idx < NumVertexes);
 		this->_vertex[idx].resize(len);
+	}
+	void resize_utp(st len) {
+		ASSERT(len >= 0);
+		this->_untype.resize(len);
 	}
 
 	bool empty() const {
@@ -184,7 +194,7 @@ protected:
 	/*
 	 * assign p
 	 */
-	void _assign_p(cvt x, cvt y = 0, cvt z = 0) {
+	void _assign_p(const cvt& x, const cvt& y = 0, const cvt& z = 0) {
 		_p[0] = x;
 		if (Dim >= 2) {
 			_p[1] = y;
@@ -302,15 +312,28 @@ public:
 			return x();
 		}
 	}
+	inline const cvt& p(Axes axes) const {  //point const
+		switch (axes) {
+		case _X_: {
+			return x();
+			break;
+		}
+		case _Y_: {
+			return y();
+			break;
+		}
+		case _Z_: {
+			return z();
+			break;
+		}
+		default:
+			SHOULD_NOT_REACH;
+			return x();
+		}
+	}
 
 	inline void set_point(cvt x, cvt y = 0, cvt z = 0) {
-		_p[0] = x;
-		if (Dim >= 2) {
-			_p[1] = y;
-		}
-		if (Dim >= 3) {
-			_p[2] = z;
-		}
+		_assign_p(x, y, z);
 	}
 
 	inline vt& val(st n) {

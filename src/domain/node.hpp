@@ -83,6 +83,14 @@ inline bool is_z_m(st i) {
 	return (i | 3) == 3;
 }
 
+inline bool is_on_direction(st i, const Direction& dir){
+	ASSERT(i >= 0 && i < 8);
+	unsigned short hi = HI(dir);
+	unsigned short lo = LO(dir);
+	return (hi & i) == (hi & lo);
+}
+
+
 enum NodeType {
 	_Normal_ = 1 << 0, _Ghost_ = 1 << 1, _Cut_ = 1 << 2,
 };
@@ -108,6 +116,7 @@ public:
 	typedef Cell_<COO_VALUE, Dim> *pCell;
 	typedef Data_<VALUE, Dim> Data;
 	typedef Data *pData;
+	typedef const Data* const_pData;
 	typedef Self Node;
 	typedef Self *pNode;
 	typedef Path_<Dim> Path;
@@ -903,7 +912,7 @@ protected:
 		}
 		pNode get_neighbor_adj_cor_fast(const pNode Current, Direction d) {
 			if (IsFaceDirection(d)) {
-				return get_adj_neighbor_fast(Current, d);
+				return get_neighbor_adj_fast(Current, d);
 			}
 			if (IsPlaneDirection(d)) {
 				return get_cor_neighbor(Current, d);
@@ -940,9 +949,10 @@ protected:
 		}
 
 		template<class Ret1, class Ret2, class Args1, class Args2>
-		void traversal_conditional(std::function<Ret1(bool[], pNode, Args1)> fun_con,
-				Args1 argsc,
-				std::function<Ret2(pNode, Args2)> fun,
+		void traversal_conditional(  //
+				std::function<Ret1(bool[], pNode, Args1)> fun_con,//
+				Args1 argsc,//
+				std::function<Ret2(pNode, Args2)> fun,//
 				Args2 args) {
 			this->_traversal_conditional(this, fun_con, argsc, fun, args);
 		}
@@ -980,23 +990,51 @@ protected:
 			this->_traversal(this, fun, dummy);
 			return res;
 		}
+
 		cvt cp(Axes axes) const {  //center point
+			if( Dim <= 2 && axes == _Z_) {
+				return 0.0;
+			}
 			return this->cell->get(_C_, axes);
 		}
-		cvt d(Axes axes) const {  //center point
+		cvt d(Axes axes) const {  //d
 			return this->cell->get_d(axes);
 		}
+		cvt hd(Axes axes) const {  //d
+			return this->cell->get_hd(axes);
+		}
 		cvt p(Orientation ori, Axes axes) const {  //point
+			if( Dim <= 2 && axes == _Z_) {
+				return 0.0;
+			}
 			return this->cell->get(ori, axes);
 		}
 		cvt p(Direction dir, Axes axes) const {
-			if( Dim == 2 && axes == _Z_) {
+			if( Dim <= 2 && axes == _Z_) {
 				return 0.0;
 			}
 			return this->cell->get(ToOrientation(dir, axes), axes);
 		}
+		cvt face_area(Direction dir) const {
+			ASSERT(IsFaceDirection(dir));
+			Axes a = FaceDirectionToAxes(dir);
+			cvt a_f = 1.0;
+			if (Dim == 2) {
+				Axes dp = VerticalAxes2D(a);
+				a_f = this->d(dp);
+			} else {  //3d
+				Axes dp1 = VerticalAxes1(a);
+				Axes dp2 = VerticalAxes2(a);
+				a_f = this->d(dp1) * this->d(dp2);
+			}
+			return a_f;
+		}
+		cvt volume() const {
+			return this->cell->volume();
+		}
 		/*
 		 *  data
+		 *  overload data functions
 		 */
 		void new_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
 			if(this->data ==nullptr) {
@@ -1005,9 +1043,30 @@ protected:
 				this->data->reconstruct(nc,nf,nv,nutp);
 			}
 		}
-		/*
-		 *  overload the function of data
-		 */
+		pData pdata() {
+			ASSERT(this->data != nullptr);
+			return this->data;
+		}
+		const_pData pdata() const {
+			ASSERT(this->data != nullptr);
+			return this->data->idx();
+		}
+		const int& d_idx() const {
+			ASSERT(this->data != nullptr);
+			return this->data->idx();
+		}
+		int& d_idx() {
+			ASSERT(this->data != nullptr);
+			return this->data->idx();
+		}
+		utPointer& utp(st i) {
+			ASSERT(this->data != nullptr);
+			return this->data->utp(i);
+		}
+		const_utPointer& utp(st i) const {
+			ASSERT(this->data != nullptr);
+			return this->data->utp(i);
+		}
 		st size_cd() const {
 			ASSERT(this->data != nullptr);
 			return this->data->size();
@@ -1406,6 +1465,8 @@ void Traversal(Node*& pn, std::function<Ret(Node*&, Args)> fun, Args &args) {
 		}
 	}
 }
+
+
 }
 //
 

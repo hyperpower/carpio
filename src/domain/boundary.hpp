@@ -70,6 +70,7 @@ public:
 	typedef Data* pData;
 	typedef Node_<COO_VALUE, VALUE, DIM> Node;
 	typedef Node_<COO_VALUE, VALUE, DIM>* pNode;
+	typedef const Node_<COO_VALUE, VALUE, DIM>* const_pNode;
 	typedef void (*pfunction)(pNode, utPointer);
 	typedef Grid_<COO_VALUE, VALUE, DIM> Grid;
 	typedef Grid_<COO_VALUE, VALUE, DIM> *pGrid;
@@ -85,7 +86,7 @@ public:
 		st seg_idx;
 	};
 
-	typedef std::pair<GhostID, GhostVal> GhostNode;
+	typedef std::pair<const GhostID, GhostVal> GhostNode;
 
 	typedef std::map<GhostID, GhostVal, GhostID_compare> GhostMap;
 	typedef typename GhostMap::iterator iterator;
@@ -159,7 +160,7 @@ protected:
 				//gid.shape_idx = -1;
 				//gid.seg_idx = -1;
 				pNode pghost = new_ghost_node(po, iter->dir());
-				GhostVal gval = { pghost, -1, -1 };
+				GhostVal gval = { pghost, 0, 0 };
 				//change the index id ------------------------
 				_ghostmap.insert(GhostNode(gid, gval));
 			}
@@ -260,7 +261,7 @@ public:
 				ASSERT_MSG(false, "unfinish code!");
 				for (auto i = ls.begin(); i != ls.end(); ++i) {
 					// choose the closest one
-					GhostVal& gval = iter->second;
+					//GhostVal& gval = iter->second;
 					const GhostID& gid = iter->first;
 					Orientation ori;
 					Axes axi;
@@ -282,7 +283,7 @@ public:
 		Axes axi;
 		Direction dir = iter->first.direction;
 		FaceDirectionToOrientationAndAxes(dir, ori, axi);
-		Axes va = VertialAxes2D(axi);
+		Axes va = VerticalAxes2D(axi);
 		//Orientation oori = Opposite(ori);
 		std::list<st> ls;
 		GhostVal& gval = iter->second;
@@ -311,6 +312,63 @@ public:
 			fun((*iter));
 		}
 	}
+	/*
+	 * the data index of ghost node simply equal to negative of original node
+	 */
+	void set_data_idx() {
+		std::function<void(GhostNode&)> fun = [](GhostNode& node) {
+			GhostID gid = node.first;
+			pNode pg = node.second.pghost;
+			pNode po = pg->father;
+			int id = po->d_idx() * 100 + gid.direction;
+			// the date index of the ghost node is (
+				pg->d_idx() = -(id);//negative added here;
+			};
+		for_each_ghost_node(fun);
+	}
+
+	void new_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+		std::function<void(GhostNode&)> fun = [&](GhostNode& node) {
+			pNode pg = node.second.pghost;
+			pg->new_data(nc, nf, nv, nutp);
+		};
+		for_each_ghost_node(fun);
+	}
+
+	iterator find(const GhostID& gid) {
+		return _ghostmap.find(gid);
+	}
+
+	/*
+	 * the static function
+	 *
+	 */
+	static GhostID ToGhostID(const_pNode pn) {
+		ASSERT(pn != nullptr);
+		ASSERT(pn->get_type() == _Ghost_);
+
+		//st root_idx;   //the root idx of the origin node
+		//Path_<DIM> path; //the path of the origin node
+		//st step;       //the steps of ghost node, we can choose multiple ghost Node,
+		// usually step = 0
+		//Direction direction; //The direction only on x, y or z
+		GhostID res;
+		res.step = 0;
+		const_pNode pc = pn;  //the pnode close to original one
+		while (pc->father->get_type() == _Ghost_) {
+			pc = pc->father;
+			res.step++;
+		}
+		const_pNode po = pc->father;
+		res.root_idx = po->get_root_idx();
+		res.path = po->get_path();
+		for (st i = 0; i < NumFaces; i++) {
+			if (po->neighbor[i] == pc) {
+				res.direction = FaceDirectionInOrder(i);
+			}
+		}
+		return res;
+	}
 }
 ;
 
@@ -321,25 +379,38 @@ public:
 	typedef COO_VALUE cvt;
 	typedef std::function<vt(cvt, cvt, cvt)> Fun;
 	typedef BoundaryCondition_<cvt, vt> Self;
+	static const int _BC1_ = 1;
+	static const int _BC2_ = 2;
 protected:
 	// data
 	// 1 Bondary conditon type
 	// 2 function
 	int _type;
 	Fun _function;
+	Fun _function2;
+	Fun _function3;
 public:
 	// Constructor
-
 	BoundaryCondition_() {
 		// default boundary condition is symmetric boundary condition
-		_type = 2;
-		_function = [](cvt x, cvt y, cvt z) {return 0;};
+		_type = _BC2_;
+		Fun df = [](cvt x, cvt y, cvt z) {return 0;};
+		_function = df;
+		_function2 = df;
+		_function3 = df;
 	}
+	/*
+	 * this constructor should not used to BC2
+	 */
 	BoundaryCondition_(int type, Fun fun) :
-			_type(type), _function(fun) {
+			_type(type), _function(fun), _function2(fun), _function3(fun) {
+	}
+	BoundaryCondition_(int type, Fun fun_x, Fun fun_y, Fun fun_z) :
+			_type(type), _function(fun_x), _function2(fun_y), _function3(fun_z) {
 	}
 	BoundaryCondition_(const Self& self) :
-			_type(self._type), _function(self._function) {
+			_type(self._type), _function(self._function), _function2(
+					self._function2), _function3(self._function3) {
 	}
 	// get
 	int get_type() const {
@@ -348,26 +419,88 @@ public:
 	vt get_val(cvt x, cvt y, cvt z) const {
 		return _function(x, y, z);
 	}
+	/*
+	 * for the vector type boundary condition
+	 * (x,y,z) is the location
+	 * Axes    is axes
+	 */
+	vt get_val(cvt x, cvt y, cvt z, Axes a) const {
+		switch (a) {
+		case _X_: {
+			return _function(x, y, z);
+			break;
+		}
+		case _Y_: {
+			return _function(x, y, z);
+			break;
+		}
+		case _Z_: {
+			return _function(x, y, z);
+			break;
+		}
+		}
+		SHOULD_NOT_REACH;
+		return 0;
+	}
 	// set
-	void set_function(Fun fun) {
-		_function = fun;
+	void set_function(Fun fun, Axes a = _X_) {
+		switch (a) {
+		case _X_: {
+			_function = fun;
+			break;
+		}
+		case _Y_: {
+			_function2 = fun;
+			break;
+		}
+		case _Z_: {
+			_function3 = fun;
+			break;
+		}
+		}
+	}
+	void set_function(Fun fun_x, Fun fun_y, Fun fun_z) {
+		_function = fun_x;
+		_function2 = fun_y;
+		_function3 = fun_z;
 	}
 	void set_default_1_bc(const vt& val) {
-		_type = 1;
-		_function = [&val](cvt x, cvt y, cvt z) {return val;};
+		_type = _BC1_;
+		Fun f = [val](cvt x, cvt y, cvt z) {return val;};
+		_function = f;
+		_function2 = f;
+		_function3 = f;
+	}
+	void set_default_1_bc(Fun fun) {
+		_type = _BC1_;
+		Fun f = fun;
+		_function = f;
+		_function2 = f;
+		_function3 = f;
 	}
 	void set_default_2_bc(const vt& val) {
-		_type = 2;
-		_function = [&val](cvt x, cvt y, cvt z) {return val;};
+		_type = _BC2_;
+		Fun f = [val](cvt x, cvt y, cvt z) {return val;};
+		_function = f;
+		_function2 = f;
+		_function3 = f;
 	}
+	void set_default_2_bc(Fun fun) {
+		_type = _BC2_;
+		Fun f = fun;
+		_function = f;
+		_function2 = f;
+		_function3 = f;
+	}
+
 };
 
 template<typename COO_VALUE, typename VALUE>
 class BoundaryIndex_ {
 protected:
 	struct BCID {
-		int shape_idx;
-		int seg_idx;
+		st shape_idx;
+		st seg_idx;
 		st val_idx;
 	};
 
@@ -390,12 +523,13 @@ public:
 	typedef VALUE vt;
 	typedef BoundaryCondition_<cvt, vt> BoundaryCondition;
 	typedef BoundaryCondition_<cvt, vt>* pBoundaryCondition;
+	typedef const BoundaryCondition_<cvt, vt>* const_pBoundaryCondition;
 	//typedef BCID_compare_<cvt,vt> BCID_compare;
-
+	typedef std::pair<const BCID, pBoundaryCondition> BCNode;
 	typedef std::map<BCID, pBoundaryCondition, BCID_compare> BCMap;
 protected:
 	BCMap _BCmap;
-	static const BoundaryCondition default_BC;
+	const_pBoundaryCondition pdefault_BC;
 
 	typedef typename BCMap::iterator iterator;
 	typedef typename BCMap::const_iterator const_iterator;
@@ -404,10 +538,22 @@ public:
 	//constructor
 	BoundaryIndex_() :
 			_BCmap() {
-
+		pdefault_BC = new BoundaryCondition();
+	}
+	~BoundaryIndex_() {
+		delete pdefault_BC;
 	}
 	//
-	pBoundaryCondition find(int si, int segi, st vali) {
+	void insert(st si, st segi, st vi, pBoundaryCondition pbc) {
+		//
+		BCID key = { si, segi, vi };
+		//key.seg_idx = segi;
+		//key.shape_idx = si;
+		//key.val_idx = vi;
+		BCNode bcn(key, pbc);
+		_BCmap.insert(bcn);
+	}
+	const_pBoundaryCondition find(st si, st segi, st vali) {
 		BCID key;
 		key.seg_idx = segi;
 		key.shape_idx = si;
@@ -415,10 +561,10 @@ public:
 		iterator it = _BCmap.find(key);
 		if (it != _BCmap.end()) {
 			// found
-			return (*it);
+			return (it->second);
 		} else {
 			// not found
-			return default_BC;
+			return pdefault_BC;
 		}
 	}
 };

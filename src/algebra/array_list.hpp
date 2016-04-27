@@ -481,6 +481,7 @@ public:
 	ArrayListV();
 	ArrayListV(size_type Len);
 	ArrayListV(size_type Len, const V& nd);
+	void reconstruct(size_type Len);
 	//arrayListV(V *nd, size_type Len);
 	//opertator====================================
 	ArrayListV<V> operator+(const ArrayListV<V> &a);
@@ -541,8 +542,7 @@ void _add_equal(st n, const T* src, T* dst) {
 	}
 }
 template<typename T>
-int _copy_(st n, const T * a, T* b)
-{
+int _copy_(st n, const T * a, T* b) {
 	//make sure: the length of a and b is equal
 	//           and n>0
 
@@ -565,6 +565,23 @@ int _copy_(st n, const T * a, T* b)
 		b[i + 6] = a[i + 6];
 	}
 	return 2;
+}
+
+template<typename V>
+void ArrayListV<V>::reconstruct(size_type Len) {
+	if (Len == 0 && this->m_Len == 0) {
+		return;
+	}
+	if (Len == 0 && NULL != this->m_p) {
+		delete[] this->m_p;
+		return;
+	}
+	assert(Len > 0);
+	if (nullptr != this->m_p)
+		delete[] this->m_p;
+	this->m_Len = Len;
+	this->m_p = new V[this->m_Len];
+	this->assign(0);
 }
 template<typename V>
 ArrayListV<V> ArrayListV<V>::operator+(const ArrayListV<V> &a) {

@@ -5,6 +5,7 @@
 #include "../algebra/arithmetic.hpp"
 
 #include <string>
+#include <sstream>
 
 namespace carpio {
 
@@ -88,8 +89,6 @@ typedef short code;
  D_ZYX_PPP = 56 + 7, //111 111
  };*/
 
-
-
 typedef unsigned short Direction;
 
 static const Direction _XM_ = 8; //001 000
@@ -117,12 +116,12 @@ inline bool IsM(const Orientation& ori) {
 inline bool IsC(const Orientation& ori) {
 	return (ori == _C_);
 }
-inline Orientation Opposite(const Orientation& ori){
-	if(IsC(ori)){
+inline Orientation Opposite(const Orientation& ori) {
+	if (IsC(ori)) {
 		return ori;
-	}else if(IsP(ori)){
+	} else if (IsP(ori)) {
 		return _M_;
-	}else{
+	} else {
 		return _P_;
 	}
 }
@@ -156,33 +155,80 @@ inline unsigned short HI(const Direction &d) {
 inline unsigned short LO(const Direction &d) {
 	return d & 7;
 }
-
+inline Direction Opposite(const Direction& ori) {
+	Direction res = ori;
+	unsigned short hi = HI(ori);
+	//unsigned short hi = LO(ori);
+	return (res ^ hi);
+}
 static const short COUNT_1[8] = { 0, 1, 1, 2, 1, 2, 2, 3 };
 
 inline bool IsFaceDirection(const Direction &d) {
 	return COUNT_1[(d >> 3)] == 1;
 }
+
+inline Direction ToFaceDirection(const Orientation &o, const Axes& a) {
+	ASSERT(o != _C_);
+	st lo = (o == _P_) ? 7 : 0;
+	st hi = 0;
+	switch (a) {
+	case _X_: {
+		hi = 1;
+		break;
+	}
+	case _Y_: {
+		hi = 2;
+		break;
+	}
+	case _Z_: {
+		hi = 4;
+		break;
+	}
+	}
+	st nlo = lo & hi;
+	return (hi << 3) | nlo;
+}
+
 inline void FaceDirectionToOrientationAndAxes(const Direction &d,
 		Orientation &o, Axes &a) {
 	ASSERT(IsFaceDirection(d));
 	unsigned short hi = d >> 3;
 	if ((hi & 1) == 1) {
 		a = _X_;
-		o = (GetBit(d, 1)) ? _P_ : _M_;
+		o = (GetBit(d, 0)) ? _P_ : _M_;
 		return;
 	}
 	if ((hi & 2) == 2) {
 		a = _Y_;
+		o = (GetBit(d, 1)) ? _P_ : _M_;
+		return;
+	}
+	if ((hi & 4) == 4) {
+		a = _Z_;
 		o = (GetBit(d, 2)) ? _P_ : _M_;
 		return;
+	}
+	SHOULD_NOT_REACH;
+}
+inline Axes FaceDirectionToAxes(const Direction &d) {
+	ASSERT(IsFaceDirection(d));
+	Axes a;
+	unsigned short hi = d >> 3;
+	if ((hi & 1) == 1) {
+		a = _X_;
+		return a;
+	}
+	if ((hi & 2) == 2) {
+		a = _Y_;
+		return a;
 	}
 
 	if ((hi & 4) == 4) {
 		a = _Z_;
-		o = (GetBit(d, 3)) ? _P_ : _M_;
-		return;
+		return a;
 	}
 	SHOULD_NOT_REACH;
+	return a;
 }
 /*
  * Does Direction on axes active
@@ -241,23 +287,32 @@ inline Orientation ToOrientation(const Direction &d, const Axes &a) {
 	}
 }
 
-inline Direction FaceDirectionInOrder(const size_t i) {
+inline Direction FaceDirectionInOrder(const st& i) {
 	ASSERT(i < 6);
 	static const Direction ARR_FD[] = { 8, 9, 16, 18, 32, 36 };
 	return ARR_FD[i];
 }
+inline st FaceDirectionInOrder(const Direction& dir) {
+	ASSERT(IsFaceDirection(dir));
+	static const Direction ARR_FD[] = { 8, 9, 16, 18, 32, 36 };
+	for (st i = 0; i < 6; i++) {
+		if (ARR_FD[i] == dir) {
+			return i;
+		}
+	}
+}
 
-inline Direction XYDirectionInOrder(const size_t i) {
+inline Direction XYDirectionInOrder(const st& i) {
 	ASSERT(i < 4);
 	return 24 + i;
 }
 
-inline Direction YZDirectionInOrder(const size_t i) {
+inline Direction YZDirectionInOrder(const st& i) {
 	ASSERT(i < 4);
 	return 48 + i * 2;
 }
 
-inline Direction ZXDirectionInOrder(const size_t i) {
+inline Direction ZXDirectionInOrder(const st& i) {
 	ASSERT(i < 4);
 	static const Direction ARR_ZXD[] = { 40 + 0, //101 000
 	40 + 1, //101 001
@@ -267,12 +322,12 @@ inline Direction ZXDirectionInOrder(const size_t i) {
 	return ARR_ZXD[i];
 }
 
-inline Direction XYZDirectionInOrder(const size_t i) {
+inline Direction XYZDirectionInOrder(const st& i) {
 	ASSERT(i < 8);
 	return 56 + i;
 }
 
-inline Direction DirectionInOrder(const size_t i) {
+inline Direction DirectionInOrder(const st& i) {
 	ASSERT(i < 26);
 	if (i < 6)
 		return FaceDirectionInOrder(i);
@@ -302,6 +357,26 @@ inline std::string ToString(const Orientation& a) {
 		return "p";
 	}
 	return "c";
+}
+inline std::string ToString(const Direction& d) {
+	std::stringstream sst;
+	std::stringstream sst2;
+	unsigned short hi = HI(d);
+	unsigned short lo = LO(d);
+	if ((hi & 1) == 1) {
+		sst << "X";
+		sst2 << (((lo & 1) == 1) ? "P" : "M");
+	}
+	if ((hi & 2) == 2) {
+		sst << "Y";
+		sst2 << (((lo & 2) == 2) ? "P" : "M");
+	}
+	if ((hi & 4) == 4) {
+		sst << "Z";
+		sst2 << (((lo & 4) == 4) ? "P" : "M");
+	}
+	sst << "_" << sst2.str();
+	return sst.str();
 }
 //default type
 //typedef double CooValueType;

@@ -12,8 +12,8 @@ namespace carpio {
  * New center data on leaf
  * len : the length of array
  */
-void NewCenterDataOnLeaf(Grid_2D& grid, st len);
-void NewCenterDataOnLeaf(Grid_3D& grid, st len);
+//void NewCenterDataOnLeaf(Grid_2D& grid, st len);
+//void NewCenterDataOnLeaf(Grid_3D& grid, st len);
 /*
  * The input indicates the coordinate location
  * return the value on the location

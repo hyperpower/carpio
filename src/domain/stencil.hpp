@@ -52,13 +52,13 @@ protected:
 		ASSERT(pn != nullptr);
 		pNode res = nullptr;
 		if (a == _X_) {
-			res = pn->get_neighbor(_XP_);
+			res = pn->get_neighbor_fast(_XP_);
 		}
 		if (a == _Y_) {
-			res = pn->get_neighbor(_YP_);
+			res = pn->get_neighbor_fast(_YP_);
 		}
 		if (a == _Z_) {
-			res = pn->get_neighbor(_ZP_);
+			res = pn->get_neighbor_fast(_ZP_);
 		}
 		return res;
 	}
@@ -66,13 +66,13 @@ protected:
 		ASSERT(pn != nullptr);
 		pNode res = nullptr;
 		if (a == _X_) {
-			res = pn->get_neighbor(_XM_);
+			res = pn->get_neighbor_fast(_XM_);
 		}
 		if (a == _Y_) {
-			res = pn->get_neighbor(_YM_);
+			res = pn->get_neighbor_fast(_YM_);
 		}
 		if (a == _Z_) {
-			res = pn->get_neighbor(_ZM_);
+			res = pn->get_neighbor_fast(_ZM_);
 		}
 		return res;
 	}
@@ -89,7 +89,7 @@ protected:
 		// set null
 		for (st i = 0; i < _pnodes.size(); ++i) {
 			_pnodes.at_1d(i).pnode = nullptr;
-			_pnodes.at_1d(i).type = 0;   //whish is not created by this class
+			_pnodes.at_1d(i).type = 0;   //which is not created by this class
 		}
 		_set_1d(pnc);
 	}
@@ -362,7 +362,7 @@ protected:
 public:
 	pNode forward_pnode(st step, Axes a = _X_) {
 		st ai = _to_arraylist_idx(a);
-		if (!(step > 0 && step < _steps_f[ai])) {
+		if (!(step > 0 && step <= _steps_f[ai])) {
 			return nullptr;
 		}
 		if (ai == 0) {

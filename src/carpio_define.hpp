@@ -47,25 +47,25 @@ inline TYPE Min(const TYPE& a, const TYPE& b) {
 	return a <= b ? a : b;
 }
 template<class TYPE>
-inline TYPE Abs(const TYPE& s){
-	return s<0?-s:s;
+inline TYPE Abs(const TYPE& s) {
+	return s < 0 ? -s : s;
 }
 template<class TYPE>
-inline bool IsEqual(const TYPE& a, const TYPE& b){
-	return Abs(a-b)<SMALL;
+inline bool IsEqual(const TYPE& a, const TYPE& b) {
+	return Abs(a - b) < SMALL;
 }
 template<class TYPE>
-inline bool IsZero(const TYPE& a){
-	return Abs(a-0.0)<SMALL;
+inline bool IsZero(const TYPE& a) {
+	return Abs(a - 0.0) < SMALL;
 }
 template<class TYPE>
-inline int GEL(const TYPE& a, const TYPE& v){
+inline int GEL(const TYPE& a, const TYPE& v) {
 	//greater equal or less
-	if(v<a){
+	if (v < a) {
 		return -1;
-	}else if(v==a){
+	} else if (v == a) {
 		return 0;
-	}else{
+	} else {
 		return 1;
 	}
 }
@@ -83,13 +83,51 @@ enum Axes {
 	_Y_ = 1, //
 	_Z_ = 2, //
 };
-inline Axes VertialAxes2D(const Axes& a){
-	ASSERT(a!=_Z_);
-	return a==_X_?_Y_:_X_;
+inline Axes VerticalAxes2D(const Axes& a) {
+	ASSERT(a != _Z_);
+	return a == _X_ ? _Y_ : _X_;
 }
+inline Axes VerticalAxes1(const Axes& a) {
+	switch (a) {
+	case _X_: {
+		return _Y_;
+	}
+	case _Y_: {
+		return _Z_;
+	}
+	case _Z_: {
+		return _X_;
+	}
+	default :{
+		SHOULD_NOT_REACH;
+		return _X_;
+	}
+	}
+}
+inline Axes VerticalAxes2(const Axes& a) {
+	switch (a) {
+	case _X_: {
+		return _Z_;
+	}
+	case _Y_: {
+		return _X_;
+	}
+	case _Z_: {
+		return _Y_;
+	}
+	default :{
+		SHOULD_NOT_REACH;
+		return _X_;
+	}
+	}
+}
+
 enum Plane {
 	_XY_ = 24, _YZ_ = 48, _ZX_ = 40,
 };
+
+
+
 }
 
 #endif

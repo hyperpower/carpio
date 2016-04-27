@@ -52,34 +52,45 @@ public:
 
 	typedef COO_VALUE cvt;
 	typedef VALUE vt;
-	typedef Domain_<COO_VALUE, VALUE, DIM> Self;
-	typedef Domain_<COO_VALUE, VALUE, DIM>* pSelf;
-	typedef Grid_<COO_VALUE, VALUE, DIM> Grid;
-	typedef Grid_<COO_VALUE, VALUE, DIM> *pGrid;
-	typedef const Grid_<COO_VALUE, VALUE, DIM> * const_pGrid;
-	typedef Grid_<COO_VALUE, VALUE, DIM>& ref_Grid;
-	typedef const Grid_<COO_VALUE, VALUE, DIM>& const_ref_Grid;
-	typedef Cell_<COO_VALUE, Dim> Cell;
+	typedef Domain_<cvt, vt, Dim> Self;
+	typedef Domain_<cvt, vt, Dim>* pSelf;
+	typedef Grid_<cvt, vt, Dim> Grid;
+	typedef Grid_<cvt, vt, Dim> *pGrid;
+	typedef const Grid_<cvt, vt, Dim> * const_pGrid;
+	typedef Grid_<cvt, vt, Dim>& ref_Grid;
+	typedef const Grid_<cvt, vt, Dim>& const_ref_Grid;
+	typedef Cell_<cvt, Dim> Cell;
 	typedef Cell *pCell;
-	typedef Data_<VALUE, Dim> Data;
+	typedef Data_<vt, Dim> Data;
 	typedef Data *pData;
-	typedef Node_<COO_VALUE, VALUE, DIM> Node;
-	typedef Node_<COO_VALUE, VALUE, DIM> *pNode;
-	typedef Ghost_<COO_VALUE, VALUE, DIM> Ghost;
-	typedef Ghost_<COO_VALUE, VALUE, DIM> *pGhost;
-	typedef const Ghost_<COO_VALUE, VALUE, DIM> * const_pGhost;
-	typedef Ghost_<COO_VALUE, VALUE, DIM>& ref_Ghost;
-	typedef const Ghost_<COO_VALUE, VALUE, DIM>& const_ref_Ghost;
+	typedef Node_<cvt, vt, Dim> Node;
+	typedef Node_<cvt, vt, Dim> *pNode;
+	typedef Ghost_<cvt, vt, Dim> Ghost;
+	typedef Ghost_<cvt, vt, Dim> *pGhost;
+	typedef const Ghost_<cvt, vt, Dim> * const_pGhost;
+	typedef Ghost_<cvt, vt, Dim>& ref_Ghost;
+	typedef const Ghost_<cvt, vt, Dim>& const_ref_Ghost;
 
-	typedef Adaptive_<COO_VALUE, VALUE, DIM> Adaptive;
-	typedef Adaptive_<COO_VALUE, VALUE, DIM> *pAdaptive;
-	typedef BoundaryIndex_<COO_VALUE, VALUE> BoundaryIndex;
-	typedef BoundaryIndex_<COO_VALUE, VALUE>* pBoundaryIndex;
+	typedef Adaptive_<cvt, vt, Dim> Adaptive;
+	typedef Adaptive_<cvt, vt, Dim>& ref_Adaptive;
+	typedef const Adaptive_<cvt, vt, Dim>& const_ref_Adaptive;
+	typedef Adaptive_<cvt, vt, Dim> *pAdaptive;
+	typedef BoundaryIndex_<cvt, vt> BoundaryIndex;
+	typedef BoundaryIndex_<cvt, vt>* pBoundaryIndex;
+	typedef const BoundaryIndex_<cvt, vt>* const_pBoundaryIndex;
+	typedef BoundaryIndex_<cvt, vt>& ref_BoundaryIndex;
+	typedef const BoundaryIndex_<cvt, vt>& const_ref_BoundaryIndex;
+
+	typedef BoundaryCondition_<cvt, vt> BoundaryCondition;
+	typedef BoundaryCondition_<cvt, vt>* pBoundaryCondition;
+	typedef const BoundaryCondition_<cvt, vt>* const_pBoundaryCondition;
 
 	typedef Face_<Node, pNode> Face;
 	typedef Face_<Node, pNode> *pFace;
-	typedef Shape_<COO_VALUE, DIM> Shape;
-	typedef Shape_<COO_VALUE, DIM>* pShape;
+	typedef Shape_<cvt, Dim> Shape;
+	typedef Shape_<cvt, Dim>* pShape;
+
+	typedef std::function<vt(cvt, cvt, cvt)> Function;
 
 public:
 	// data
@@ -140,6 +151,7 @@ public:
 		_new_adaptive(minl, maxl);
 		_new_boundary_index();
 		_new_ghost();
+		_padaptive->adapt_full();
 	}
 
 	~Domain_() {
@@ -174,9 +186,14 @@ public:
 		// connect nodes
 		_pgrid->connect_root();
 		_pgrid->connect_nodes();
+		// new date on leaf, here intial set all the arrays on data
+		// is empty, reset the data in actual calculation classes;
+		_pgrid->new_data_on_leaf(0, 0, 0, 0);
+		_pgrid->set_data_index();
 		// build ghost
 		_pghost->build();
 		_pghost->connect();
+		_pghost->set_data_idx();
 		// set shape_idx and seg_idx in ghost node
 		/*
 		 * Method: calculates the ghost node belongs to which boundary segment.
@@ -186,10 +203,16 @@ public:
 		 * The line is axi align
 		 * function : vt Intersect(Segment seg, Axis axis, vt ori)
 		 */
-		_pghost->set_boundary_index(0,*_pshape_bound);
+		_pghost->set_boundary_index(0, *_pshape_bound);
+		int i = 1;
+		for (auto iter = _l_pshape_inner.begin(); iter != _l_pshape_inner.end();
+				++iter) {
+			pShape ps = (*iter);
+			_pghost->set_boundary_index(i, *ps);
+			i++;
+		}
 
 	}
-
 
 public:
 
@@ -205,6 +228,12 @@ public:
 	const_ref_Grid grid() const {
 		return *_pgrid;
 	}
+	ref_Adaptive adaptive() {
+		return *_padaptive;
+	}
+	const_ref_Adaptive adaptive() const {
+		return *_padaptive;
+	}
 	pGhost p_ghost() {
 		return _pghost;
 	}
@@ -216,6 +245,71 @@ public:
 	}
 	const_ref_Ghost ghost() const {
 		return *_pghost;
+	}
+	pBoundaryIndex p_b_index() {
+		return _pbindex;
+	}
+	const_pBoundaryIndex p_b_index() const {
+		return _pbindex;
+	}
+	ref_BoundaryIndex ref_b_index() {
+		return (*_pbindex);
+	}
+	const_ref_BoundaryIndex ref_b_index() const {
+		return (*_pbindex);
+	}
+
+	const_pBoundaryCondition find_bc(st si, st segi, st vali) const {
+		return this->_pbindex->find(si, segi, vali);
+	}
+	/*
+	 * set
+	 */
+	void set_val_grid(st idx, Function fun) {
+		pGrid pg = this->_pgrid;
+		for (auto it = pg->begin_leaf(); it != pg->end_leaf(); ++it) {
+			pNode pn = it.get_pointer();
+			pn->cd(idx) = fun(it->p(_C_, _X_), it->p(_C_, _Y_),
+					it->p(_C_, _Z_));
+		}
+	}
+	void set_val_ghost(st idx, Function fun) {
+		typedef typename Ghost::GhostNode GhostNode;
+		std::function<void(GhostNode&)> _fun = [&idx, &fun](GhostNode& node) {
+			pNode pg = node.second.pghost;
+			if (pg != nullptr) {
+				pg->cd(idx) = fun(pg->p(_C_, _X_), pg->p(_C_, _Y_),
+						pg->p(_C_, _Z_));
+			}
+		};
+		this->p_ghost()->for_each_ghost_node(_fun);
+	}
+	void set_val(st idx, Function fun) {
+		this->set_val_grid(idx,fun);
+		this->set_val_ghost(idx,fun);
+	}
+
+	void set_val_ghost_by_bc(st idx) {
+		typedef typename Ghost::GhostNode GhostNode;
+		std::function<void(GhostNode&)> _fun = [&idx, this](GhostNode& node) {
+			pNode pg = node.second.pghost;
+			if (pg != nullptr) {
+				// find in BoundaryIndex
+				st si = node.second.shape_idx;
+				st segi = node.second.seg_idx;
+				const_pBoundaryCondition pbc = this->find_bc(si, segi, idx);
+				pg->cd(idx) = pbc->get_val(pg->p(_C_, _X_), pg->p(_C_, _Y_),
+						pg->p(_C_, _Z_));
+			}
+		};
+		this->p_ghost()->for_each_ghost_node(_fun);
+	}
+	/*
+	 * new data
+	 */
+	void new_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+		this->_pgrid->new_data_on_leaf(nc, nf, nv, nutp);
+		this->_pghost->new_data(nc, nf, nv, nutp);
 	}
 
 };

@@ -67,8 +67,7 @@ public:
 									0, //level
 									i_1d, //root idx
 									0, //child idx
-									p,
-									ox + (i + 0.5) * dx, 0.5 * dx, //x
+									p, ox + (i + 0.5) * dx, 0.5 * dx, //x
 									oy + (j + 0.5) * dy, 0.5 * dy, //y
 									oz + (k + 0.5) * dz, 0.5 * dz); //z
 					i_1d++;
@@ -258,6 +257,32 @@ public:
 			pNode pn = nodes.at_1d(i);
 			if (pn != nullptr) {
 				pn->connect_nodes();
+			}
+		}
+	}
+	/*
+	 * set
+	 */
+	void set_data_index() {
+		// index as iterator order
+		int i = 0;
+		for (iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
+				++iter) {
+			Node& node = *iter;
+			node.d_idx() = i;
+			i++;
+		}
+	}
+	/*
+	 * new data
+	 */
+	void new_data_on_leaf(const st& nc, const st& nf, const st& nv,
+			const st& nutp) {
+		for (iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
+				++iter) {
+			pNode pn = iter.get_pointer();
+			if (pn != nullptr) {
+				pn->new_data(nc, nf, nv, nutp);
 			}
 		}
 	}
@@ -627,20 +652,6 @@ public:
 				if (pn->cell->is_in_on(x, y, z)) {
 					return GetpNodeAt(pn, x, y, z);
 				}
-			}
-		}
-		return nullptr;
-	}
-	/*
-	 * new data
-	 */
-	pNode new_data_on_leaf(const st& nc, const st& nf, const st& nv,
-			const st& nutp) {
-		for (iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
-				++iter) {
-			pNode pn = iter.get_pointer();
-			if (pn != nullptr) {
-				pn->new_data(nc, nf, nv, nutp);
 			}
 		}
 		return nullptr;

@@ -39,17 +39,37 @@ public:
 			return this->at(0);
 		}
 		case _Y_: {
-			ASSERT(Dim>=2);
+			ASSERT(Dim >= 2);
 			return this->at(1);
 		}
 		case _Z_: {
-			ASSERT(Dim>=3);
+			ASSERT(Dim >= 3);
 			return this->at(2);
 		}
-		default:{
+		default: {
 			SHOULD_NOT_REACH;
 		}
 		}
+		return this->at(0); //make compile happy;
+	}
+	reference val(Axes axi) {
+		switch (axi) {
+		case _X_: {
+			return this->at(0);
+		}
+		case _Y_: {
+			ASSERT(Dim >= 2);
+			return this->at(1);
+		}
+		case _Z_: {
+			ASSERT(Dim >= 3);
+			return this->at(2);
+		}
+		default: {
+			SHOULD_NOT_REACH;
+		}
+		}
+		SHOULD_NOT_REACH;
 		return this->at(0); //make compile happy;
 	}
 

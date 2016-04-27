@@ -9,8 +9,7 @@
 #define _TEST_SOLVER_H_
 
 #include "../io/mmio.h"
-#include "../algebra/matrix.hpp"
-#include "../algebra/solver_matrix.hpp"
+#include "../algebra/algebra.hpp"
 #include "gtest/gtest.h"
 
 namespace carpio {
@@ -97,7 +96,7 @@ TEST(test_solver,read_matrix) {
 	std::list<Float> lr;  //list residual
 	//solver =======================
 	int res1 = IC_BiCGSTAB(mfr, x, b, max_iter, tol, lr);
-	cout << "return code" <<res1<<endl;
+	EXPECT_EQ(0, res1)  <<" >! Solver return "<<res1;
 	cout << "max iter = " << max_iter << endl;
 	cout << "tol      = " << tol << endl;
 	//gnuplot_show_ylog(lr);

@@ -166,6 +166,12 @@ static const short COUNT_1[8] = { 0, 1, 1, 2, 1, 2, 2, 3 };
 inline bool IsFaceDirection(const Direction &d) {
 	return COUNT_1[(d >> 3)] == 1;
 }
+inline bool IsCornerDirection(const Direction &d) {
+	return COUNT_1[(d >> 3)] == 2;
+}
+inline bool IsVertexDirection(const Direction &d) {
+	return COUNT_1[(d >> 3)] == 3;
+}
 
 inline Direction ToFaceDirection(const Orientation &o, const Axes& a) {
 	ASSERT(o != _C_);
@@ -189,6 +195,17 @@ inline Direction ToFaceDirection(const Orientation &o, const Axes& a) {
 	return (hi << 3) | nlo;
 }
 
+inline Direction ToCornerDirection( //
+		const Orientation &o1, const Axes& a1, //
+		const Orientation &o2, const Axes& a2 //
+		) {
+	ASSERT(o1 != _C_);
+	ASSERT(o2 != _C_);
+	Direction d1 = ToFaceDirection(o1, a1);
+	Direction d2 = ToFaceDirection(o2, a2);
+	return d1 | d2;
+}
+
 inline void FaceDirectionToOrientationAndAxes(const Direction &d,
 		Orientation &o, Axes &a) {
 	ASSERT(IsFaceDirection(d));
@@ -206,6 +223,33 @@ inline void FaceDirectionToOrientationAndAxes(const Direction &d,
 	if ((hi & 4) == 4) {
 		a = _Z_;
 		o = (GetBit(d, 2)) ? _P_ : _M_;
+		return;
+	}
+	SHOULD_NOT_REACH;
+}
+inline void CornerDirectionToOrientationAndAxes(const Direction &d,
+		Orientation &o1, Axes &a1, Orientation &o2, Axes& a2) {
+	ASSERT(IsCornerDirection(d));
+	unsigned short hi = d >> 3;
+	if ((hi & 1) == 1 && (hi & 2) == 2) {
+		a1 = _X_;
+		a2 = _Y_;
+		o1 = (GetBit(d, 0)) ? _P_ : _M_;
+		o2 = (GetBit(d, 1)) ? _P_ : _M_;
+		return;
+	}
+	if ((hi & 2) == 2 && (hi& 4)== 4) {
+		a1 = _Y_;
+		a2 = _Z_;
+		o1 = (GetBit(d, 1)) ? _P_ : _M_;
+		o2 = (GetBit(d, 2)) ? _P_ : _M_;
+		return;
+	}
+	if ((hi & 4) == 4 && (hi & 1) == 1) {
+		a1 = _Z_;
+		a2 = _X_;
+		o1 = (GetBit(d, 2)) ? _P_ : _M_;
+		o2 = (GetBit(d, 0)) ? _P_ : _M_;
 		return;
 	}
 	SHOULD_NOT_REACH;
@@ -264,9 +308,6 @@ inline bool IsZXDirection(const Direction &d) {
 	return (d >> 3) == 5;
 }
 
-inline bool IsPlaneDirection(const Direction &d) {
-	return COUNT_1[(d >> 3)] == 2;
-}
 
 inline bool IsXYZDirection(const Direction &d) {
 	return (d >> 3) == 7;
@@ -276,11 +317,11 @@ inline Orientation ToOrientation(const Direction &d, const Axes &a) {
 	if (IsDirectionOn(d, a)) {
 		switch (a) {
 		case _X_:
-			return (GetBit(d, 1) == true) ? _P_ : _M_;
+			return (GetBit(d, 0) == true) ? _P_ : _M_;
 		case _Y_:
-			return (GetBit(d, 2) == true) ? _P_ : _M_;
+			return (GetBit(d, 1) == true) ? _P_ : _M_;
 		case _Z_:
-			return (GetBit(d, 3) == true) ? _P_ : _M_;
+			return (GetBit(d, 2) == true) ? _P_ : _M_;
 		}
 	} else {
 		return _C_;
@@ -300,6 +341,11 @@ inline st FaceDirectionInOrder(const Direction& dir) {
 			return i;
 		}
 	}
+}
+inline st FaceDirectionInOrder(const Axes& a, const Orientation& o){
+	// axes and orientation construct a direction
+	Direction d = ToFaceDirection(o, a);
+	return FaceDirectionInOrder(d);
 }
 
 inline Direction XYDirectionInOrder(const st& i) {

@@ -69,9 +69,9 @@ TEST(test_solver,Gauss) {
 TEST(test_solver,read_matrix) {
 	string workdir = "./src/_test/input_files/";
 	MatrixSCO_<Float> mf;
-	string fn_matrix = "685_bus";
+	string fn_matrix = "steam3";
 	mm_read_mtx_sparse(workdir + fn_matrix + ".mtx", mf);
-	ASSERT_EQ(3249, mf.NumNonzeros()) ;
+	//ASSERT_EQ(3249, mf.NumNonzeros());
 	cout << "matrix information oo==============\n";
 	cout << "i = " << mf.iLen() << "   j = " << mf.jLen() << endl;
 
@@ -81,8 +81,9 @@ TEST(test_solver,read_matrix) {
 
 	cout << "matrix information  ==============\n";
 	cout << "  " << mf(0, 0) << "    " << mfr(0, 0) << endl;
+
 	ArrayListV<Float> b(mfr.iLen());
-	b.assign(2.5);
+	b.assign(0);
 	ArrayListV<Float> x(mfr.iLen());
 	x.assign(1);
 
@@ -96,9 +97,11 @@ TEST(test_solver,read_matrix) {
 	std::list<Float> lr;  //list residual
 	//solver =======================
 	int res1 = IC_BiCGSTAB(mfr, x, b, max_iter, tol, lr);
-	EXPECT_EQ(0, res1)  <<" >! Solver return "<<res1;
+	EXPECT_EQ(0, res1) << " >! Solver return " << res1;
 	cout << "max iter = " << max_iter << endl;
 	cout << "tol      = " << tol << endl;
+	cout << "x 10       " << x[10] << endl;
+
 	//gnuplot_show_ylog(lr);
 	cout << "solver jacobi " << endl;
 	x.assign(1);
@@ -106,9 +109,19 @@ TEST(test_solver,read_matrix) {
 	max_iter = 1000;
 	tol = 1e-6;
 	int res2 = Dia_BiCGSTAB(mfr, x, b, max_iter, tol, lr);
-	cout << "return code" <<res2<<endl;
+	cout << "Dia_BiCG stab -----------------\n";
+	cout << "return code" << res2 << endl;
 	cout << "max iter = " << max_iter << endl;
 	cout << "tol      = " << tol << endl;
+	cout << "x 10       " << x[10] << endl;
+
+	x.assign(1);
+	res2 = BiCGSTAB(mfr, x, b, max_iter, tol, lr);
+	cout << "BiCG stab -----------------\n";
+	cout << "return code" << res2 << endl;
+	cout << "max iter = " << max_iter << endl;
+	cout << "tol      = " << tol << endl;
+	cout << "x 10       " << x[10] << endl;
 	//gnuplot_show_ylog(lr);
 	//
 	//gnuplot_show(mfr);
@@ -120,6 +133,45 @@ TEST(test_solver,read_matrix) {
 
 	//cout << max_iter << "  " << tol << endl;
 	//to row comp
+}
+
+TEST(test_solver,cl_matrix) {
+
+	string workdir = "./src/_test/input_files/";
+	MatrixSCO_<Float> mf;
+	string fn_matrix = "steam3";
+	mm_read_mtx_sparse(workdir + fn_matrix + ".mtx", mf);
+	//ASSERT_EQ(3249, mf.NumNonzeros());
+	cout << "matrix information oo==============\n";
+	cout << "i = " << mf.iLen() << "   j = " << mf.jLen() << endl;
+
+	MatrixSCR_<Float> mfr(mf);
+	cout << "matrix information  ==============\n";
+	cout << "i = " << mfr.iLen() << "   j = " << mfr.jLen() << endl;
+
+	cout << "matrix information  ==============\n";
+	cout << "  " << mf(0, 0) << "    " << mfr(0, 0) << endl;
+
+	ArrayListV<Float> b(mfr.iLen());
+	b.assign(1);
+	ArrayListV<Float> x(mfr.iLen());
+	x.assign(1);
+
+	Float tol = 1e-6;
+	int mi = 1000;
+	Solver_<Float>::Solve(mfr, x, b, tol, mi);
+	std::cout << "x 10    " << x[10] << "\n";
+
+	//viennacl::vector<Float> vclb(mfr.iLen());
+	//viennacl::vector<Float> vclx(mfr.iLen());
+	//Solver_<Float>::MatSCR_vcl mat_vcl(mfr.size1(), mfr.size2(),
+	//		mfr.NumNonzeros());
+	//copy(b.begin(), b.end(), vclb.begin());
+	//copy(x.begin(), x.end(), vclx.begin());
+	//Solver_<Float>::Copy(mfr, mat_vcl, mfr.NumNonzeros());
+
+	//copy(vclx.begin(), vclx.end(), x.begin());
+
 }
 
 } //end namespace

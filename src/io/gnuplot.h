@@ -95,6 +95,12 @@ public:
 	void show_command() const {
 		std::cout << "Actor command :" << _pcmd << "\n";
 	}
+	void show_data() const {
+		for (std::list<std::string>::const_iterator ci = _data.begin();
+				ci != _data.end(); ++ci) {
+			std::cout << (*ci) << std::endl;
+		}
+	}
 
 };
 
@@ -145,7 +151,14 @@ public:
 		cmd("unset grid");
 		return *this;
 	}
-
+	inline Gnuplot& set_view(int rot_x, int rot_z, double scale,
+			double scale_z) {
+		std::ostringstream sst;
+		sst << "set view " << rot_x << ", " << rot_z << ", " << scale << ", "
+				<< scale_z;
+		cmd(sst.str());
+		return *this;
+	}
 	// -----------------------------------------------
 	/// set the mulitplot mode
 	///
@@ -208,8 +221,8 @@ public:
 
 	Gnuplot& set_equal_ratio();
 
-	Gnuplot& set_label(int, const std::string &, const double&,
-			const double&, const std::string &append="");
+	Gnuplot& set_label(int, const std::string &, const double&, const double&,
+			const std::string &append = "");
 
 	//------------------------------------------------------------------------------
 	//
@@ -228,6 +241,12 @@ public:
 	Gnuplot& set_zrange_reverse(const double iFrom, const double iTo);
 	Gnuplot& set_cbrange(const double iFrom, const double iTo);
 
+	/// turns on/off log scaling for the specified xaxis (logscale is set by default)
+	Gnuplot& set_xlogscale(const double base = 10);
+	/// turns on/off log scaling for the specified yaxis (logscale is set by default)
+	Gnuplot& set_ylogscale(const double base = 10);
+	/// turns on/off log scaling for the specified zaxis (logscale is set by default)
+	Gnuplot& set_zlogscale(const double base = 10);
 	/*
 	 *  plot
 	 */
@@ -337,6 +356,56 @@ public:
 				iter != lga.end(); ++iter) {
 			output_inline_data((*iter));
 		}
+		return *this;
+	}
+
+	Gnuplot& splot(const std::list<Gnuplot_actor>& lga) {
+		if (lga.empty()) {
+			std::cerr << " >Warning! The Gnuplot actor is empty! \n";
+			return *this;
+		}
+		std::ostringstream ss;
+		ss << "splot ";
+		for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+				iter != lga.end(); ++iter) {
+			if (iter->empty_style()) {
+				ss << "\"-\" " << iter->command() << "with lines lw 1";
+			} else {
+				ss << "\"-\" " << iter->command() << iter->style();
+			}
+
+			if (lga.size() >= 2 && (iter != (--lga.end()))) {
+				ss << ",\\\n";
+			}
+		}
+		cmd(ss.str() + "\n");
+		ss.str("");
+		for (std::list<Gnuplot_actor>::const_iterator iter = lga.begin();
+				iter != lga.end(); ++iter) {
+			output_inline_data((*iter));
+		}
+		return *this;
+	}
+	Gnuplot& splot(const Gnuplot_actor& actor) {
+		if (actor.empty()) {
+			std::cerr << " >Warning! The Gnuplot actor is empty! \n";
+			return *this;
+		}
+		// inline data
+		std::ostringstream sst;
+		//
+		sst << "plot \"-\" " << actor._pcmd;
+		cmd(sst.str());
+		sst.str("");
+		cmd("\n");
+		for (std::list<std::string>::const_iterator iter = actor._data.begin();
+				iter != actor._data.end(); ++iter) {
+			sst << (*iter);
+			cmd(sst.str());
+			sst.str("");
+			cmd("\n");
+		}
+		cmd("e\n");
 		return *this;
 	}
 

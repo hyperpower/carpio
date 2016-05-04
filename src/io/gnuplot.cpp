@@ -204,12 +204,39 @@ Gnuplot& Gnuplot::set_equal_ratio() {
 	return *this;
 
 }
+/// turns on/off log scaling for the specified xaxis (logscale is not set by default)
+Gnuplot& Gnuplot::set_xlogscale(const double base) {
+	std::ostringstream cmdstr;
+
+	cmdstr << "set logscale x " << base;
+	cmd(cmdstr.str());
+
+	return *this;
+}
+/// turns on/off log scaling for the specified yaxis (logscale is not set by default)
+Gnuplot& Gnuplot::set_ylogscale(const double base) {
+	std::ostringstream cmdstr;
+
+	cmdstr << "set logscale y " << base;
+	cmd(cmdstr.str());
+
+	return *this;
+}
+/// turns on/off log scaling for the specified zaxis (logscale is not set by default)
+Gnuplot& Gnuplot::set_zlogscale(const double base) {
+	std::ostringstream cmdstr;
+
+	cmdstr << "set logscale z " << base;
+	cmd(cmdstr.str());
+
+	return *this;
+}
 
 Gnuplot& Gnuplot::set_label(int tag, const std::string & label, const double& x,
 		const double& y, const std::string& append) {
 	std::ostringstream cmdstr;
-	cmdstr << "set label " << tag << " \"" << label << "\" at first " << x << ",first "
-			<< y << " " << append;
+	cmdstr << "set label " << tag << " \"" << label << "\" at first " << x
+			<< ",first " << y << " " << append;
 	//std::cout<<cmdstr.str();
 	cmd(cmdstr.str());
 	return *this;

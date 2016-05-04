@@ -57,6 +57,9 @@ public:
 	typedef Stencil_<cvt, vt, Dim, 1> Stencil_1;
 	typedef Stencil_<cvt, vt, Dim, 1>& ref_Stencil_1;
 	typedef const Stencil_<cvt, vt, Dim, 1>& const_ref_Stencil_1;
+	typedef Stencil_<cvt, vt, Dim, 2> Stencil_2;
+	typedef Stencil_<cvt, vt, Dim, 2>& ref_Stencil_2;
+	typedef const Stencil_<cvt, vt, Dim, 2>& const_ref_Stencil_2;
 
 	typedef Expression_<COO_VALUE, VALUE, DIM> Exp;
 	typedef Expression_<COO_VALUE, VALUE, DIM>* pExp;
@@ -66,6 +69,8 @@ public:
 	typedef typename Exp::const_iterator const_ExpIter;
 
 	typedef Point_<COO_VALUE, DIM> Point;
+
+	typedef Vector_<COO_VALUE, DIM> Vector;
 
 	class PExp: public std::pair<Point, Exp> {
 	public:
@@ -131,6 +136,15 @@ public:
 	}
 
 	static Exp _1Node(ref_Stencil_1 stc) {
+		//assert
+		ASSERT(stc.non_null_nodes() == 1);
+		pNode pc = stc.center_pnode();
+		//ASSERT(pc->is_in_on(res.x(), res.y(), res.z()));
+		// ---
+		PExp res = _AverangeExpFromCenterLeaf(pc);
+		return res.E();
+	}
+	static Exp _1Node(ref_Stencil_2 stc) {
 		//assert
 		ASSERT(stc.non_null_nodes() == 1);
 		pNode pc = stc.center_pnode();
@@ -406,6 +420,210 @@ public:
 		}
 	}
 
+	static Exp OnCorner_1Order(  //
+			pNode pn,      //
+			const Direction& dir  //
+			) {
+		// assert
+		ASSERT(pn != nullptr);
+		ASSERT(IsCornerDirection(dir));
+		//
+		Orientation o1, o2;
+		Axes a1, a2;
+		CornerDirectionToOrientationAndAxes(dir, o1, a1, o2, a2);
+		Stencil_2 sten(pn, a1, (IsP(o1) ? 1 : 0), (IsM(o1) ? 1 : 0), a2,
+				(IsP(o2) ? 1 : 0), (IsM(o2) ? 1 : 0));
+		st non_null = sten.non_null_nodes();
+		switch (non_null) {
+		case 1: {
+			return _1Node(sten);
+			break;
+		}
+		case 2: {
+			return _2Node_Corner(sten, o1, a1, o2, a2);
+			break;
+		}
+		case 3: {
+			return _3Node_Corner(sten, o1, a1, o2, a2);
+			break;
+
+		}
+		case 4: {
+			return _4Node_Corner(sten, o1, a1, o2, a2);
+			break;
+		}
+		}
+		SHOULD_NOT_REACH;
+		return Exp();
+	}
+
+	static Exp _2Node_Corner(Stencil_2 stc,  //
+			const Orientation&o1, const Axes&a1,  //
+			const Orientation&o2, const Axes& a2) {
+		// assert
+		ASSERT(stc.non_null_nodes() == 2);
+		pNode pc = stc.center_pnode();
+		Direction dir_c = ToCornerDirection(o1, a1, o2, a2);
+		pNode pcc = Node::GetChild_CornerLeaf(pc, dir_c);
+		if (pcc == nullptr) {
+			pcc = pc;
+		}
+		PExp cexp = _AverangeExpFromCenterLeaf(pcc);
+		// another pnode is close to center
+		PExp nexp;
+		pNode pn = stc.get_pnode(IsP(o1) ? 1 : -1, 0);
+		pn = stc.get_pnode(IsP(o1) ? 1 : -1, 0);
+		Direction dir_n = ToCornerDirection(Opposite(o1), a1, o2, a2);
+		if (pn == nullptr) {
+			pn = stc.get_pnode(0, IsP(o2) ? 1 : -1);
+			dir_n = ToCornerDirection(o1, a1, Opposite(o2), a2);
+		}
+		if (pn == nullptr) {
+			pn = stc.get_pnode(IsP(o1) ? 1 : -1, IsP(o2) ? 1 : -1);
+			dir_n = ToCornerDirection(Opposite(o1), a1, Opposite(o2), a2);
+		}
+		ASSERT(pn != nullptr);
+		pNode pnc = Node::GetChild_CornerLeaf(pn, dir_n);
+		if (pnc == nullptr) {
+			pnc = pn;
+		}
+		// ---
+		cvt xc = pcc->p(dir_c, a1);
+		cvt yc = pcc->p(dir_c, a2);
+		cvt x0 = pcc->cp(a1);
+		cvt y0 = pcc->cp(a2);
+		cvt x1 = pnc->cp(a1);
+		cvt y1 = pnc->cp(a2);
+		return __LinearInterpolation(xc, yc, x0, y0, cexp.E(), x1, y1, nexp.E());
+	}
+
+	static Exp _3Node_Corner(Stencil_2 stc,  //
+			const Orientation&o1, const Axes&a1,  //
+			const Orientation&o2, const Axes& a2) {
+		/*
+		 *    pc2   pn    dir_c2  dir_n
+		 *    pc    pc1   dir_c   dir_c1
+		 */
+		// assert
+		ASSERT(stc.non_null_nodes() == 3);
+		// center node
+		pNode pc = stc.center_pnode();
+		Direction dir_c = ToCornerDirection(o1, a1, o2, a2);
+		pNode pcc = Node::GetChild_CornerLeaf(pc, dir_c);
+		if (pcc == nullptr) {
+			pcc = pc;
+		}
+		PExp pexp_c = _AverangeExpFromCenterLeaf(pcc);
+		// pn
+		pNode pn = stc.get_pnode(IsP(o1) ? 1 : -1, IsP(o2) ? 1 : -1);
+		Direction dir_n = ToCornerDirection(Opposite(o1), a1, Opposite(o2), a2);
+		pNode pnc =nullptr;
+		if( pn!=nullptr){
+			pnc = Node::GetChild_CornerLeaf(pn, dir_n);
+		}
+		if (pnc == nullptr) {
+			pnc = pn;
+		}
+		if (pnc != nullptr) {
+			PExp pexp_n = _AverangeExpFromCenterLeaf(pnc);
+			cvt xc = pcc->p(dir_c, a1);
+			cvt yc = pcc->p(dir_c, a2);
+			cvt x0 = pcc->cp(a1);
+			cvt y0 = pcc->cp(a2);
+			cvt x1 = pnc->cp(a1);
+			cvt y1 = pnc->cp(a2);
+			return __LinearInterpolation(xc, yc, x0, y0, pexp_c.E(), x1, y1,
+					pexp_n.E());
+		}
+		// ------------------
+		// pc1
+		pNode pc1 = stc.get_pnode(IsP(o1) ? 1 : -1, 0);
+		Direction dir_c1 = ToCornerDirection(Opposite(o1), a1, o2, a2);
+		pNode pc1c = Node::GetChild_CornerLeaf(pc1, dir_c1);
+		if (pc1c == nullptr) {
+			pc1c = pc1;
+		}
+		PExp pexp_c1 = _AverangeExpFromCenterLeaf(pc1c);
+		// pc2
+		pNode pc2 = stc.get_pnode(0, IsP(o2) ? 1 : -1);
+		Direction dir_c2 = ToCornerDirection(o1, a1, Opposite(o2), a2);
+		pNode pc2c = Node::GetChild_CornerLeaf(pc2, dir_c2);
+		if (pc2c == nullptr) {
+			pc2c = pc2;
+		}
+		PExp pexp_c2 = _AverangeExpFromCenterLeaf(pc2c);
+		cvt xc = pcc->p(dir_c, a1);
+		cvt yc = pcc->p(dir_c, a2);
+		cvt x0 = pc1c->cp(a1);
+		cvt y0 = pc1c->cp(a2);
+		cvt x1 = pc2c->cp(a1);
+		cvt y1 = pc2c->cp(a2);
+		return __LinearInterpolation(xc, yc, x0, y0, pexp_c1.E(), x1, y1,
+				pexp_c2.E());
+	}
+
+	static Exp _4Node_Corner(Stencil_2 stc,  //
+			const Orientation&o1, const Axes&a1,  //
+			const Orientation&o2, const Axes& a2) {
+		/*
+		 *    pc2   pn    dir_c2  dir_n
+		 *    pc    pc1   dir_c   dir_c1
+		 */
+		// assert
+		ASSERT(stc.non_null_nodes() == 4);
+		// center node
+		pNode pc = stc.center_pnode();
+		Direction dir_c = ToCornerDirection(o1, a1, o2, a2);
+		pNode pcc = Node::GetChild_CornerLeaf(pc, dir_c);
+		if (pcc == nullptr) {
+			pcc = pc;
+		}
+		PExp pexp_c = _AverangeExpFromCenterLeaf(pcc);
+		// pn
+		pNode pn = stc.get_pnode(IsP(o1) ? 1 : -1, IsP(o2) ? 1 : -1);
+		Direction dir_n = ToCornerDirection(Opposite(o1), a1, Opposite(o2), a2);
+		pNode pnc = Node::GetChild_CornerLeaf(pn, dir_n);
+		if (pnc == nullptr) {
+			pnc = pn;
+		}
+		PExp pexp_n = _AverangeExpFromCenterLeaf(pnc);
+		cvt xc = pcc->p(dir_c, a1);
+		cvt yc = pcc->p(dir_c, a2);
+		cvt x0 = pcc->cp(a1);
+		cvt y0 = pcc->cp(a2);
+		cvt x1 = pnc->cp(a1);
+		cvt y1 = pnc->cp(a2);
+		Exp pexp1 = __LinearInterpolation(xc, yc, x0, y0, pexp_c.E(), x1, y1,
+				pexp_n.E());
+		// ------------------
+		// pc1
+		pNode pc1 = stc.get_pnode((IsP(o1) ? 1 : -1), 0);
+		Direction dir_c1 = ToCornerDirection(Opposite(o1), a1, o2, a2);
+		pNode pc1c = Node::GetChild_CornerLeaf(pc1, dir_c1);
+		if (pc1c == nullptr) {
+			pc1c = pc1;
+		}
+		PExp pexp_c1 = _AverangeExpFromCenterLeaf(pc1c);
+		// pc2
+		pNode pc2 = stc.get_pnode(0, (IsP(o2) ? 1 : -1));
+		Direction dir_c2 = ToCornerDirection(o1, a1, Opposite(o2), a2);
+		pNode pc2c = Node::GetChild_CornerLeaf(pc2, dir_c2);
+		if (pc2c == nullptr) {
+			pc2c = pc2;
+		}
+		PExp pexp_c2 = _AverangeExpFromCenterLeaf(pc2c);
+		x0 = pc1c->cp(a1);
+		y0 = pc1c->cp(a2);
+		x1 = pc2c->cp(a1);
+		y1 = pc2c->cp(a2);
+		Exp pexp = __LinearInterpolation(xc, yc, x0, y0, pexp_c1.E(), x1, y1,
+				pexp_c2.E());
+		// ------
+		pexp.plus(pexp1);
+		pexp.times(0.5);
+		return pexp;
+	}
+
 	static void OnFace_1Order( // 2D QuadTree Node
 			pNode pn,                      //node
 			const Direction& dir,                //face
@@ -555,9 +773,7 @@ public:
 		}
 		}
 	}
-	static Exp OnFace_Gradient_Symmetic(pNode pn, const Direction& dir){
 
-	}
 	static Exp OnFace_1Order_Gradient(pNode pn,  //
 			const Direction& dir) {
 		// assert
@@ -838,6 +1054,25 @@ protected:
 		res.times((x - x0) / (x1 - x0));
 		res.plus(y0);
 		return res;
+	}
+	/*
+	 * linear interpolation in 2d space
+	 * the (x,y) will project on the line of (x0, y0) to (x1, y1)
+	 * the (x0,y0) set as an original point
+	 * the project point define as (xp, yp)
+	 *
+	 */
+	inline static Exp __LinearInterpolation(  //
+			const cvt& x, const cvt& y, //
+			const cvt& x0, const cvt& y0, const Exp& v0,  //
+			const cvt& x1, const cvt& y1, const Exp& v1) {
+		Vector vo((x1 - x0), (y1 - y0));  //(x0, y0)-->(x1, y1)
+		Vector vp((x - x0), (y - y0));    //(x0, y0)-->(x, y)
+		cvt r = dot(vo, vp) / dot(vo, vo);
+		cvt xx0 = 0.0;
+		cvt xx1 = vo.len();
+		cvt xx = r * vo.len();
+		return __LinearInterpolation(xx, xx0, v0, xx1, v1);
 	}
 
 	inline static vt __2OrderInterpolation( //

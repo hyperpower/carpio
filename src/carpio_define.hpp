@@ -43,6 +43,20 @@ inline TYPE Max(const TYPE& a, const TYPE& b) {
 	return a >= b ? a : b;
 }
 template<class TYPE>
+inline TYPE Max(const TYPE& a, const TYPE& b, const TYPE& c) {
+	return Max(Max(a, b), c);
+}
+template<class TYPE>
+inline TYPE Max(const TYPE a[], st len) {
+	TYPE max = a[0];
+	for (st i = 1; i < len; ++i) {
+		if (max < a[i]) {
+			max = a[i];
+		}
+	}
+	return max;
+}
+template<class TYPE>
 inline TYPE Min(const TYPE& a, const TYPE& b) {
 	return a <= b ? a : b;
 }
@@ -98,7 +112,7 @@ inline Axes VerticalAxes1(const Axes& a) {
 	case _Z_: {
 		return _X_;
 	}
-	default :{
+	default: {
 		SHOULD_NOT_REACH;
 		return _X_;
 	}
@@ -115,7 +129,7 @@ inline Axes VerticalAxes2(const Axes& a) {
 	case _Z_: {
 		return _Y_;
 	}
-	default :{
+	default: {
 		SHOULD_NOT_REACH;
 		return _X_;
 	}
@@ -125,8 +139,6 @@ inline Axes VerticalAxes2(const Axes& a) {
 enum Plane {
 	_XY_ = 24, _YZ_ = 48, _ZX_ = 40,
 };
-
-
 
 }
 

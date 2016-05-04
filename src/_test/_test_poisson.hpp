@@ -20,8 +20,9 @@ TEST(Poisson, unigrid) {
 	const st dim = 2;
 	// new shape--------------------
 	Shape2D shape;
+	Float x1 = -0.5, y1 = -0.5, x2 = 0.5, y2 = 0.5;
+	CreatCube(shape, x1, y1, x2, y2);
 	//CreatCircle(shape, 0.0, 0.0, 1.5, 359);
-	CreatCube(shape, -0.5, -0.5, 0.5, 0.5);
 	// define unit length
 	Float UL = 1.0;
 	// build grid ------------------
@@ -65,8 +66,10 @@ TEST(DISABLED_Poisson, adpgrid) {
 	// new shape--------------------
 	Shape2D shape;
 	Shape2D cir;
-	CreatCircle(cir, 0.00, 0.0, 0.3, 359);
-	CreatCube(shape, -0.5, -0.5, 0.5, 0.5);
+	Float xo = 0.0, yo = 0.0, r = 0.3;
+	CreatCircle(cir, xo, yo, r, 359);
+	Float x1 = -0.5, y1 = -0.5, x2 = 0.5, y2 = 0.5;
+	CreatCube(shape, x1, y1, x2, y2);
 	// define unit length
 	Float UL = 0.5;
 	// build grid ------------------
@@ -96,7 +99,7 @@ TEST(DISABLED_Poisson, adpgrid) {
 	lga.push_back(ga);
 	//GnuplotActor_GhostNodesDataIndex(ga, domain.ghost());
 	//lga.push_back(ga);
-	GnuplotActor_LeafNodesContours(ga, domain.grid(),1);
+	GnuplotActor_LeafNodesContours(ga, domain.grid(), 1);
 	lga.push_back(ga);
 	GnuplotActor_LeafNodes(ga, domain.grid());
 	lga.push_back(ga);
@@ -152,7 +155,7 @@ TEST(DISABLED_Poisson, test2_unigrid) {
 	lga.push_back(ga);
 	//GnuplotActor_GhostNodesDataIndex(ga, domain.ghost());
 	//lga.push_back(ga);
-	GnuplotActor_LeafNodesContours(ga, domain.grid(),1);
+	GnuplotActor_LeafNodesContours(ga, domain.grid(), 1);
 	lga.push_back(ga);
 	GnuplotActor_LeafNodes(ga, domain.grid());
 	lga.push_back(ga);

@@ -16,9 +16,101 @@
 #include "BLAS_Level1.hpp"
 #include "preconditioner.hpp"
 
+#ifdef VIENNACL_WITH_OPENCL
+#include "viennacl/scalar.hpp"
+#include "viennacl/vector.hpp"
+#include "viennacl/matrix.hpp"
+#include "viennacl/compressed_matrix.hpp"
+#include "viennacl/tools/timer.hpp"
+#include "viennacl/linalg/bicgstab.hpp"
+#include "viennacl/linalg/jacobi_precond.hpp"
+#endif
+
 namespace carpio {
+#ifdef VIENNACL_WITH_OPENCL
+template<class VALUE>
+class Solver_ {
+public:
+	typedef VALUE vt;
+	typedef Solver_<vt> Self;
+	typedef Solver_<vt>* pSelf;
+	typedef const Solver_<vt>* const_pSelf;
+
+	typedef MatrixSCR_<vt> MatSCR;
+	typedef ArrayListV<vt> Arr;
+	// type define for viennaCL
+	/*
+	 * compressed_matrix<T, A> represents a sparse matrix
+	 * using a compressed sparse row scheme.
+	 * T is the floating point type.
+	 * A is the alignment and defaults to 1 at present.
+	 */
+	typedef viennacl::compressed_matrix<vt> MatSCR_vcl;
+	typedef viennacl::vector<vt> Arr_vcl;
+	typedef viennacl::vcl_size_t st_vcl;
+
+	static void Copy(MatSCR & cpu_matrix,
+			MatSCR_vcl & gpu_matrix,
+			st_vcl nonzeros) {
+		assert(
+				(gpu_matrix.size1() == 0 || cpu_matrix.size1() == gpu_matrix.size1())
+				&& bool("Size mismatch"));
+		assert(
+				(gpu_matrix.size2() == 0 || cpu_matrix.size2() == gpu_matrix.size2())
+				&& bool("Size mismatch"));
+
+		viennacl::backend::typesafe_host_array<unsigned int> row_buffer(
+				gpu_matrix.handle1(), cpu_matrix.size1() + 1);
+		viennacl::backend::typesafe_host_array<unsigned int> col_buffer(
+				gpu_matrix.handle2(), nonzeros);
+		std::vector<vt> elements(nonzeros);
+
+		viennacl::vcl_size_t row_index = 0;
+		viennacl::vcl_size_t data_index = 0;
+
+		//	for (typename CPU_MATRIX::const_iterator1 row_it = cpu_matrix.begin1();
+		//		row_it != cpu_matrix.end1(); ++row_it) {
+		for (; row_index < cpu_matrix.size1();++row_index) {
+			row_buffer.set(row_index, data_index);
+
+			for (viennacl::vcl_size_t ir = cpu_matrix.row_ptr(row_index);
+					ir < cpu_matrix.row_ptr(row_index + 1); ++ir) {
+				col_buffer.set(data_index, cpu_matrix.col_ind(data_index));
+				elements[data_index] = cpu_matrix.val(data_index);
+				data_index++;
+			}
+			data_index = viennacl::tools::align_to_multiple<viennacl::vcl_size_t>(
+					data_index, 1); //take care of alignment
+		}
+		row_buffer.set(row_index, data_index);
+
+		gpu_matrix.set(row_buffer.get(), col_buffer.get(), &elements[0],
+				cpu_matrix.size1(), cpu_matrix.size2(), nonzeros);
+	}
+
+	static void Solve(MatSCR const& A, Arr& x, Arr const& b, vt& tol, int& max_iter) {
+		Arr_vcl bv(A.iLen());
+		MatSCR_vcl Av(A.size1(), A.size2(),
+				A.NumNonzeros());
+		copy(b.begin(), b.end(), bv.begin());
+		//std::cout<<bv;
+		viennacl::linalg::bicgstab_tag tag(tol, max_iter);
+		//compute Jacobi preconditioner:
+		viennacl::linalg::jacobi_precond< MatSCR_vcl > vcl_jacobi(Av, viennacl::linalg::jacobi_tag());
+		//solve (e.g. using conjugate gradient solver)
+		Arr_vcl xv = viennacl::linalg::solve(Av, bv, tag,vcl_jacobi);
+		//Arr_vcl xv;
+		std::cout<<" av   "<< Av;
+		//std::cout<< xv;
+		std::vector<vt> stdx(b.size());
+		viennacl::copy(xv.begin(), xv.end(), x.begin());
+	}
+
+};
+#endif
+
 /**
- * slove
+ * solve
  * a1 x + b1 y = c1
  * a2 x + b2 y = c2
  *
@@ -488,6 +580,22 @@ int IC_BiCGSTAB( //
 	return 1;
 }
 template<class VALUE>
+double Residual( //
+		const MatrixSCR_<VALUE> &A,    // A  The matrix
+		const ArrayListV<VALUE> &x,        // x
+		const ArrayListV<VALUE>& b)  // b
+		{
+	double resid = 0.0;
+	double normb = nrm2(b);
+	ArrayListV<VALUE> r = b - A * x;
+	if (normb == 0.0) {
+		normb = 1;
+	}
+	resid = nrm2(r) / normb;
+	return resid;
+}
+
+template<class VALUE>
 int Dia_BiCGSTAB( //
 		const MatrixSCR_<VALUE> &A,    // A  The matrix
 		ArrayListV<VALUE> &x,        // x
@@ -496,6 +604,81 @@ int Dia_BiCGSTAB( //
 		Float &tol,      // Tolerance
 		std::list<Float>& lresid) {
 	DiaPre<VALUE> preA(A, 1);
+	Float resid;
+	VALUE rho_1, rho_2, alpha, beta, omega;
+	ArrayListV<VALUE> p, phat, s, shat, t, v;
+
+	Float normb = nrm2(b);
+	ArrayListV<VALUE> r = b - A * x;
+	ArrayListV<VALUE> rtilde = r;
+
+	if (normb == 0.0)
+		normb = 1;
+
+	if ((resid = nrm2(r) / normb) <= tol) {
+		tol = resid;
+		max_iter = 0;
+		lresid.push_back(resid);
+		return 0;
+	}
+
+	for (int i = 1; i <= max_iter; i++) {
+		rho_1 = dot(rtilde, r);          //dot(v,v)
+		if (rho_1 == 0) {
+			tol = nrm2(r) / normb;       //norm(v) / s
+			return 2;
+		}
+		if (i == 1)
+			p = r;                       // v=v
+		else {
+			beta = (rho_1 / rho_2) * (alpha / omega);   // s
+			p = r + beta * (p - omega * v);             // v + s*(v-s*v)
+		}
+		phat = preA.solve(p);
+		v = A * phat;
+		alpha = rho_1 / dot(rtilde, v);
+		s = r - alpha * v;
+		if ((resid = nrm2(s) / normb) < tol) {
+			x += alpha * phat;
+			tol = resid;
+			lresid.push_back(resid);
+			return 0;
+		}
+		shat = preA.solve(s);
+		t = A * shat;
+		omega = dot(t, s) / dot(t, t);
+		x += alpha * phat + omega * shat;
+		r = s - omega * t;
+
+		rho_2 = rho_1;
+
+		resid = nrm2(r) / normb;
+		lresid.push_back(resid);
+		if (resid < tol) {
+			tol = resid;
+			max_iter = i;
+			return 0;
+		}
+
+		if (omega == 0) {
+			tol = nrm2(r) / normb;
+			return 3;
+		}
+	}
+
+	tol = resid;
+	return 1;
+}
+
+template<class VALUE>
+int BiCGSTAB( //
+		const MatrixSCR_<VALUE> &A,    // A  The matrix
+		ArrayListV<VALUE> &x,        // x
+		const ArrayListV<VALUE>& b,  // b
+		int &max_iter,   //max_iter
+		Float &tol,      // Tolerance
+		std::list<Float>& lresid) {
+	DiaPre<VALUE> preA(A, 2);
 	Float resid;
 	VALUE rho_1, rho_2, alpha, beta, omega;
 	ArrayListV<VALUE> p, phat, s, shat, t, v;
@@ -559,6 +742,7 @@ int Dia_BiCGSTAB( //
 	tol = resid;
 	return 1;
 }
+
 } //end namespace
 
 #endif /* ALGEBRA_SOLVER_MATRIX_H_ */

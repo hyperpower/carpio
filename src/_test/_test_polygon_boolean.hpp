@@ -55,9 +55,14 @@ void _polygon_intersect_case1() {
 	cout << "============test case 1 ===============\n";
 	//new polygon
 	Polygon clip;
-	CreatCube(clip, 1.0, 1.0, 4.0, 4.0);
+	Float x1 = 1, y1 = 1, x2 = 4, y2 = 4;
+	CreatCube(clip, x1, y1, x2, y2);
 	Polygon sub;
-	CreatCube(sub, 3.0, 3.0, 5.0, 5.0);
+	x1 = 3;
+	y1 = 3;
+	x2 = 5;
+	y2 = 5;
+	CreatCube(clip, x1, y1, x2, y2);
 	// show
 	std::list<Gnuplot_actor> lga;
 	Gnuplot_actor ga;
@@ -90,7 +95,8 @@ void _polygon_intersect_case2() {
 	cout << "============test case 1 ===============\n";
 	//new polygon
 	Polygon clip;
-	CreatCube(clip, 1.0, 1.0, 4.0, 4.0);
+	Float x1 = 1, y1 = 1, x2 = 4, y2 = 4;
+	CreatCube(clip, x1, y1, x2, y2);
 	Polygon::ArrP arrp(5);
 	arrp[0].reconstruct(3, 0);
 	arrp[1].reconstruct(5, 0);
@@ -128,7 +134,8 @@ void _polygon_intersect_case3() {
 	cout << "============test case 1 ===============\n";
 	//new polygon
 	Polygon clip;
-	CreatCube(clip, 1.0, 1.0, 4.0, 4.0);
+	Float x1 = 1, y1 = 1, x2 = 4, y2 = 4;
+	CreatCube(clip, x1, y1, x2, y2);
 	Polygon::ArrP arrp(6);
 	arrp[0].reconstruct(3, 0);
 	arrp[1].reconstruct(5, 0);
@@ -167,7 +174,8 @@ void _polygon_intersect_case4() {
 	cout << "============test case 1 ===============\n";
 	//new polygon
 	Polygon clip;
-	CreatCube(clip, 1.0, 1.0, 4.0, 4.0);
+	Float x1 = 1, y1 = 1, x2 = 4, y2 = 4;
+	CreatCube(clip, x1, y1, x2, y2);
 	Polygon::ArrP arrp(6);
 	arrp[0].reconstruct(3, 0);
 	arrp[1].reconstruct(5, 0);
@@ -206,7 +214,8 @@ void _polygon_intersect_case5() {
 	cout << "============test case 1 ===============\n";
 	//new polygon
 	Polygon clip;
-	CreatCube(clip, 1.0, 1.0, 4.0, 4.0);
+	Float x1 = 1, y1 = 1, x2 = 4, y2 = 4;
+	CreatCube(clip, x1, y1, x2, y2);
 	Polygon::ArrP arrp(3);
 	arrp[0].reconstruct(4, 3);
 	arrp[1].reconstruct(5, 0);
@@ -243,7 +252,8 @@ void _polygon_intersect_case6() {
 	cout << "============test case 1 ===============\n";
 	//new polygon
 	Polygon clip;
-	CreatCube(clip, 1.0, 1.0, 4.0, 4.0);
+	Float x1 = 1, y1 = 1, x2 = 4, y2 = 4;
+	CreatCube(clip, x1, y1, x2, y2);
 	Polygon::ArrP arrp(3);
 	arrp[0].reconstruct(2, 2.5);
 	arrp[1].reconstruct(4, 4);
@@ -280,7 +290,8 @@ void _polygon_intersect_case7() {
 	cout << "============test case 1 ===============\n";
 	//new polygon
 	Polygon clip;
-	CreatCube(clip, 1.0, 1.0, 4.0, 4.0);
+	Float x1 = 1, y1 = 1, x2 = 4, y2 = 4;
+	CreatCube(clip, x1, y1, x2, y2);
 	Polygon::ArrP arrp(3);
 	arrp[0].reconstruct(4, 4);
 	arrp[1].reconstruct(5, 0);
@@ -317,7 +328,8 @@ void _polygon_intersect_case8() {
 	cout << "============test case 8 ===============\n";
 	//new polygon
 	Polygon clip;
-	CreatCube(clip, 1.0, 1.0, 4.0, 4.0);
+	Float x1 = 2, y1 = 2, x2 = 4, y2 = 4;
+	CreatCube(clip, x1, y1, x2, y2);
 	Polygon::ArrP arrp(3);
 	arrp[0].reconstruct(3, 5);
 	arrp[1].reconstruct(5, 3);
@@ -355,7 +367,8 @@ void _polygon_intersect_case9() {
 	cout << "============test case 9 ===============\n";
 	//new polygon
 	Polygon clip;
-	CreatCube(clip, 2.0, 2.0, 4.0, 4.0);
+	Float x1 = 2, y1 = 2, x2 = 4, y2 = 4;
+	CreatCube(clip, x1, y1, x2, y2);
 	Polygon::ArrP arrp(4);
 	arrp[0].reconstruct(3, 1);
 	arrp[1].reconstruct(5, 3);
@@ -395,7 +408,8 @@ void _polygon_intersect_case10() {
 	cout << "============test case 10 ===============\n";
 	//new polygon
 	Polygon clip;
-	CreatCube(clip, 2.0, 2.0, 4.0, 4.0);
+	Float x1 = 2, y1 = 2, x2 = 4, y2 = 4;
+	CreatCube(clip, x1, y1, x2, y2);
 	Polygon::ArrP arrp(3);
 	arrp[0].reconstruct(1, 3);
 	arrp[1].reconstruct(3, 1);

@@ -22,7 +22,7 @@ class MatrixSCO_ {
 public:
 	typedef VALUE vt;
 private:
-	ArrayListV<VALUE> val_;    // data values (nz_ elements)
+	ArrayListV<vt> val_;    // data values (nz_ elements)
 	ArrayListV<st> rowind_;    // row_ind (nz_ elements)
 	ArrayListV<st> colind_;    // col_ind (nz_ elements)
 
@@ -71,13 +71,13 @@ public:
 		dim_[1] = S.dim_[1];
 	}
 
-	MatrixSCO_(st M, st N, st nz, VALUE *val, st *r, st *c) :
+	MatrixSCO_(st M, st N, st nz, vt *val, st *r, st *c) :
 			val_(val, nz), rowind_((*r), nz), colind_(*c, nz), nz_(nz) {
 		dim_[0] = M;
 		dim_[1] = N;
 	}
 
-	MatrixSCO_(const MatrixSCR_<VALUE> &R) :
+	MatrixSCO_(const MatrixSCR_<vt> &R) :
 			val_(R.NumNonzeros()), rowind_(R.NumNonzeros()), colind_(
 					R.NumNonzeros()), nz_(R.NumNonzeros()) {
 		dim_[0] = R.getiLen();
@@ -95,7 +95,7 @@ public:
 		}
 	}
 
-	MatrixSCO_(const MatrixSCC_<VALUE> &C) :
+	MatrixSCO_(const MatrixSCC_<vt> &C) :
 			val_(C.NumNonzeros()), rowind_(C.NumNonzeros()), colind_(
 					C.NumNonzeros()), nz_(C.NumNonzeros()) {
 		dim_[0] = C.getiLen();
@@ -114,7 +114,7 @@ public:
 		}
 	}
 
-	MatrixSCO_<VALUE>& operator=(const MatrixSCO_<VALUE> &C) {
+	MatrixSCO_<vt>& operator=(const MatrixSCO_<vt> &C) {
 		dim_[0] = C.dim_[0];
 		dim_[1] = C.dim_[1];
 		nz_ = C.nz_;
@@ -124,7 +124,7 @@ public:
 		return *this;
 	}
 
-	MatrixSCO_<VALUE>& newsize(st M, st N, st nz) {
+	MatrixSCO_<vt>& newsize(st M, st N, st nz) {
 		dim_[0] = M;
 		dim_[1] = N;
 		nz_ = nz;
@@ -134,7 +134,7 @@ public:
 		return *this;
 	}
 
-	MatrixSCO_<VALUE>& resize(st M, st N, st nz) {
+	MatrixSCO_<vt>& resize(st M, st N, st nz) {
 		dim_[0] = M;
 		dim_[1] = N;
 		nz_ = nz;
@@ -146,7 +146,7 @@ public:
 
 //slow---
 
-	VALUE operator()(st i, st j) const {
+	vt operator()(st i, st j) const {
 		assert(i >= 0 && i < dim_[0]);
 		assert(j >= 0 && j < dim_[1]);
 		for (st t = 0; t < nz_; t++) {
@@ -157,34 +157,34 @@ public:
 		return 0.0;
 	}
 
-	ArrayListV<VALUE> operator*(const ArrayListV<VALUE> &x) const {
+	ArrayListV<vt> operator*(const ArrayListV<vt> &x) const {
 		st M = dim_[0];
 		st N = dim_[1];
 //  Check for compatible dimensions:
 		assert(x.size() == N);
-		ArrayListV<VALUE> res(M);
+		ArrayListV<vt> res(M);
 		for (st i = 0; i < nz_; i++) {
 			res[rowind_[i]] += x[colind_[i]] * val_[i];
 		}
 		return res;
 	}
 
-	ArrayListV<VALUE> transMult(const ArrayListV<VALUE> &x) const {
+	ArrayListV<vt> transMult(const ArrayListV<vt> &x) const {
 		st tM = dim_[1];
 		st tN = dim_[0];
 		assert(!(x.Len() == tN));
-		ArrayListV<VALUE> res(tM);
+		ArrayListV<vt> res(tM);
 		for (st i = 0; i < nz_; i++) {
 			res[colind_[i]] += x[rowind_[i]] * val_[i];
 		}
 		return res;
 	}
 
-	VALUE max() const {
+	vt max() const {
 		return val_.findMax();
 	}
 
-	VALUE min() const {
+	vt min() const {
 		return val_.findMin();
 	}
 
@@ -217,7 +217,7 @@ public:
 
 	}
 
-	VALUE& val(st i) {
+	vt& val(st i) {
 		return val_(i);
 	}
 
@@ -229,7 +229,7 @@ public:
 		return colind_(i);
 	}
 
-	const VALUE& val(st i) const {
+	const vt& val(st i) const {
 		return val_(i);
 	}
 

@@ -551,13 +551,18 @@ public:
 		//defalt set up ========
 		//std::list<Float> lr;	//list residual
 		//solver =======================
+#ifdef VIENNACL_WITH_OPENCL
+		Solver_<vt>::Solve(mat, x, b, tol, max_iter);
+#else
 		int sf = Dia_BiCGSTAB(mat, x, b, max_iter, tol, lr);
 		if (sf != 0) {
 			std::cerr << " >! Poisson solve failed \n";
 			return -1;
 		}
+#endif
 		//gnuplot_show_ylog(lr);
 		//put the value back
+		x.show();
 		_arr_to_grid(x);
 		return 1;
 	}

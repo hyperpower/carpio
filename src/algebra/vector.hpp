@@ -190,14 +190,17 @@ public:
 	}
 
 	Vector_ normalize() {
+		vt l = this->len();
+		this->operator /=(l);
+		return *this;
+	}
+
+	vt len() const {
 		vt sum = 0;
 		for (st i = 0; i < Dim; ++i) {
 			sum += (this->at(i) * this->at(i));
 		}
-		vt l = sqrt(sum);
-		this->operator /=(l);
-
-		return *this;
+		return sqrt(sum);
 	}
 };
 
@@ -235,6 +238,23 @@ inline Vector_<TYPE, DIM> operator/(const Vector_<TYPE, DIM>& l,
 	Ret /= r;
 
 	return Ret;
+}
+
+template<typename TYPE, st DIM>
+inline TYPE dot(const Vector_<TYPE, DIM>& l, const Vector_<TYPE, DIM>& r) {
+	TYPE sum = 0;
+	for (st i = 0; i < DIM; ++i) {
+		sum += (l.at(i) * r.at(i));
+	}
+	return sum;
+}
+
+template<typename TYPE, st DIM>
+Vector_<TYPE, DIM> cross(const Vector_<TYPE, DIM>& l,
+		const Vector_<TYPE, DIM> & r) {
+	Vector_<TYPE, DIM> res(l);
+	res.cross(r);
+	return res;
 }
 
 } //end namespace

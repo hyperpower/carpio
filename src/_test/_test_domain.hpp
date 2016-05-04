@@ -16,7 +16,8 @@ void test_domain_1() {
 	const st dim = 2;
 	// new shape--------------------
 	Shape2D shape;
-	CreatCircle(shape, 0.0, 0.0, 1.5, 359);
+	Float x1 = 0, y1 = 0, r = 1.5;
+	CreatCircle(shape, x1, y1, r, 359);
 	//CreatCube(shape, 1.5, 1.5, 2.5, 2.5);
 	// shape is out bound
 	//
@@ -56,7 +57,9 @@ void test_domain_2() {
 	// new shape--------------------
 	Shape2D shape;
     //CreatCircle(shape, 0.0, 0.0, 1.5, 359);
-	CreatCube(shape, 1.5, 1.5, 3.5, 3.5);
+Float x1 = 1.5, y1 = 1.5, x2 = 3.5, y2 = 3.5;
+	CreatCube(shape, x1, y1, x2, y2);
+	//CreatCube(shape, 1.5, 1.5, 3.5, 3.5);
 	// shape is out bound
 	//
 	// define unit length

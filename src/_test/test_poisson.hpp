@@ -95,7 +95,8 @@ void test_2_run(int level, Float& e1, Float& e2, Float& e3) {
 	Shape2D shape;
 	Shape2D cir;
 	//CreatCircle(cir, 2.1, 2.1, 0.8, 359);
-	CreatCube(shape, -0.5, -0.5, 0.5, 0.5);
+	Float x1=-0.5, y1=-0.5, x2=0.5, y2=0.5;
+	CreatCube(shape, x1, y1, x2, y2);
 	// define unit length
 	Float UL = 1.0;
 	// build grid ------------------
@@ -151,10 +152,12 @@ void test_2_run(int level, Float& e1, Float& e2, Float& e3) {
 void test_2_run2(int level, Float& e1, Float& e2, Float& e3) {
 	const st dim = 2;
 	// new shape--------------------
-	Shape2D shape;
-	Shape2D cir;
-	CreatCircle(cir, 0.00, 0.0, 0.3, 5);
-	CreatCube(shape, -0.5, -0.5, 0.5, 0.5);
+	Shape_<Float, 2> shape;
+	Shape_<Float, 2> cir;
+	Float xo=0.0, yo=0.0, r =0.3;
+	CreatCircle(cir, xo, yo, r, 5);
+	Float x1=-0.5, y1=-0.5, x2=0.5, y2=0.5;
+	CreatCube(shape, x1, y1, x2, y2);
 	// define unit length
 	Float UL = 1.0;
 	// build grid ------------------

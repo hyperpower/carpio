@@ -88,7 +88,7 @@ public:
 	}
 
 	inline vt get_d(const Axes &axes) const {
-		ASSERT(axes<Dim);
+		ASSERT(axes < Dim);
 		return 2.0 * _hd[axes];
 	}
 
@@ -159,21 +159,27 @@ protected:
 
 public:
 	bool is_in_on(const Point_<vt, Dim>& p) {
-			if(Dim >=2){
-				return is_in_on(p.x(), p.y());
-			}else if(Dim >=3){
-				return is_in_on(p.x(), p.y(), p.z());
-			}else{
-				return false;
-			}
+		if (Dim >= 2) {
+			return is_in_on(p.x(), p.y());
+		} else if (Dim >= 3) {
+			return is_in_on(p.x(), p.y(), p.z());
+		} else {
+			return false;
 		}
+	}
+	bool is_in_on(const Axes& axes, vt& cor, Range r = _cc_) {
+		ASSERT(axes < Dim);
+		vt m = this->get(_M_, axes);
+		vt p = this->get(_P_, axes);
+		return IsInRange(m,cor,p , r);
+	}
 	bool is_in_on(const Segment_<vt, Dim>& seg) {
-		if(Dim >=2){
+		if (Dim >= 2) {
 			return is_in_on(seg.psx(), seg.pex(), seg.psy(), seg.pey());
-		}else if(Dim >=3){
-			return is_in_on(seg.psx(), seg.pex(), seg.psy(), seg.pey(), seg.psz(),
-				seg.pez());
-		}else{
+		} else if (Dim >= 3) {
+			return is_in_on(seg.psx(), seg.pex(), seg.psy(), seg.pey(),
+					seg.psz(), seg.pez());
+		} else {
 			return false;
 		}
 	}

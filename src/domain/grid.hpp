@@ -657,6 +657,23 @@ public:
 		return nullptr;
 	}
 	/*
+	 * get leaf on
+	 */
+	std::list<pNode> get_leaf(Axes aix, const cvt& x) {
+		std::list<pNode> ret;
+		for (const_iterator iter = this->begin(); iter != this->end(); ++iter) {
+			pNode pn = (*iter);
+			std::list<pNode> lp;
+			if (pn != nullptr) {
+				if (pn->cell->is_in_on(aix, x, _co_)) {
+					lp= Node::GetLeaf(pn,aix,x);
+				}
+			}
+			ret.merge(lp);
+		}
+		return ret;
+	}
+	/*
 	 * show
 	 */
 	st count_empty() const {

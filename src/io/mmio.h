@@ -258,11 +258,11 @@ void mm_read_mtx_sparse(std::string filename, MatrixSCO_<VALUE>& m) {
 		int count_ndia = 0;
 		for (int i = 0; i < nz; i++) {
 			int rind, cind;
-			VALUE value;
-			fscanf(f, "%d %d %lg\n", &rind, &cind, &value);
+			double value;
+			fscanf(f, "%d %d %le\n", &rind, &cind, &value);
 			m.row_ind(i) = rind - 1;
 			m.col_ind(i) = cind - 1;
-			m.val(i) = value;
+			m.val(i) = typename MatrixSCO_<VALUE>::vt(value);
 			if (rind != cind) {
 				count_ndia++;
 			}
@@ -281,7 +281,9 @@ void mm_read_mtx_sparse(std::string filename, MatrixSCO_<VALUE>& m) {
 		m.newsize(M, N, nz);
 		for (int i = 0; i < nz; i++) {
 			int rind, cind;
-			fscanf(f, "%d %d %lg\n", &rind, &cind, &m.val(i));
+			double val=0;
+			fscanf(f, "%d %d %le\n", &rind, &cind, &val);
+			m.val(i) = typename MatrixSCO_<VALUE>::vt(val);
 			m.row_ind(i) = rind - 1;
 			m.col_ind(i) = cind - 1;
 		}

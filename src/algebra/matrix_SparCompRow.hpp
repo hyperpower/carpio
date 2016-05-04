@@ -16,7 +16,12 @@ namespace carpio {
 
 template<class VALUE> class MatrixSCO_;
 template<class VALUE> class MatrixSCC_;
-
+/*
+ * Example:
+ * row_prt() 0        3        6        9   10      12
+ * val()     1  2  3, 4  5  6, 7  8  9, 10, 11  12,
+ * col_ind() 0  1  4  0  1  2  1  2  4  3   0   4
+ */
 template<class VALUE>
 class MatrixSCR_ {
 public:
@@ -52,7 +57,7 @@ public:
 
 		st i, j;
 
-		ArrayListV < st > tally(C.iLen() + 1, 0);
+		ArrayListV<st> tally(C.iLen() + 1, 0);
 		//      First pass through nonzeros.  Tally entries in each row.
 		//      And calculate rowptr array.
 		for (i = 0; i < nz_; i++) {
@@ -83,7 +88,7 @@ public:
 		dim_[1] = CO.jLen();
 
 		st i;
-		ArrayListV < st > tally(CO.iLen() + 1, 0);
+		ArrayListV<st> tally(CO.iLen() + 1, 0);
 		//      First pass through nonzeros.  Tally entries in each row.
 		//      And calculate rowptr array.
 		for (i = 0; i < nz_; i++) {
@@ -148,8 +153,16 @@ public:
 	st iLen() const {
 		return dim_[0];
 	}
-
 	st jLen() const {
+		return dim_[1];
+	}
+	/*
+	 * make it looks like ublas
+	 */
+	st size1() const {
+		return dim_[0];
+	}
+	st size2() const {
 		return dim_[1];
 	}
 
@@ -231,7 +244,7 @@ public:
 
 		st i, j;
 
-		ArrayListV < st > tally(C.getiLen() + 1, 0);
+		ArrayListV<st> tally(C.getiLen() + 1, 0);
 		//      First pass through nonzeros.  Tally entries in each row.
 		//      And calculate rowptr array.
 		for (i = 0; i < nz_; i++) {
@@ -289,6 +302,8 @@ public:
 		}
 	}
 };
+
+
 
 }
 // This is the end of namespace

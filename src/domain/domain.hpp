@@ -289,7 +289,7 @@ public:
 		this->set_val_ghost(idx,fun);
 	}
 
-	void set_val_ghost_by_bc(st idx) {
+	void set_val_ghost_by_bc(st idx) {  //bug bc 2
 		typedef typename Ghost::GhostNode GhostNode;
 		std::function<void(GhostNode&)> _fun = [&idx, this](GhostNode& node) {
 			pNode pg = node.second.pghost;

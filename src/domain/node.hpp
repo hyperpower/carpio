@@ -83,13 +83,12 @@ inline bool is_z_m(st i) {
 	return (i | 3) == 3;
 }
 
-inline bool is_on_direction(st i, const Direction& dir){
+inline bool is_on_direction(st i, const Direction& dir) {
 	ASSERT(i >= 0 && i < 8);
 	unsigned short hi = HI(dir);
 	unsigned short lo = LO(dir);
 	return (hi & i) == (hi & lo);
 }
-
 
 enum NodeType {
 	_Normal_ = 1 << 0, _Ghost_ = 1 << 1, _Cut_ = 1 << 2,
@@ -169,11 +168,11 @@ protected:
 				fun(pn, args);
 				if (pn->has_child()) {
 					bool ist[NumChildren];
-					for (int i = 0; i < NumChildren; i++) {
+					for (st i = 0; i < NumChildren; i++) {
 						ist[i] = false;
 					}
 					fun_con(ist, pn, argsc);
-					for (int i = 0; i < NumChildren; i++) {
+					for (st i = 0; i < NumChildren; i++) {
 						pNode c = pn->child[i];
 						if (c != nullptr && ist[i]) {
 							_traversal_conditional(c, fun_con, argsc, fun, args);
@@ -851,7 +850,7 @@ protected:
 			if (IsFaceDirection(d)) {
 				return get_adj_neighbor(Current, d);
 			}
-			if (IsPlaneDirection(d)) {
+			if (IsCornerDirection(d)) {
 				return get_cor_neighbor(Current, d);
 			}
 			return nullptr;
@@ -914,7 +913,7 @@ protected:
 			if (IsFaceDirection(d)) {
 				return get_neighbor_adj_fast(Current, d);
 			}
-			if (IsPlaneDirection(d)) {
+			if (IsCornerDirection(d)) {
 				return get_cor_neighbor(Current, d);
 			}
 			return nullptr;
@@ -1152,7 +1151,60 @@ protected:
 				//this->data->show_info();
 			}
 		}
+		/*
+		 * static function
+		 */
 
+		static pNode GetChild(pNode p, const Direction& dir, int assert_flag=1) {
+			if(assert_flag == 1) {
+				ASSERT(p!=nullptr);
+				if(Dim == 2) {
+					ASSERT(IsCornerDirection(dir));
+					ASSERT(IsDirectionOn(dir, _X_) &&IsDirectionOn(dir, _Y_));
+				} else { //dim =1
+					ASSERT(IsVertexDirection(dir));
+				}
+			}
+			unsigned short lo = LO(dir);
+			return p->child[lo];
+		}
+		static pNode GetChild_CornerLeaf(pNode p, const Direction& dir) {
+			ASSERT(p!=nullptr);
+			if(Dim == 2) {
+				ASSERT(IsCornerDirection(dir));
+				ASSERT(IsDirectionOn(dir, _X_) &&IsDirectionOn(dir, _Y_));
+			} else { //dim =1
+				ASSERT(IsVertexDirection(dir));
+			}
+			pNode pc = GetChild(p, dir);
+			while(!(pc==nullptr || pc->is_leaf())) {
+				pc = GetChild(pc, dir, 0);   //without assert
+			}
+			return pc;
+		}
+		static std::list<pNode> GetLeaf(pNode pn, Axes a, cvt cor) {
+			ASSERT(pn != nullptr);
+			if (!pn->cell->is_in_on(a, cor, _co_)) {
+				return std::list<pNode>();
+			}
+			std::function<void(bool[], pNode, cvt)> condition =
+			[a](bool arr[], pNode pn, cvt cor ) {
+				for(st i = 0; i<NumChildren;++i){
+					arr[i] = pn->child[i]->cell->is_in_on(a, cor,_co_);
+				}
+			};
+			std::list<pNode> ret;
+			std::function<void(pNode, int)> fun =
+			[&ret](pNode pn, int dummy) {
+				if (pn->is_leaf()) {
+					ret.push_back(pn);
+				}
+			};
+			//------------------
+			int dummy = 0;
+			pn->traversal_conditional(condition, cor , fun, dummy);
+			return ret;
+		}
 	}
 	;
 
@@ -1465,7 +1517,6 @@ void Traversal(Node*& pn, std::function<Ret(Node*&, Args)> fun, Args &args) {
 		}
 	}
 }
-
 
 }
 //

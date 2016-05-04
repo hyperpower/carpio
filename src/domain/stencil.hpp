@@ -126,9 +126,9 @@ protected:
 				break;
 			} else {
 				pNode& ref_pn =
-						(a == _X_) ?
+						((a == _X_) ?
 								_pnodes(ixc + i + 1, iyc).pnode :
-								_pnodes(ixc, iyc + i + 1).pnode;
+								_pnodes(ixc, iyc + i + 1).pnode);
 				if (ref_pn != nullptr) {
 					if (pnt->get_level() > ref_pn->get_level()) {
 						ref_pn = pnt;
@@ -225,10 +225,10 @@ public:
 	void _set_2d(pNode pnc) {
 		// set center node
 		Axes a1 = _axes[0];
-		st sf1 = _steps_b[0];
+		st sf1 = _steps_f[0];
 		st sb1 = _steps_b[0];
 		Axes a2 = _axes[1];
-		st sf2 = _steps_b[1];
+		st sf2 = _steps_f[1];
 		st sb2 = _steps_b[1];
 
 		_pnodes(sb1, sb2).pnode = pnc;

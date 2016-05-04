@@ -210,6 +210,137 @@ int GnuplotActor_LeafNodesContours(Gnuplot_actor& actor, const Grid_2D& g,
 	}
 	return _SUCCESS;
 }
+
+int GnuplotActor_NodesContours(Gnuplot_actor& actor,
+		const std::list<pNode_2D>& lp, st idx) {
+	actor.clear();
+	actor.command() = "using 1:2:3:4:5:6:7 title \"\" ";
+	actor.style() = "with boxxy fs solid palette";
+	for (std::list<pNode_2D>::const_iterator iter = lp.begin();
+			iter != lp.end(); ++iter) {
+		const_pNode_2D pn = *iter;
+		GnuplotActorDataPushBack_Contour(actor.data(), pn, idx);
+	}
+	return _SUCCESS;
+}
+int GnuplotActor_NodesValues(Gnuplot_actor& actor, std::list<pNode_2D>& lp,
+		st idx, Axes aix) {
+	actor.clear();
+	actor.command() = "using 1:2 title \"\" ";
+	actor.style() = "with linespoints";
+	// sort
+	// define compare function
+	struct compare_pNode_x {
+		bool operator()(pNode_2D first, pNode_2D second) {
+			return first->cp(_X_) < second->cp(_X_);
+		}
+	};
+	struct compare_pNode_y {
+		bool operator()(pNode_2D first, pNode_2D second) {
+			return first->cp(_Y_) < second->cp(_Y_);
+		}
+	};
+
+	if (aix == _X_) {
+		lp.sort(compare_pNode_x());
+	} else {
+		lp.sort(compare_pNode_y());
+	}
+	//
+	for (std::list<pNode_2D>::const_iterator iter = lp.begin();
+			iter != lp.end(); ++iter) {
+		const_pNode_2D pn = *iter;
+		actor.data().push_back(ToString(pn->cp(aix), pn->cda(idx), " ")); //point" "));
+	}
+	return _SUCCESS;
+}
+
+// ! this actor need splot
+int GnuplotActor_NodesSurface(Gnuplot_actor& actor, pNode_2D pn, st idx) {
+	actor.clear();
+	actor.command() = "using 1:2:3 title \"\" ";
+	actor.style() = "with lines lw 1 lc palette";
+	std::function<void(Orientation, Orientation)> _fun =
+			[&actor, pn, idx](Orientation o1, Orientation o2) {
+				typedef Interpolate_<Grid_2D::cvt, Grid_2D::vt, Grid_2D::Dim> Inter;
+				Direction dir = ToCornerDirection(o1,_X_,o2,_Y_);
+				Inter::Exp exp = Inter::OnCorner_1Order(pn,dir);
+				Inter::vt x = pn->p(dir,_X_);
+				Inter::vt y = pn->p(dir,_Y_);
+				Inter::vt v = exp.subsitute(idx);
+				actor.data().push_back(ToString(x, y, v, " "));
+				std::cout<< ToString(x, y, v, " ")<<"\n";
+			};
+	_fun(_M_, _M_);
+	_fun(_P_, _M_);
+	actor.data().push_back("");
+	_fun(_P_, _M_);
+	_fun(_P_, _P_);
+	actor.data().push_back("");
+	_fun(_P_, _P_);
+	_fun(_M_, _P_);
+	actor.data().push_back("");
+	_fun(_M_, _P_);
+	_fun(_M_, _M_);
+	actor.data().push_back("");
+	return _SUCCESS;
+}
+// ! this actor need splot
+int GnuplotActor_LeafNodesSurface(Gnuplot_actor& actor, Grid_2D& g, st idx) {
+	actor.clear();
+	actor.command() = "using 1:2:3 title \"\" ";
+	actor.style() = "with lines lw 1 lc palette";
+	for (Grid_2D::iterator_leaf iter = g.begin_leaf(); iter != g.end_leaf();
+			++iter) {
+		pNode_2D pn = iter.get_pointer();
+		std::function<void(Orientation, Orientation)> _fun =
+				[&actor, pn, idx](Orientation o1, Orientation o2) {
+					typedef Interpolate_<Grid_2D::cvt, Grid_2D::vt, Grid_2D::Dim> Inter;
+					Direction dir = ToCornerDirection(o1,_X_,o2,_Y_);
+					Inter::Exp exp = Inter::OnCorner_1Order(pn,dir);
+					Inter::vt x = pn->p(dir,_X_);
+					Inter::vt y = pn->p(dir,_Y_);
+					Inter::vt v = exp.subsitute(idx);
+					actor.data().push_back(ToString(x, y, v, " "));
+				};
+		_fun(_M_, _M_);
+		_fun(_P_, _M_);
+		_fun(_P_, _P_);
+		_fun(_M_, _P_);
+		_fun(_M_, _M_);
+		actor.data().push_back("");
+		actor.data().push_back(""); //may have problem
+	}
+	return _SUCCESS;
+}
+
+int GnuplotActor_GhostNodesSurface(Gnuplot_actor& actor, Ghost_2D& g, st idx) {
+	actor.clear();
+	actor.command() = "using 1:2:3 title \"\" ";
+	actor.style() = "with lines lw 1 lc palette";
+	for (typename Ghost_2D::iterator iter = g.begin(); iter != g.end();
+			++iter) {
+		pNode_2D pn = (*iter).second.pghost;
+		std::function<void(Orientation, Orientation)> _fun =
+				[&actor, pn, idx](Orientation o1, Orientation o2) {
+					typedef Interpolate_<Grid_2D::cvt, Grid_2D::vt, Grid_2D::Dim> Inter;
+					Direction dir = ToCornerDirection(o1,_X_,o2,_Y_);
+					Inter::Exp exp = Inter::OnCorner_1Order(pn,dir);
+					Inter::vt x = pn->p(dir,_X_);
+					Inter::vt y = pn->p(dir,_Y_);
+					Inter::vt v = exp.subsitute(idx);
+					actor.data().push_back(ToString(x, y, v, " "));
+				};
+		_fun(_M_, _M_);
+		_fun(_P_, _M_);
+		_fun(_P_, _P_);
+		_fun(_M_, _P_);
+		_fun(_M_, _M_);
+		actor.data().push_back("");
+		actor.data().push_back(""); //may have problem
+	}
+	return _SUCCESS;
+}
 int GnuplotActor_LeafNodesDataIndex(Gnuplot_actor& actor, const Grid_2D& g) {
 	actor.clear();
 	actor.command() = "using 1:2:3:4:5:6:7 title \"\" ";

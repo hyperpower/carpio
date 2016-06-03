@@ -170,6 +170,7 @@ public:
 		iterator it = _map.find(x.first);
 		if (it != _map.end()) {
 			it->second = it->second + x.second;
+			return _ret(it, true);
 		}
 		return _map.insert(x);
 	}
@@ -177,8 +178,23 @@ public:
 		iterator it = _map.find(x.first);
 		if (it != _map.end()) {
 			it->second = it->second + x.second;
+			return _ret(it, true);
 		}
 		return _map.insert(x);
+	}
+
+	iterator find(const std::pair<const Key, Value> &x) {
+		return _map.find(x.first);
+	}
+	const_iterator find(const std::pair<const Key, Value> &x) const {
+		return _map.find(x.first);
+	}
+
+	iterator find(const Term &x) {
+		return _map.find(x.first);
+	}
+	const_iterator find(const Term &x) const{
+		return _map.find(x.first);
 	}
 
 	void erase(iterator& iter) {

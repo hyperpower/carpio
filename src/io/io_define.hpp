@@ -32,7 +32,7 @@ std::string ToString(V1 a, V2 b, const std::string sep) {
 template<class V1, class V2, class V3>
 std::string ToString(V1 a, V2 b, V3 c, const std::string sep) {
 	std::ostringstream sst;
-	sst << a << sep << b <<sep << c;
+	sst << a << sep << b << sep << c;
 	return sst.str();
 }
 
@@ -51,11 +51,12 @@ std::string ToString(V1 a, V2 b, V3 c, V4 d, V5 e, V6 f, V7 g,
 }
 
 inline bool file_access_check( //
-		const std::string &filename,//
+		const std::string &filename, //
 		int mode //
 		) {
 	if (mode < 0 || mode > 7) {
-		std::cerr<< " >! Input mode is wrong  ="<<mode <<", it should be from 0 to 7"<<std::endl;
+		std::cerr << " >! Input mode is wrong  =" << mode
+				<< ", it should be from 0 to 7" << std::endl;
 		return false;
 	}
 
@@ -79,8 +80,70 @@ inline bool file_access_check( //
 	} else {
 		return false;
 	}
-
 }
+
+class TextFile {
+
+public:
+	typedef std::string str;
+	typedef std::list<str> lines;
+	typedef std::fstream fst;
+protected:
+	str _filename;
+	lines _content;
+
+public:
+	TextFile() :
+			_filename(""), _content() {
+	}
+	TextFile(const str& filename) :
+			_filename(filename), _content() {
+	}
+	TextFile(const str& filename, const lines& content) {
+		_filename = filename;
+		_content = content;
+	}
+
+	void _open_read(fst& ins) {
+		ins.open(this->_filename.c_str(), std::ifstream::in);
+		if (!ins.is_open()) {
+			std::cerr << "!> Open file error! " << this->_filename.c_str()
+					<< " \n";
+			exit(-1);
+		}
+	}
+
+	void _open_write(fst& outs) {
+		outs.open(this->_filename.c_str(), std::fstream::out);
+		if (!outs.is_open()) {
+			std::cerr << "!> Open file error! " << this->_filename.c_str()
+					<< " \n";
+			exit(-1);
+		}
+	}
+
+	void read() {
+		fst ins;
+		this->_open_read(ins);
+		ins.seekg(0, std::ios::beg);
+		while (!ins.eof()) {
+			str sline;
+			getline(ins, sline, '\n');
+			this->_content.push_back(sline);
+		}
+	}
+
+	void write() {
+		fst outs;
+		this->_open_write(outs);
+		outs.seekg(0, std::ios::beg);
+		for (lines::iterator iter = _content.begin(); iter != _content.end();
+				++iter) {
+			outs << (*iter) << "\n";
+		}
+	}
+
+};
 
 }
 

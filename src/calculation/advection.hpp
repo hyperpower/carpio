@@ -1,14 +1,15 @@
 #ifndef _ADVECTION_H_
 #define _ADVECTION_H_
-
+//#define __Debug__
 #include "calculation_define.hpp"
 #include "expression.hpp"
 
 #include <vector>
+#include <iomanip>
 
 namespace carpio {
 //This file use to solve advection equation
-// 1
+// 1 non-conservation from
 //
 //       d(phi)              d( phi)       2D --version
 //    u ------------ +  v -------------  = 0
@@ -30,13 +31,13 @@ namespace carpio {
 //
 // 2 with time
 //
-//   d(phi)      d(phi)      d(phi)       2D --version
-//   ------ + u ------- + v -------  = 0
-//     dt         dx           dy
+//   d(phi)    d(u phi)    d(v phi)       2D --version
+//   ------ +  ------- +  -------  = 0
+//     dt         dx         dy
 //
-//   d(phi)     d(phi)       d(phi)       d(phi)       3D --version
-//   ------ + u ------- + v -------  + w -------  = 0
-//     dt         dx           dy          dz
+//   d(phi)     d(u phi)  d(v phi)   d(w phi)       3D --version
+//   ------ +  ------- +  -------  + -------  = 0
+//     dt         dx         dy          dz
 
 /*
  * the Advection class
@@ -105,9 +106,9 @@ protected:
 	typedef ArrayListV<st> Arr_st;
 
 	pDomain _pdomain;
-
-	vt _time;
-	vt _step;
+	// time ---------------------------
+	vt _dt;
+	st _max_step;
 
 	st _scheme;
 	std::vector<Limiter> _v_limiter;
@@ -117,24 +118,45 @@ protected:
 
 	st _utp_idx;
 
+	// flag ---------------------------
+	int _flag_conserve; //if 0 --->  unconserve
+						//   1 --->    conserve   (default)
+	int _flag_time;     //if 0 --->  no time term (default)
+						//   1 --->  with time
+
 public:
 	/*
 	 * constructor
 	 */
-	Advection_(pDomain pf, st scheme = 0) :
+	Advection_(pDomain pf, st scheme = 0, int flag_time = 0) :
 			_pdomain(pf), _scheme(scheme) {
 		_push_limiter();
 		_utp_idx = 0;
 		for (st i = 0; i < Dim; ++i) {
-			_v_idx[i] = i + 1;
+			_v_idx[i] = i;
 		}
-		_phi_idx.reconstruct(1);
-		_phi_idx[0] = 4;
-		_pdomain->new_data(this->max_idx() + 1, 0, 0, 1);
+		if (flag_time == 1) {
+			_phi_idx.reconstruct(3);
+			_phi_idx[0] = Dim;
+			_phi_idx[1] = Dim+1;
+			_phi_idx[2] = Dim+2;
+			_pdomain->new_data(this->max_idx() + 1, 0, 0, 1);
+		} else {
+			_phi_idx.reconstruct(1);
+			_phi_idx[0] = Dim;
+			_pdomain->new_data(this->max_idx() + 1, 0, 0, 1);
+		}
+		_flag_conserve = 1;
+		_flag_time = flag_time;
 	}
+
 	/*
 	 * set
 	 */
+	void set_nonconserve() {
+		_flag_conserve = 0;
+	}
+
 	void set_v_grid(Function pfun, Axes a) {
 		ASSERT(a < Dim);
 		_pdomain->set_val_grid(_v_idx[a], pfun);
@@ -155,6 +177,22 @@ public:
 	void set_phi(Function pfun) {
 		_pdomain->set_val(_phi_idx[0], pfun);
 	}
+
+	void set_time(vt dt, st max_step) {
+		_dt = dt;
+		_max_step = max_step;
+	}
+	/*
+	 * get pDomain
+	 */
+	pDomain get_pDomain(){
+		return _pdomain;
+	}
+
+	const_pDomain get_pDomain() const{
+		return _pdomain;
+	}
+
 
 	/*
 	 * this function return the max index of valuable used in
@@ -210,7 +248,7 @@ public:
 	/*
 	 * this function can be deleted
 	 */
-	int _face_scheme_tvd(pFace pface, Exp& exp) {
+	int _face_scheme_tvd(pFace pface, Exp& exp, st iphi) {
 		//face type
 		switch (pface->ft()) {
 		//_Null_ = -1, _Boundary_ = 0, _Equal_ = 1, _FineCoarse_ = 2, _CoarseFine_ = 3,
@@ -218,15 +256,15 @@ public:
 			SHOULD_NOT_REACH;
 			break;
 		case _Boundary_: {
-			this->_face_scheme_equal_tvd(pface, exp);
+			this->_face_scheme_equal_tvd(pface, exp, iphi);
 			break;
 		}
 		case _Equal_: {
-			this->_face_scheme_equal_tvd(pface, exp);
+			this->_face_scheme_equal_tvd(pface, exp, iphi);
 			break;
 		}
 		case _FineCoarse_: {
-			this->_face_scheme_equal_tvd(pface, exp);
+			this->_face_scheme_equal_tvd(pface, exp, iphi);
 			break;
 		}
 		case _CoarseFine_: {
@@ -276,11 +314,15 @@ public:
 		pNode pC = _find_C(pface, veo_f);
 		//
 		// exp should be empty before insert
-		exp.insert(1.0, pC, 1.0);
+		if (_flag_conserve == 1) {
+			exp.insert(veo_f, pC, 1.0);
+		} else {
+			exp.insert(1.0, pC, 1.0);
+		}
 		return 1;
 	}
 
-	int _face_scheme_equal_tvd(pFace pface, Exp& exp) {
+	int _face_scheme_equal_tvd(pFace pface, Exp& exp, st iphi) {
 		// face direction
 		pNode pori = pface->pori();
 		pNode pnei = pface->pnei();
@@ -322,7 +364,7 @@ public:
 		vt cor = 0;
 		if (pU != nullptr) {
 			// cal limiter
-			st iphi = _phi_idx[0];
+			//st iphi = _phi_idx[0];
 			vt vU = pU->cda(iphi);
 			vt vC = pC->cda(iphi);
 			vt vD = pD->cda(iphi);
@@ -331,8 +373,13 @@ public:
 			vt psi = limiter(r, _scheme);
 			cor = 0.5 * psi * (vD - vC);
 		}
-		exp.insert(cor, pC, 0.0);
-		exp.insert(1.0, pC, 1.0);
+		if (_flag_conserve == 1) {
+			exp.insert(cor * veo_f, pC, 0.0);
+			exp.insert(1.0 * veo_f, pC, 1.0);
+		} else {
+			exp.insert(cor, pC, 0.0);
+			exp.insert(1.0, pC, 1.0);
+		}
 		return 1;
 	}
 	/*
@@ -387,7 +434,7 @@ public:
 			}
 		}
 	}
-	void _face_exp_tvd(pNode& pn) {
+	void _face_exp_tvd(pNode& pn, st iphi) {
 		_new_list_face_exp(pn, _utp_idx);
 		utPointer& utp = pn->utp(_utp_idx);
 		for (st i = 0; i < NumFaces; i++) {
@@ -406,7 +453,7 @@ public:
 					{
 				// work on pn
 				pFace pf = new Face(pn, pnei, dir, ft);
-				_face_scheme_tvd(pf, *pexp);
+				_face_scheme_tvd(pf, *pexp, iphi);
 				ListFE& lpexp = CAST_REF(ListFE*, utp);
 				PairFE pfe(pf, pexp);
 				lpexp.push_back(pfe);
@@ -490,6 +537,63 @@ public:
 		exp.concise();
 		return 1;
 	}
+
+	void _node_exp_conserve(pNode pn, Exp& exp) {
+		//assert(pn->d());
+		ListFE& lpexp = CAST_REF(ListFE*, pn->utp(_utp_idx));
+		Exp FF[NumFaces];
+		Arr_st countCF(NumFaces);
+		countCF.assign(0);
+		for (typename ListFE::iterator iter = lpexp.begin();
+				iter != lpexp.end(); ++iter) {
+			Face* pface = iter->first;
+			Exp* pexp = iter->second;
+
+			ASSERT(pface->pori() == pn); //
+			Direction dir = pface->dir();
+			// times area
+			int sign = IsFacePDirection(dir) ? 1 : -1;
+			vt area = pface->area();
+			if (pface->ft() == _CoarseFine_) {
+				area = pface->pnei()->face_area(Opposite(dir));
+			}
+			pexp->times(sign * area);
+			FF[FaceDirectionInOrder(dir)].plus(*pexp);
+			countCF[FaceDirectionInOrder(dir)]++;
+		}
+		for (st i = 0; i < NumFaces; i++) {
+			exp.plus(FF[i]);
+#ifdef __Debug__
+			if (pn->is_in_on(0.2, 0.4)) {
+				std::cout<< "face i = "<<i<<"\n";
+				_show_exp(exp, *_pdomain);
+			}
+#endif
+		}
+		//exp.times(-1); //negative;
+#ifdef __Debug__
+		if (pn->is_in_on(0.2, 0.4)) {
+			Exp expc(exp);
+			expc.divide(pn->volume());
+			std::cout << "expc ------- " << "\n";
+			_show_exp(expc, *_pdomain);
+		}
+#endif
+		//
+		//
+		_delete_list_face_exp(pn, _utp_idx);
+	}
+
+	vt _CFL_number(pNode pn, vt dt) {
+		vt veo[Dim];
+		vt cfl[Dim];
+		for (st i = 0; i < Dim; i++) {
+			veo[i] = pn->cdva(_v_idx[i]);
+			cfl[i] = veo[i] * dt / pn->d(ToAxes(i));
+		}
+		return Max(cfl, Dim);
+	}
+
 	void _node_exp(pNode pn, Exp& exp) {
 		//assert(pn->d());
 		ListFE& lpexp = CAST_REF(ListFE*, pn->utp(_utp_idx));
@@ -506,6 +610,12 @@ public:
 			countCF[FaceDirectionInOrder(dir)]++;
 		}
 		for (st i = 0; i < NumFaces; i++) {
+#ifdef __Debug__
+			if (pn->is_in_on(0.2, 0.4)) {
+				std::cout << "ff -------- " << i << "\n";
+				_show_exp(FF[i], *_pdomain);
+			}
+#endif
 			if (countCF[i] > 1) {
 				// SHOULD_NOT_REACH;
 				// get average face velocity;
@@ -522,59 +632,6 @@ public:
 		Float l = pn->d(a);
 		Float u = pn->cdva(_v_idx[a]);
 		Float CFL_x = u / l;
-
-		//ASSERT_MSG(CFL_x < 1, "CFL x > 0.5");
-		exp_x.times(-CFL_x);  //negative
-
-		// y direction
-		a = _Y_;
-		ip = FaceDirectionInOrder(a, _P_);
-		im = FaceDirectionInOrder(a, _M_);
-		Exp exp_y(FF[ip]);
-		exp_y.minus(FF[im]);
-		l = pn->d(a);
-		u = pn->cdva(_v_idx[a]);
-		Float CFL_y = u / l;
-		//ASSERT_MSG(CFL_y < 0.5, " CFL y > 0.5");
-		exp_y.times(-CFL_y); //negative
-		exp.plus(exp_x);
-		exp.plus(exp_y);
-		//
-		_delete_list_face_exp(pn, _utp_idx);
-	}
-
-	void _node_exp_tvd(pNode pn, Exp& exp) {
-		//assert(pn->d());
-		ListFE& lpexp = CAST_REF(ListFE*, pn->utp(_utp_idx));
-		Exp FF[NumFaces];
-		Arr_st countCF(NumFaces);
-		countCF.assign(0);
-		for (typename ListFE::iterator iter = lpexp.begin();
-				iter != lpexp.end(); ++iter) {
-			Face* pface = iter->first;
-			Exp* pexp = iter->second;
-			ASSERT(pface->pori() == pn); //
-			Direction dir = pface->dir();
-			FF[FaceDirectionInOrder(dir)].plus(*pexp);
-			countCF[FaceDirectionInOrder(dir)]++;
-		}
-		for (st i = 0; i < NumFaces; i++) {
-			if (countCF[i] > 1) {
-				// get average face velocity;
-				FF[i].times(1.0 / Float(countCF[i]));
-			}
-		}
-		//
-		// x direction
-		Axes a = _X_;
-		st ip = FaceDirectionInOrder(a, _P_);
-		st im = FaceDirectionInOrder(a, _M_);
-		Exp exp_x(FF[ip]);
-		exp_x.minus(FF[im]);
-		Float l = pn->d(a);
-		Float u = pn->cdva(_v_idx[a]);
-		Float CFL_x = u / l;
-
 		//ASSERT_MSG(CFL_x < 1, "CFL x > 0.5");
 		exp_x.times(-CFL_x);  //negative
 
@@ -608,7 +665,7 @@ public:
 		//gp.set_xrange(2.0,3.0);
 		//gp.set_yrange(1.5,2.5);
 		//gp.set_cbrange(-2.0, 2.0);
-		gp.plot(lga);
+		//gp.plot(lga);
 		//delete shape
 	}
 
@@ -634,7 +691,12 @@ public:
 				it != pgrid->end_leaf(); ++it) {
 			Exp exp;
 			pNode pn = it.get_pointer();
-			_node_exp(pn, exp);
+			if (_flag_conserve == 1) {
+				_node_exp_conserve(pn, exp);
+			} else {
+				_node_exp(pn, exp);
+			}
+
 			_exp_substitute_ghost(pn, exp);
 			exp.concise();
 
@@ -699,7 +761,7 @@ public:
 		for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
 				it != pgrid->end_leaf(); ++it) {
 			pNode pn = it.get_pointer();
-			_face_exp_tvd(pn);
+			_face_exp_tvd(pn, _phi_idx[0]);
 		}
 
 		typedef std::list<st> ListST;
@@ -715,10 +777,26 @@ public:
 				it != pgrid->end_leaf(); ++it) {
 			Exp exp;
 			pNode pn = it.get_pointer();
-			_node_exp_tvd(pn, exp);
+#ifdef __Debug__
+			if (pn->is_in_on(0.2, 0.4)) {
+				std::cout << "stop\n";
+			}
+#endif
+			if (_flag_conserve == 1) {
+				_node_exp_conserve(pn, exp);
+			} else {
+				_node_exp(pn, exp);
+			}
+			// debug
+
 			_exp_substitute_ghost(pn, exp);
 			exp.concise();
-
+#ifdef __Debug__
+			if (pn->is_in_on(0.2, 0.4)) {
+				//pn->show();
+				_show_exp(exp, *_pdomain);
+			}
+#endif
 			int fconst = 0;
 			for (typename Exp::iterator ite = exp.begin(); ite != exp.end();
 					++ite) {
@@ -774,9 +852,9 @@ public:
 		return 1;
 	}
 
-	int solve_fou(vt tol = 1e-6, int max_iter = 1000) {
+	int solve_fou(vt tol = 1e-6, int max_iter = 1000, int info = 0) {
 		std::list<vt> lr;
-		int rcode = this->solve_fou(tol, max_iter, lr);
+		int rcode = this->solve_fou(tol, max_iter, lr, info);
 		//std::cout<< "max iter "<<max_iter<< " tol "<< tol <<"\n";
 		return rcode;
 	}
@@ -788,7 +866,7 @@ public:
 		return rcode;
 	}
 
-	int solve_fou(vt& tol, int& max_iter, std::list<vt>& lr) {
+	int solve_fou(vt& tol, int& max_iter, std::list<vt>& lr, int info) {
 		Mat mat;
 		Arr b;
 		this->_bulid_matrix_fou(mat, b);
@@ -800,7 +878,9 @@ public:
 		//std::list<Float> lr;	//list residual
 		//solver =======================
 		int sf = Dia_BiCGSTAB(mat, x, b, max_iter, tol, lr);
-		std::cout << "iter n " << lr.size() << " residual " << tol << "\n";
+		if (info == 1) {
+			std::cout << "iter n " << lr.size() << " residual " << tol << "\n";
+		}
 		if (sf != 0) {
 			std::cerr << " >! Poisson solve failed \n";
 			return -1;
@@ -832,6 +912,7 @@ public:
 			std::cout << "Step 1 --> solve first order upwind\n";
 			std::cout << "SP mat  nx = " << mat.size1() << " ny = "
 					<< mat.size2() << " nonzero " << mat.NumNonzeros() << "\n";
+			std::cout.precision(5);
 			std::cout << std::scientific << "iter num " << lr1.size()
 					<< " residual " << tol1 << "\n";
 		}
@@ -860,7 +941,7 @@ public:
 			_grid_to_arr(x2);
 			//solver =======================
 			std::list<vt> lr2;
-			vt tol2 = tol;
+			vt tol2 = tol/10000.0;
 			int max_iter2 = 100 + ic * 10;
 			if (info == 1) {
 				stresid = Residual(mat2, x2, b2);
@@ -886,6 +967,69 @@ public:
 		}
 		max_iter = ic;
 		return 0;
+	}
+
+	void advance(int info = 0) {
+		st istep = 0;
+		while (istep < _max_step) {
+			if (info == 1) {
+				std::cout << setw(5);
+				std::cout << "i = " << istep;
+			}
+			//for (int i = 0; i < step; i++) {
+			// Prediction step --------------------------------
+			//1 Traverse face
+			pGrid pgrid = this->_pdomain->p_grid();
+			for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
+					it != pgrid->end_leaf(); ++it) {
+				pNode pn = it.get_pointer();
+				_face_exp_fou(pn);
+			}
+			//2 add time
+			for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
+					it != pgrid->end_leaf(); ++it) {
+				pNode pn = it.get_pointer();
+				Exp exp;
+				_node_exp_conserve(pn, exp); //advance half dt
+				// cfl number check
+				vt cfl = _CFL_number(pn, _dt * 0.5);
+				ASSERT(cfl < 1.0);
+				//
+				exp.times(-0.5 * _dt / pn->volume()); //negative;
+				exp.insert(1.0, pn, 1);   //phi n
+				pn->cd(_phi_idx[1]) = exp.subsitute(_phi_idx[0]);
+			}
+			// Correction step add limiter: limite variables ------------
+			for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
+					it != pgrid->end_leaf(); ++it) {
+				pNode pn = it.get_pointer();
+				_face_exp_tvd(pn, _phi_idx[1]);
+			}
+			for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
+					it != pgrid->end_leaf(); ++it) {
+				pNode pn = it.get_pointer();
+				Exp exp;
+				_node_exp_conserve(pn, exp); //advance half dt
+				// cfl number check
+				vt cfl = _CFL_number(pn, _dt * 0.5);
+				ASSERT(cfl < 1.0);
+				//
+				exp.times(-1.0 * _dt / pn->volume());  //negative;
+				vt valn = exp.subsitute(_phi_idx[1]);
+				pn->cd(_phi_idx[2]) = pn->cd(_phi_idx[0]) + valn;
+				//
+			}
+			// Put back -------------------------------------------------
+			for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
+					it != pgrid->end_leaf(); ++it) {
+				pNode pn = it.get_pointer();
+				pn->cd(_phi_idx[0]) = pn->cd(_phi_idx[2]);
+			}
+			if (info == 1) {
+				std::cout << "\n";
+			}
+			istep++;
+		}
 	}
 
 protected:
@@ -951,7 +1095,7 @@ protected:
 	}
 
 	inline Float limiter(Float r, int i) {
-		ASSERT(i<_v_limiter.size());
+		ASSERT(i < _v_limiter.size());
 		return _v_limiter[i](r);
 	}
 

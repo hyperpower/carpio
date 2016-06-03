@@ -53,11 +53,11 @@ public:
 		if (empty()) {
 			return 0.0;
 		}
-		vt s = 0.00;
+		vt s = 0.0;
 		for (st i = 1; i < _arrp.size() - 1; i++) {
 			s = s + Cro(_arrp[i + 1], _arrp[i], _arrp[0]); // det to cro
 		}
-		return Abs(s) / 2.00;
+		return Abs(s) / 2.0;
 	}
 	void clear() {
 		_arrp.resize(0);
@@ -135,7 +135,7 @@ public:
 	vt min_y() const { //
 		assert(_arrp.size() > 0);
 		Float min = _arrp[0].y();
-		for (int i = 1; i < _arrp.size(); i++) {
+		for (st i = 1; i < _arrp.size(); i++) {
 			if (_arrp[i].y() < min) {
 				min = _arrp[i].y();
 			}
@@ -143,6 +143,63 @@ public:
 		return min;
 	}
 
+	st find_closest_vertex(const Point& p) const {
+		assert(_arrp.size() > 0);
+		st idx = 0;
+		vt mindis = Distance(_arrp[0], p);
+		for (st i = 1; i < _arrp.size(); i++) {
+			vt dis = Distance(_arrp[i], p);
+			if (dis < mindis) {
+				idx = i;
+				mindis = dis;
+			}
+		}
+		return idx;
+	}
+
+	st find_closest_vertex(const vt& x, const vt& y) const {
+		Point p(x, y);
+		return this->find_closest_vertex(p);
+	}
+	/*
+	 * special function
+	 * aix = x, y
+	 * v   = (a value on coordinate)
+	 * l_seg_idx (return)
+	 *
+	 * Find all the segments across x=v, y=v
+	 */
+	void find_seg_across(std::list<st>& l_seg_idx, Axes aix, vt val) {
+		l_seg_idx.clear();
+		st i = 0;
+		int flag = GEL(val, v(i).val(aix));
+		int nf;
+		for (++i; i < size_vertexs(); i++) {
+			vt pv = v(i).val(aix);
+			nf = GEL(val, pv);
+			if (flag != nf) {
+				l_seg_idx.push_back(i - 1);
+				flag = nf;
+			}
+		}
+		nf = GEL(val, v(0).val(aix));
+		if (nf != flag) {
+			l_seg_idx.push_back(size_vertexs() - 1);
+		}
+	}
+
+	void find_seg_connect_to_vertex(std::list<st>& l_seg_idx,
+			st ver_idx) const {
+		st n = this->size_vertexs();
+		ASSERT(ver_idx < n);
+		l_seg_idx.clear();
+		st prev = ver_idx - 1;
+		if (ver_idx == 0) {
+			prev = n - 1;
+		}
+		l_seg_idx.push_back(prev);
+		l_seg_idx.push_back(ver_idx);
+	}
 protected:
 	void _trim_same_points() {
 		for (int i = 0; i < _arrp.size() - 1; i++) {

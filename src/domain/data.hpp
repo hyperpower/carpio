@@ -94,22 +94,22 @@ public:
 		return i < _center.size();
 	}
 
-	inline vt& face(const Direction& d, const st& i) {
+	inline ArrayListV<vt>& face(const Direction& d, const st& i) {
 		ASSERT(i < this->NumFaces);
 		return _face[i];
 	}
 
-	inline const vt& face(const Direction& d, const st& i) const {
+	inline const ArrayListV<vt>& face(const Direction& d, const st& i) const {
 		ASSERT(i < this->NumFaces);
 		return _face[i];
 	}
 
-	inline vt& vertex(const Direction d, const st& i) {
+	inline ArrayListV<vt>& vertex(const Direction d, const st& i) {
 		ASSERT(i < this->NumVertexes);
 		return _vertex[i];
 	}
 
-	inline const vt& vertex(const Direction d, const st& i) const {
+	inline const ArrayListV<vt>& vertex(const Direction d, const st& i) const {
 		ASSERT(i < this->NumVertexes);
 		return _vertex[i];
 	}
@@ -127,6 +127,16 @@ public:
 	/*
 	 *  resize
 	 */
+	void resize(const st& nc, const st& nf, const st& nv, const st& nutp) {
+		this->resize_center(nc);
+		for (st i = 0; i < NumFaces; ++i) {
+			this->resize_face(i, nf);
+		}
+		for (st i = 0; i < NumVertexes; ++i) {
+			this->resize_vertex(i, nv);
+		}
+		this->resize_utp(nutp);
+	}
 	void resize_center(st len) {
 		ASSERT(len >= 0);
 		this->_center.resize(len);

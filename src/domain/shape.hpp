@@ -70,12 +70,12 @@ public:
 	/*
 	 * edge
 	 */
-	inline st size_segments() const{
+	inline st size_segments() const {
 		ASSERT(Dim == 2);
 		return _ps2d->size_segments();
 	}
-	typename S2D::Segment seg(st i) const{
-		ASSERT(Dim==2);
+	typename S2D::Segment seg(st i) const {
+		ASSERT(Dim == 2);
 		return _ps2d->get_segment(i);
 	}
 	/*
@@ -85,18 +85,18 @@ public:
 		ASSERT(Dim == 2);
 		return _ps2d->size_vertexs();
 	}
-	typename Polygon_<VALUE>::const_ref_Point v(st i) const {
+	typename S2D::const_ref_Point v(st i) const {
 		ASSERT(Dim == 2);
 		return _ps2d->v(i);
 	}
-	typename Polygon_<VALUE>::ref_Point v(st i) {
+	typename S2D::ref_Point v(st i) {
 		ASSERT(Dim == 2);
 		return _ps2d->v(i);
 	}
 	/*
 	 * set
 	 */
-	void set(typename Polygon_<VALUE>::ArrP& arrp) {
+	void set(typename S2D::ArrP& arrp) {
 		ASSERT(Dim == 2);
 		if (_ps2d != nullptr) {
 			delete _ps2d;
@@ -104,7 +104,7 @@ public:
 		}
 		_ps2d = new S2D(arrp);
 	}
-	void set(const Polygon_<VALUE>& poly) {
+	void set(const S2D& poly) {
 		ASSERT(Dim == 2);
 		if (_ps2d != nullptr) {
 			delete _ps2d;
@@ -170,23 +170,36 @@ public:
 	}
 	/*
 	 * special function
+	 * aix = x, y or z
+	 * v   = (a value on coordinate)
+	 * l_seg_idx (return)
+	 *
+	 * Find all the segments across x=v, y=v or z=v
 	 */
-	void find_all_seg_across(std::list<st>& l_seg_idx, Axes aix, vt v) const{
-		l_seg_idx.clear();
-		st i=0;
-		int flag = GEL(v, _ps2d->v(i).val(aix));
-		int nf;
-		for(++i;i<_ps2d->size_vertexs(); i++){
-			vt pv = _ps2d->v(i).val(aix);
-			nf = GEL(v, pv);
-			if( flag != nf){
-				l_seg_idx.push_back(i-1);
-				flag = nf;
-			}
+	void find_seg_across(std::list<st>& l_seg_idx, Axes aix, const vt& v) const {
+		if (Dim == 2) {
+			_ps2d->find_seg_across(l_seg_idx, aix, v);
+			return;
 		}
-		nf = GEL(v, _ps2d->v(0).val(aix));
-		if(nf!=flag){
-			l_seg_idx.push_back(_ps2d->size_vertexs()-1);
+		SHOULD_NOT_REACH;
+	}
+
+	/*
+	 * Find closest vertex
+	 */
+	st find_closest_vertex(vt x, vt y, vt z = 0) const {
+		if (Dim == 2) {
+			return _ps2d->find_closest_vertex(x, y);
+		}
+		SHOULD_NOT_REACH;
+		return 1;
+	}
+
+	void find_seg_connect_to_vertex(std::list<st>& l_seg_idx,
+			st ver_idx) const {
+		l_seg_idx.clear();
+		if (Dim == 2) {
+			_ps2d->find_seg_connect_to_vertex(l_seg_idx, ver_idx);
 		}
 	}
 
@@ -206,6 +219,8 @@ void CreatCube(Shape_<VALUE, 2>& s, VALUE x0, VALUE y0, VALUE x1, VALUE y1) {
 	CreatCube(ply, x0, y0, x1, y1);
 	s.set(ply);
 }
+
+
 
 template<typename TYPE, st DIM>
 bool IsBoxCross(const Shape_<TYPE, DIM> &s1, const Shape_<TYPE, DIM> &s2) {
@@ -307,7 +322,7 @@ void Intersect(const Shape_<VALUE, DIM>& sub, const Shape_<VALUE, DIM>& clip,
 			ClipperLib::pftEvenOdd);
 	// 4 to shape
 	if (!solution.empty()) {
-		if (solution[0].size() > 3) {
+		if (solution[0].size() >= 3) { //At least, it should be a triangle
 			ToShape(solution[0], res, coe);
 		}
 	}

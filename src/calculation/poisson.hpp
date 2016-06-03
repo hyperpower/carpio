@@ -289,6 +289,7 @@ public:
 			// 3 the fine to coarse face
 			FaceType ft = GetFaceType(pn, pnei);
 			pExp pexp = new Exp();
+			bool flag = true;
 			if ((ft == _Boundary_)				//1
 			|| (ft == _Equal_ && (IsFacePDirection(dir)))				//2
 					|| (ft == _FineCoarse_))				//3
@@ -299,6 +300,7 @@ public:
 				ListFE& lpexp = CAST_REF(ListFE*, utp);
 				PairFE pfe(pf, pexp);
 				lpexp.push_back(pfe);
+				flag = false;
 			}
 			// case 2 3
 			if ((ft == _Equal_ && (IsFacePDirection(dir)))				//2
@@ -314,9 +316,10 @@ public:
 				ListFE& lpexp = (*CAST(ListFE*, utpn));
 				PairFE pairn(fn, pexpn);
 				lpexp.push_back(pairn);
-
 			}
-
+			if(flag){
+				delete pexp;
+			}
 		}
 	}
 	/*
@@ -378,9 +381,6 @@ public:
 		return 1;
 	}
 	void _node_exp(pNode pn, Exp& exp) {
-		//CSAxis arr_dp[] = { CSAxis_Y, CSAxis_X, CSAxis_Y, CSAxis_X };
-		//
-		//assert(pn->d());
 		ListFE& lpexp = CAST_REF(ListFE*, pn->utp(_utp_idx));
 		Exp sumCF[NumFaces];
 		ArrayListV<st> countCF(NumFaces);
@@ -447,7 +447,7 @@ public:
 	}
 
 	int _bulid_matrix(Mat& mat, Arr& b) { //
-		//1 Traverse face
+        //1 Traverse face
 		pGrid pgrid = this->_pdomain->p_grid();
 		for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
 				it != pgrid->end_leaf(); ++it) {

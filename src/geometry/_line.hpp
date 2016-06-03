@@ -95,10 +95,10 @@ public:
 	}
 	// _X_=v ---> value of _Y_
 	// _Y_=v ---> value of _X_
-	vt cal(Axes a, vt v){
-		if(a==_X_){
+	vt cal(Axes a, vt v) {
+		if (a == _X_) {
 			return cal_y(v);
-		}else{
+		} else {
 			return cal_x(v);
 		}
 	}
@@ -111,16 +111,24 @@ public:
 	vt intersept_y() const {
 		return this->alpha() / (this->b() + SMALL);
 	}
+	vt intersept(Axes aix) const {
+		ASSERT(aix!=_Z_);
+		if(aix == _X_){
+			return intersept_x();
+		}else{
+			return intersept_y();
+		}
+	}
 	vt norm_x() const {
 		return this->a();
 	}
 	vt norm_y() const {
 		return this->b();
 	}
-	vt shear_x() const{
+	vt shear_x() const {
 		return this->b();
 	}
-	vt shear_y() const{
+	vt shear_y() const {
 		return -this->a();
 	}
 	bool empty() const {

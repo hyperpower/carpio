@@ -109,11 +109,7 @@ public:
 	pGhost _pghost;
 
 protected:
-	// Requirement
-	// The inner solid should be all in the shape bound
-	void _check_solids() {
 
-	}
 	void _new_grid(cvt UL) {
 		// build grid ------------------
 		Float max_x = _pshape_bound->max_x();
@@ -151,7 +147,16 @@ public:
 		_new_adaptive(minl, maxl);
 		_new_boundary_index();
 		_new_ghost();
-		_padaptive->adapt_full();
+		//_padaptive->adapt_full();
+	}
+
+	Domain_(pShape bound, const std::list<pShape>& l_pshape_inner, cvt unit_length, st minl, st maxl) :
+			_pshape_bound(bound), _l_pshape_inner(l_pshape_inner){
+		_new_grid(unit_length);
+		_new_adaptive(minl, maxl);
+		_new_boundary_index();
+		_new_ghost();
+		//_padaptive->adapt_full();
 	}
 
 	~Domain_() {
@@ -175,6 +180,7 @@ public:
 
 	void build() {
 		// adapt the solid
+		// bug ----> if the solids contact, the grid may not build well.
 		_padaptive->adapt_bound_solid(*_pshape_bound, 1.0);
 		for (typename std::list<pShape>::iterator iter =
 				_l_pshape_inner.begin(); iter != _l_pshape_inner.end();
@@ -211,7 +217,6 @@ public:
 			_pghost->set_boundary_index(i, *ps);
 			i++;
 		}
-
 	}
 
 public:
@@ -285,8 +290,8 @@ public:
 		this->p_ghost()->for_each_ghost_node(_fun);
 	}
 	void set_val(st idx, Function fun) {
-		this->set_val_grid(idx,fun);
-		this->set_val_ghost(idx,fun);
+		this->set_val_grid(idx, fun);
+		this->set_val_ghost(idx, fun);
 	}
 
 	void set_val_ghost_by_bc(st idx) {  //bug bc 2
@@ -311,7 +316,10 @@ public:
 		this->_pgrid->new_data_on_leaf(nc, nf, nv, nutp);
 		this->_pghost->new_data(nc, nf, nv, nutp);
 	}
-
+	void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+		this->_pgrid->resize_data_on_leaf(nc, nf, nv, nutp);
+		this->_pghost->resize_data(nc, nf, nv, nutp);
+	}
 };
 
 }

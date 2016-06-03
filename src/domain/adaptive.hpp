@@ -125,7 +125,7 @@ public:
 		// 4 intersect -> adapt to max level
 		std::function<void(pNode&, st)> fun =
 				[this, &shape, &vr](pNode pn, st max_l) {
-					if(pn->is_leaf()) {
+					//if(pn->is_leaf()) {
 						Shape2D sn,res;
 						CreatCube(sn,
 								pn->p(_M_,_X_), pn->p(_M_,_Y_),
@@ -137,7 +137,7 @@ public:
 							if(pn->get_level() < this->_min_l) {
 								pn->new_full_child();
 							}
-						} else if(Abs((vres-vsn)/vsn)<SMALL) { // all in
+						} else if(Abs((vres-vsn)/vsn)< 1e-5) { // all in
 							if(pn->is_root()) {
 								delete pn;
 								pn=nullptr;
@@ -152,7 +152,7 @@ public:
 								pn->new_full_child();
 							}
 						}
-					}
+					//}
 				};
 
 		for (int i = 0; i < _grid->size(); i++) {
@@ -172,44 +172,45 @@ public:
 		std::function<void(pNode&, st)> fun =
 				[this, &shape, &vr](pNode& pn, st max_l) {
 					ASSERT(pn!=nullptr);
-					if(pn->is_leaf()) {
-						Shape2D sn,res;
-						CreatCube(sn,
-								pn->p(_M_,_X_), pn->p(_M_,_Y_),
-								pn->p(_P_,_X_), pn->p(_P_,_Y_));
-						Intersect(sn,shape,res);
-						vt vsn = sn.volume();
-						vt vres = res.volume();
-						if(res.empty() || //
-										Abs((vsn-vres)/vsn)>=vr) { //node is all out
-							if(pn->is_root() ) {
-								delete pn;
-								pn=nullptr;
-							} else {
-								pNode f = pn->father;
-								f->child[pn->get_idx()] = nullptr;
-								delete pn;
-								pn=nullptr;
-							}
-						} else if(Abs((vsn-vres))<SMALL) { // all in
-							if(pn->get_level() < this->_min_l) {
-								pn->new_full_child();
-							}
-						} else {  //intersect
-							if(pn->get_level() < max_l) {
-								pn->new_full_child();
-							}
+
+					//if(pn->is_leaf()) {
+					Shape2D sn,res;
+					CreatCube(sn,
+							pn->p(_M_,_X_), pn->p(_M_,_Y_),
+							pn->p(_P_,_X_), pn->p(_P_,_Y_));
+					Intersect(sn,shape,res);
+					vt vsn = sn.volume();
+					vt vres = res.volume();
+					if(res.empty() ||//
+							Abs((vsn-vres)/vsn)>=vr) { //node is all out
+						if(pn->is_root() ) {
+							delete pn;
+							pn=nullptr;
+						} else {
+							pNode f = pn->father;
+							f->child[pn->get_idx()] = nullptr;
+							delete pn;
+							pn=nullptr;
+						}
+					} else if(Abs((vsn-vres)/vsn) <= 1e-5) { // all in
+						if(pn->get_level() < this->_min_l) {
+							pn->new_full_child();
+						}
+					} else {  //intersect
+						if(pn->get_level() < max_l) {
+							pn->new_full_child();
 						}
 					}
+					//}
 				};
 
 		for (int i = 0; i < _grid->size(); i++) {
 			pNode& pn = _grid->nodes.at_1d(i);
 			if (pn != nullptr) {
 				Traversal(pn, fun, _max_l);
-				//pn->traversal(fun, _max_l);
 			}
 		}
+
 		_update_current_info();
 	}
 	void adapt_shape_boundary(const Shape_<VALUE, DIM>& shape) {
@@ -250,6 +251,13 @@ public:
 			}
 		}
 		_update_current_info();
+	}
+
+	/*
+	 * show information
+	 */
+	void show_i() const {
+
 	}
 }
 ;

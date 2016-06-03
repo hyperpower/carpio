@@ -10,6 +10,10 @@
 #include <functional>
 
 namespace carpio {
+/*
+ * struct GhostID
+ * This struct used to identify the ghost node
+ */
 
 template<typename COO_VALUE, typename VALUE, st DIM>
 struct GhostID_ {
@@ -49,6 +53,11 @@ struct GhostID_compare_ {
 		return false;
 	}
 };
+/*
+ * class Ghost
+ *
+ * It saves all the ghost nodes on a map structure.
+ */
 
 template<typename COO_VALUE, typename VALUE, int DIM>
 class Ghost_ {
@@ -242,6 +251,7 @@ public:
 			set_seg_index(shape_idx, shape, iter);
 		}
 	}
+
 	st _choose_a_seg(std::list<st>& ls, const Shape& shape, iterator& iter,
 			int flag) {
 		ASSERT(!ls.empty());
@@ -258,24 +268,36 @@ public:
 				}
 			}
 			if (ls.size() > 1) {
-				ASSERT_MSG(false, "unfinish code!");
+				// choose the closest one
+				const GhostID& gid = iter->first;
+				Orientation ori;
+				Axes axi;
+				Direction dir = gid.direction;
+				FaceDirectionToOrientationAndAxes(dir, ori, axi);
+				Axes vaxi = VerticalAxes2D(axi);
+				auto iterres = ls.begin();
+				cvt  min_intercept;
 				for (auto i = ls.begin(); i != ls.end(); ++i) {
-					// choose the closest one
-					//GhostVal& gval = iter->second;
-					const GhostID& gid = iter->first;
-					Orientation ori;
-					Axes axi;
-					Direction dir = gid.direction;
-					FaceDirectionToOrientationAndAxes(dir, ori, axi);
-					//Axes va = VertialAxes2D(axi);
 					typename Shape::Seg2D seg = shape.seg(*i);
-					Line_<cvt> l(seg.ps(), seg.pe());
-
+					typename Shape::Poi2D poi(pg->cp(_X_), pg->cp(_Y_));
+					int side = OnWhichSide3(seg, poi);
+					if (side != flag) {
+						i = ls.erase(i);
+					}else{
+						Line_<cvt> l(seg.ps(), seg.pe());
+						cvt intercept = Abs(l.cal(vaxi,pg->cp(vaxi)) - pg->cp(vaxi));
+						if(i == ls.begin() || intercept < min_intercept){
+							min_intercept = intercept;
+							iterres = i;
+						}
+					}
 				}
+				return *iterres;
 			}
 			return *(ls.begin());
 		}
 	}
+
 	void set_seg_index(int shape_idx, const Shape& shape, iterator& iter) {
 		ASSERT(Dim == 2);
 		// get a line of ghost node
@@ -287,17 +309,19 @@ public:
 		//Orientation oori = Opposite(ori);
 		std::list<st> ls;
 		GhostVal& gval = iter->second;
-		shape.find_all_seg_across(ls, va, gval.pghost->cp(va));
-		//std::cout<<ls.size()<<"size\n";
-		st seg_idx = 100000;
+		shape.find_seg_across(ls, va, gval.pghost->cp(va));
 		if (!ls.empty()) {
-			seg_idx = _choose_a_seg(ls, shape, iter, -1);
+			st seg_idx = _choose_a_seg(ls, shape, iter, -1);
 			set_boundary_index(iter, shape_idx, seg_idx);
 		} else {
-			ASSERT_MSG(false, "unfinish code!");
-			// here, find the boundary by another method
-			//
-			set_boundary_index(iter, shape_idx, 0);
+			// first, find the closest vertex on the shape. The two segments
+			// connect to the vertex will be chosen.
+			st ver_idx = shape.find_closest_vertex(gval.pghost->cp(_X_),
+					gval.pghost->cp(_Y_));
+			shape.find_seg_connect_to_vertex(ls, ver_idx);
+			// second, find
+			st seg_idx = _choose_a_seg(ls, shape, iter, -1);
+			set_boundary_index(iter, shape_idx, seg_idx);
 		}
 
 	}
@@ -331,6 +355,13 @@ public:
 		std::function<void(GhostNode&)> fun = [&](GhostNode& node) {
 			pNode pg = node.second.pghost;
 			pg->new_data(nc, nf, nv, nutp);
+		};
+		for_each_ghost_node(fun);
+	}
+	void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+		std::function<void(GhostNode&)> fun = [&](GhostNode& node) {
+			pNode pg = node.second.pghost;
+			pg->resize_data(nc, nf, nv, nutp);
 		};
 		for_each_ghost_node(fun);
 	}
@@ -553,6 +584,7 @@ public:
 		BCNode bcn(key, pbc);
 		_BCmap.insert(bcn);
 	}
+
 	const_pBoundaryCondition find(st si, st segi, st vali) {
 		BCID key;
 		key.seg_idx = segi;

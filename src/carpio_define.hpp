@@ -21,7 +21,7 @@ namespace carpio {
 #define CAST_REF(type, p)      (*((type)p))
 #define _IF_TRUE_RETRUN(expr)  if(expr){return;};
 #define _IF_FALSE_RETRUN(expr)  if(false==(expr)){return;};
-#define SMALL                  1.0e-8
+#define SMALL                  1.0e-11
 // value type
 typedef std::size_t st; //size type
 typedef double Float;
@@ -72,6 +72,7 @@ template<class TYPE>
 inline bool IsZero(const TYPE& a) {
 	return Abs(a - 0.0) < SMALL;
 }
+// Greater, equal or less
 template<class TYPE>
 inline int GEL(const TYPE& a, const TYPE& v) {
 	//greater equal or less
@@ -97,6 +98,21 @@ enum Axes {
 	_Y_ = 1, //
 	_Z_ = 2, //
 };
+inline Axes ToAxes(const st& i){
+	ASSERT(i>=0 && i<3);
+	switch(i){
+	case 0:
+		return _X_;
+	case 1:
+		return _Y_;
+	case 2:
+		return _Z_;
+	default:
+		ASSERT_MSG(false, "Error input i");
+	}
+	SHOULD_NOT_REACH;
+	return _X_;
+}
 inline Axes VerticalAxes2D(const Axes& a) {
 	ASSERT(a != _Z_);
 	return a == _X_ ? _Y_ : _X_;

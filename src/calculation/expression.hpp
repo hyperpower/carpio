@@ -148,6 +148,7 @@ public:
 protected:
 	typedef std::pair<iterator, bool> _ret;
 public:
+
 	_ret insert(const Term &x) {
 		return _exp.insert(x);
 	}
@@ -155,6 +156,16 @@ public:
 	_ret insert(vt coe, const_pNode pn, int exp) {
 		Term t(coe, pn, exp);
 		return insert(t);
+	}
+
+	iterator find(const_pNode pn, int exp) {
+		Term t(1.0, pn, exp);
+		return _exp.find(t);
+	}
+
+	const_iterator find(const_pNode pn, int exp) const{
+		Term t(1.0, pn, exp);
+		return _exp.find(t);
 	}
 
 	void erase(iterator& iter) {

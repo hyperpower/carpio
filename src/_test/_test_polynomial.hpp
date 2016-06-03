@@ -43,14 +43,14 @@ TEST(test_polynomial,plus_ploy) {
 	Poly poly;
 	Poly::Term t1(1.0, "a", 1);
 	Poly::Term t2(2.0, "b", 1);
-	Poly::Term t3(3.0, "c", 0);
+	Poly::Term t3(3.0, "d", 0);
 	poly.insert(t1);
 	poly.insert(t2);
 	poly.insert(t3);
 	Poly poly2;
 	Poly::Term t12(1.0, "a", 1);
 	Poly::Term t22(2.0, "b", 1);
-	Poly::Term t32(3.0, "c", 0);
+	Poly::Term t32(2.0, "b", 0);
 	poly2.insert(t12);
 	poly2.insert(t22);
 	poly2.insert(t32);
@@ -59,6 +59,32 @@ TEST(test_polynomial,plus_ploy) {
 	poly.show();
 	poly2.show();
 	poly.plus(poly2);
+	poly.show();
+	std::cout<<"concise ------ \n"<<std::endl;
+	poly.concise();
+	poly.show();
+}
+
+TEST(test_polynomial,plus_ploy2) {
+	typedef Polynomial_<Float, int, int> Poly;
+	Poly poly;
+	Poly::Term t1(1.0, 10, 1);
+	Poly::Term t2(2.0, 11, 0);
+	poly.insert(t1);
+	poly.insert(t2);
+	Poly poly2;
+	Poly::Term t12(1.0, 13, 1);
+	Poly::Term t22(2.0, 14, 0);
+	poly2.insert(t12);
+	poly2.insert(t22);
+
+	//EXPECT_EQ(3, poly.size());
+	poly.show();
+	poly2.show();
+	poly.plus(poly2);
+	poly.show();
+	std::cout<<"concise ------ \n"<<std::endl;
+	poly.concise();
 	poly.show();
 }
 }

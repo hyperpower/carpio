@@ -286,6 +286,16 @@ public:
 			}
 		}
 	}
+	void resize_data_on_leaf(const st& nc, const st& nf, const st& nv,
+			const st& nutp) {
+		for (iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
+				++iter) {
+			pNode pn = iter.get_pointer();
+			if (pn != nullptr) {
+				pn->resize_data(nc, nf, nv, nutp);
+			}
+		}
+	}
 	/*
 	 *  iterator leaf node
 	 */
@@ -666,7 +676,7 @@ public:
 			std::list<pNode> lp;
 			if (pn != nullptr) {
 				if (pn->cell->is_in_on(aix, x, _co_)) {
-					lp= Node::GetLeaf(pn,aix,x);
+					lp = Node::GetLeaf(pn, aix, x);
 				}
 			}
 			ret.merge(lp);
@@ -705,6 +715,10 @@ public:
 	}
 
 	void show_info() const {
+		// copy format
+		std::ios oldState(nullptr);
+		oldState.copyfmt(std::cout);
+		//
 		std::cout << "=>Grid Info: <========\n";
 		std::cout << "Dim          :" << Dim << "\n";
 		std::cout << "Size         :" << this->size_i() << " x "
@@ -765,6 +779,9 @@ public:
 		std::cout.precision(1);
 		std::cout.setf(std::ios::fixed, std::ios::floatfield);
 		std::cout << Float(totalleaf) / Float(totalnode) * 100 << std::endl;
+
+		// restore format
+		std::cout.copyfmt(oldState);
 	}
 };
 

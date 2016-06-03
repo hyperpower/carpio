@@ -1042,6 +1042,13 @@ protected:
 				this->data->reconstruct(nc,nf,nv,nutp);
 			}
 		}
+		void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+			if(this->data ==nullptr) {
+				this->data = new Data(nc,nf,nv,nutp);
+			} else {
+				this->data->resize(nc,nf,nv,nutp);
+			}
+		}
 		pData pdata() {
 			ASSERT(this->data != nullptr);
 			return this->data;
@@ -1189,7 +1196,7 @@ protected:
 			}
 			std::function<void(bool[], pNode, cvt)> condition =
 			[a](bool arr[], pNode pn, cvt cor ) {
-				for(st i = 0; i<NumChildren;++i){
+				for(st i = 0; i<NumChildren;++i) {
 					arr[i] = pn->child[i]->cell->is_in_on(a, cor,_co_);
 				}
 			};
@@ -1400,6 +1407,8 @@ public:
 	typedef NODE Node;
 	typedef PNODE pNode;
 
+	typedef typename Node::vt vt;
+
 	static const st Dim = Node::Dim;
 	static const st NumFaces = Node::NumFaces;
 	static const st NumVertexes = Node::NumVertexes;
@@ -1475,6 +1484,9 @@ public:
 	}
 	const Direction& dir() const {
 		return direction;
+	}
+	vt area() const {
+		return pnode->face_area(direction);
 	}
 	void set(pNode pn, pNode pnei, const Direction& d, const FaceType& ft) {
 		pnode = pn;

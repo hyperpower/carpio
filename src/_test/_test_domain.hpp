@@ -30,15 +30,15 @@ void test_domain_1() {
 	Float min_y = shape.min_y();
 	st n_x = std::ceil((max_x - min_x) / UL);
 	st n_y = std::ceil((max_y - min_y) / UL);
-	std::cout<<n_x << " "<<n_y<<"\n";
+	std::cout << n_x << " " << n_y << "\n";
 	Grid_<Float, Float, dim> g(n_x, min_x, UL, //
 			n_y, min_y, UL);
 	// g.show_info();
 	// build adaptive
 	Adaptive_<Float, Float, dim> adp(&g, 2, 2);
-	std::cout<<" here0 ----\n";
+	std::cout << " here0 ----\n";
 	adp.adapt_bound_solid(shape);
-	std::cout<<" here3 ----\n";
+	std::cout << " here3 ----\n";
 	// show ================================
 	std::list<Gnuplot_actor> lga;
 	Gnuplot_actor ga;
@@ -56,8 +56,8 @@ void test_domain_2() {
 	const st dim = 2;
 	// new shape--------------------
 	Shape2D shape;
-    //CreatCircle(shape, 0.0, 0.0, 1.5, 359);
-Float x1 = 1.5, y1 = 1.5, x2 = 3.5, y2 = 3.5;
+	//CreatCircle(shape, 0.0, 0.0, 1.5, 359);
+	Float x1 = 1.5, y1 = 1.5, x2 = 3.5, y2 = 3.5;
 	CreatCube(shape, x1, y1, x2, y2);
 	//CreatCube(shape, 1.5, 1.5, 3.5, 3.5);
 	// shape is out bound
@@ -84,6 +84,7 @@ Float x1 = 1.5, y1 = 1.5, x2 = 3.5, y2 = 3.5;
 	gp.plot(lga);
 	//delete shape
 }
+
 }
 
 #endif

@@ -4,12 +4,12 @@
 #include "../io/gnuplot.h"
 
 #include "../domain/domain.hpp"
-#include "../calculation/poisson.hpp"
+#include "test_define.hpp"
 #include "gtest/gtest.h"
 #include <math.h>
-
+using namespace std;
 namespace carpio {
-typedef Domain_<Float, Float, 2> Domain;
+
 
 Float coe_set_b(Float x, Float y, Float z) {
 	return 1;
@@ -37,57 +37,9 @@ Float exact_fun_2(Float x, Float y, Float z) {
 	return sin(pi * k * x) * sin(pi * l * y);
 }
 
-Float error_1(Domain& d, st ires, st iexact) {
-	Float norm1 = 0;
-	Float svol = 0;
-	for (typename Domain::Grid::iterator_leaf iterf = d.grid().begin_leaf();
-			iterf != d.grid().end_leaf(); ++iterf) {
-		Float res = iterf->cdva(ires);
-		Float exa = iterf->cdva(iexact);
-		Float vol = iterf->volume();
-		Float err = res - exa;
-		norm1 += (Abs(err) * vol);
-		svol += vol;
-	}
-	return norm1 / svol;
-}
 
-Float error_2(Domain& d, st ires, st iexact) {
-	Float norm2 = 0;
-	Float svol = 0;
-	for (typename Domain::Grid::iterator_leaf iterf = d.grid().begin_leaf();
-			iterf != d.grid().end_leaf(); ++iterf) {
-		Float res = iterf->cdva(ires);
-		Float exa = iterf->cdva(iexact);
-		Float vol = iterf->volume();
-		Float err = res - exa;
-		norm2 += (err * err * vol);
-		svol += vol;
-	}
-	return sqrt(norm2) / svol;
-}
 
-Float error_i(Domain& d, st ires, st iexact) {
-	Float normi = 0;
-	for (typename Domain::Grid::iterator_leaf iterf = d.grid().begin_leaf();
-			iterf != d.grid().end_leaf(); ++iterf) {
-		Float res = iterf->cdva(ires);
-		Float exa = iterf->cdva(iexact);
-		Float err = res - exa;
-		if (iterf == d.grid().begin_leaf()) {
-			normi = Abs(err);
-		} else {
-			if (normi < Abs(err)) {
-				normi = Abs(err);
-			}
-		}
-	}
-	return normi;
-}
 
-inline Float cal_order(Float ec, Float ef) {
-	return log(Abs(ec) / Abs(ef)) / log(2);
-}
 
 void test_2_run(int level, Float& e1, Float& e2, Float& e3) {
 	const st dim = 2;

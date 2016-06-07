@@ -277,22 +277,22 @@ public:
 	 * new data
 	 */
 	void new_data_on_leaf(const st& nc, const st& nf, const st& nv,
-			const st& nutp) {
+			const st& nutp, const st& nfutp =0) {
 		for (iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
 				++iter) {
 			pNode pn = iter.get_pointer();
 			if (pn != nullptr) {
-				pn->new_data(nc, nf, nv, nutp);
+				pn->new_data(nc, nf, nv, nutp, nfutp);
 			}
 		}
 	}
 	void resize_data_on_leaf(const st& nc, const st& nf, const st& nv,
-			const st& nutp) {
+			const st& nutp, const st& nfutp =0) {
 		for (iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
 				++iter) {
 			pNode pn = iter.get_pointer();
 			if (pn != nullptr) {
-				pn->resize_data(nc, nf, nv, nutp);
+				pn->resize_data(nc, nf, nv, nutp, nfutp);
 			}
 		}
 	}

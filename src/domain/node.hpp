@@ -1035,18 +1035,18 @@ protected:
 		 *  data
 		 *  overload data functions
 		 */
-		void new_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+		void new_data(const st& nc, const st& nf, const st& nv, const st& nutp, const st& nfutp=0) {
 			if(this->data ==nullptr) {
-				this->data = new Data(nc,nf,nv,nutp);
+				this->data = new Data(nc,nf,nv,nutp, nfutp);
 			} else {
-				this->data->reconstruct(nc,nf,nv,nutp);
+				this->data->reconstruct(nc,nf,nv,nutp, nfutp);
 			}
 		}
-		void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+		void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp, const st& nfutp=0) {
 			if(this->data ==nullptr) {
-				this->data = new Data(nc,nf,nv,nutp);
+				this->data = new Data(nc,nf,nv,nutp, nfutp);
 			} else {
-				this->data->resize(nc,nf,nv,nutp);
+				this->data->resize(nc,nf,nv,nutp, nfutp);
 			}
 		}
 		pData pdata() {
@@ -1441,11 +1441,9 @@ public:
 	//	face_type = GetFaceFype(pnode, pneighbor);
 	//	direction = d;
 	//}
-	Face_(const Face& a) {
-		pnode = a.pnode;
-		pneighbor = a.pneighbor;
-		face_type = a.face_type;
-		direction = a.direction;
+	Face_(const Face& a) :
+			pnode(a.pnode), pneighbor(a.pneighbor), face_type(a.face_type), direction(
+					a.direction) {
 	}
 	//
 	//operator ==================================

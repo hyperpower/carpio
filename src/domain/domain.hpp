@@ -312,13 +312,13 @@ public:
 	/*
 	 * new data
 	 */
-	void new_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
-		this->_pgrid->new_data_on_leaf(nc, nf, nv, nutp);
-		this->_pghost->new_data(nc, nf, nv, nutp);
+	void new_data(const st& nc, const st& nf, const st& nv, const st& nutp, const st& nfutp = 0) {
+		this->_pgrid->new_data_on_leaf(nc, nf, nv, nutp, nfutp);
+		this->_pghost->new_data(nc, nf, nv, nutp, nfutp);
 	}
-	void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
-		this->_pgrid->resize_data_on_leaf(nc, nf, nv, nutp);
-		this->_pghost->resize_data(nc, nf, nv, nutp);
+	void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp, const st& nfutp =0) {
+		this->_pgrid->resize_data_on_leaf(nc, nf, nv, nutp, nfutp);
+		this->_pghost->resize_data(nc, nf, nv, nutp, nfutp);
 	}
 };
 

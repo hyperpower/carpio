@@ -24,6 +24,7 @@ protected:
 	int _idx;
 	ArrayListV<vt> _center;
 	ArrayListV<vt> _face[NumFaces];
+	ArrayListT<utPointer> _face_untype[NumFaces];
 	ArrayListV<vt> _vertex[NumVertexes];
 	ArrayListT<utPointer> _untype;
 public:
@@ -35,6 +36,7 @@ public:
 		_idx = 0;
 		for (st i = 0; i < NumFaces; ++i) {
 			_face[i].reconstruct(nf);
+			_face_untype[i].reconstruct(0);
 		}
 		for (st i = 0; i < NumVertexes; ++i) {
 			_vertex[i].reconstruct(nv);
@@ -46,6 +48,20 @@ public:
 		_idx = 0;
 		for (int i = 0; i < NumFaces; ++i) {
 			_face[i].reconstruct(nf);
+			_face_untype[i].reconstruct(0);
+		}
+		for (int i = 0; i < NumVertexes; ++i) {
+			_vertex[i].reconstruct(nv);
+		}
+		_untype.assign(nullptr);
+	}
+	Data_(const st& nc, const st& nf, const st& nv, const st& nutp,
+			const st& nfutp) :
+			_center(nc), _untype(nutp) {
+		_idx = 0;
+		for (int i = 0; i < NumFaces; ++i) {
+			_face[i].reconstruct(nf);
+			_face_untype[i].reconstruct(nfutp);
 		}
 		for (int i = 0; i < NumVertexes; ++i) {
 			_vertex[i].reconstruct(nv);
@@ -57,6 +73,7 @@ public:
 		_idx = s._idx;
 		for (int i = 0; i < NumFaces; ++i) {
 			_face[i] = s._face[i];
+			_face_untype[i] = s._face_untype[i];
 		}
 		for (int i = 0; i < NumVertexes; ++i) {
 			_vertex[i] = s._vertex[i];
@@ -71,6 +88,20 @@ public:
 		}
 		for (int i = 0; i < NumVertexes; ++i) {
 			_vertex[i].reconstruct(nv);
+			_face_untype[i].reconstruct(0);
+		}
+		_untype.reconstruct(nutp);
+		_untype.assign(nullptr);
+	}
+	void reconstruct(const st& nc, const st& nf, const st& nv, const st& nutp,
+			const st& nfutp) {
+		_center.reconstruct(nc);
+		for (int i = 0; i < NumFaces; ++i) {
+			_face[i].reconstruct(nf);
+		}
+		for (int i = 0; i < NumVertexes; ++i) {
+			_vertex[i].reconstruct(nv);
+			_face_untype[i].reconstruct(nfutp);
 		}
 		_untype.reconstruct(nutp);
 		_untype.assign(nullptr);
@@ -94,14 +125,14 @@ public:
 		return i < _center.size();
 	}
 
-	inline ArrayListV<vt>& face(const Direction& d, const st& i) {
-		ASSERT(i < this->NumFaces);
-		return _face[i];
+	inline ArrayListV<vt>& face(const Direction& d) {
+		st idx_face = FaceDirectionInOrder(d);
+		return _face[idx_face];
 	}
 
-	inline const ArrayListV<vt>& face(const Direction& d, const st& i) const {
-		ASSERT(i < this->NumFaces);
-		return _face[i];
+	inline const ArrayListV<vt>& face(const Direction& d) const {
+		st idx_face = FaceDirectionInOrder(d);
+		return _face[idx_face];
 	}
 
 	inline ArrayListV<vt>& vertex(const Direction d, const st& i) {

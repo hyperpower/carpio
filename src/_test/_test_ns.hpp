@@ -10,6 +10,10 @@
 
 namespace carpio {
 
+Float set_v_1(Float x, Float y, Float z) {
+	return 1.0;
+}
+
 TEST(ns, unigrid) {
 	std::cout << "test ns   \n";
 	const st dim = 2;
@@ -25,6 +29,8 @@ TEST(ns, unigrid) {
 	domain.build();
 	NS_<Float, Float, dim> ns(&domain, 3);
 	domain.grid().show_info();
+	ns.set_v(set_v_1, _X_);
+	ns.set_v(set_v_1, _Y_);
 	ns.run();
 
 }

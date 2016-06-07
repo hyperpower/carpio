@@ -276,17 +276,18 @@ public:
 				FaceDirectionToOrientationAndAxes(dir, ori, axi);
 				Axes vaxi = VerticalAxes2D(axi);
 				auto iterres = ls.begin();
-				cvt  min_intercept;
+				cvt min_intercept;
 				for (auto i = ls.begin(); i != ls.end(); ++i) {
 					typename Shape::Seg2D seg = shape.seg(*i);
 					typename Shape::Poi2D poi(pg->cp(_X_), pg->cp(_Y_));
 					int side = OnWhichSide3(seg, poi);
 					if (side != flag) {
 						i = ls.erase(i);
-					}else{
+					} else {
 						Line_<cvt> l(seg.ps(), seg.pe());
-						cvt intercept = Abs(l.cal(vaxi,pg->cp(vaxi)) - pg->cp(vaxi));
-						if(i == ls.begin() || intercept < min_intercept){
+						cvt intercept = Abs(
+								l.cal(vaxi, pg->cp(vaxi)) - pg->cp(vaxi));
+						if (i == ls.begin() || intercept < min_intercept) {
 							min_intercept = intercept;
 							iterres = i;
 						}
@@ -351,17 +352,19 @@ public:
 		for_each_ghost_node(fun);
 	}
 
-	void new_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+	void new_data(const st& nc, const st& nf, const st& nv, const st& nutp,
+			const st& nfutp = 0) {
 		std::function<void(GhostNode&)> fun = [&](GhostNode& node) {
 			pNode pg = node.second.pghost;
-			pg->new_data(nc, nf, nv, nutp);
+			pg->new_data(nc, nf, nv, nutp,nfutp);
 		};
 		for_each_ghost_node(fun);
 	}
-	void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+	void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp,
+			const st& nfutp = 0) {
 		std::function<void(GhostNode&)> fun = [&](GhostNode& node) {
 			pNode pg = node.second.pghost;
-			pg->resize_data(nc, nf, nv, nutp);
+			pg->resize_data(nc, nf, nv, nutp, nfutp);
 		};
 		for_each_ghost_node(fun);
 	}

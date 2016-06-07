@@ -341,6 +341,8 @@ inline st FaceDirectionInOrder(const Direction& dir) {
 			return i;
 		}
 	}
+	SHOULD_NOT_REACH;
+	return 1;
 }
 inline st FaceDirectionInOrder(const Axes& a, const Orientation& o){
 	// axes and orientation construct a direction

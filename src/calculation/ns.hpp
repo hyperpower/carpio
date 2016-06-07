@@ -88,6 +88,9 @@ protected:
 
 	st _adv_utp_idx[Dim];
 	st _dif_utp_idx[Dim];
+	// put the interpolate expression
+	st _utp_val;
+	st _utp_gra;
 
 public:
 	/*
@@ -105,10 +108,12 @@ public:
 	 * viscocity mu   8
 	 *
 	 * utp
-	 * adv utp   x u   0
-	 * adv utp   y v   1
-	 * dif utp   x u   2
-	 * dif utp   y u   3
+	 * utp val         0
+	 * utp gra         1
+	 * adv utp   x u   2
+	 * adv utp   y v   3
+	 * dif utp   x u   4
+	 * dif utp   y u   5
 	 */
 	NS_(pDomain pf, st scheme = 0) :
 			_pdomain(pf), _scheme(scheme) {
@@ -122,11 +127,14 @@ public:
 		_rho_idx = 3 * Dim + 1;
 		_mu_idx = 3 * Dim + 2;
 		//
+		_utp_val = 0;
+		_utp_gra = 1;
+		//
 		for (st i = 0; i < Dim; ++i) {
-			_adv_utp_idx[i] = i;
-			_dif_utp_idx[i] = i + Dim;
+			_adv_utp_idx[i] = 2+ i;
+			_dif_utp_idx[i] = 2+ i + Dim;
 		}
-		_pdomain->new_data(this->max_idx() + 1, 0, 0, 2 * Dim);
+		_pdomain->new_data(this->max_idx() + 1, 0, 0, 2 * Dim + 2);
 	}
 	/*
 	 * build face exp to utp
@@ -136,52 +144,11 @@ protected:
 	typedef std::pair<pFace, pExp> PairFE;
 
 public:
+
 	/*
 	 * predict step
 	 */
-	int _face_scheme_adv_equal(pFace pface, Exp& exp) {
-		// face direction
-		pNode pori = pface->pori();
-		Direction dir = pface->dir();
-		Orientation o;
-		Axes a;
-		FaceDirectionToOrientationAndAxes(dir, o, a);
-		// interpolate on face
-		Exp expv = Interpolate::OnFace(pori, dir, 1);
-		Float veo_f = expv.subsitute(_v_idx[a]);
 
-		//get U C D ------------------------------
-		pNode pC = _find_C(pface, veo_f);
-		//
-		// exp should be empty before insert
-		exp.insert(1.0, pC, 1.0);
-		return 1;
-	}
-
-	int _face_scheme_dif_equal_gradient(pFace pface, Exp& exp) {
-		// face direction
-		pNode pori = pface->pori();
-		pNode pnei = pface->pnei();
-		Direction dir = pface->dir();
-		Orientation o;
-		Axes a;
-		FaceDirectionToOrientationAndAxes(dir, o, a);
-		int sign = IsFacePDirection(dir) ? 1 : -1;
-
-		// interpolate beta f
-		Exp expb = Interpolate::OnFace(pori, dir, 1);
-		Float beta_f = expb.subsitute(_mu_idx);
-
-		Exp expg = Interpolate::OnFace_Gradient(pori, dir, 2);
-		expg.times(sign * beta_f);
-		//if (pori->is_in_on(0.4875, 0.328)
-		//		&& IsFacePDirection(pface->direction)) {
-		//	_show_exp(expg, *_pdomain);
-		//	std::cout << "stop\n";
-		//}
-		exp.plus(expg);
-		return 1;
-	}
 	/*
 	 * face scheme advection and diffusion
 	 * -A  and  D
@@ -236,7 +203,7 @@ public:
 		return nullptr;
 	}
 
-	void __push_listFE(pFace pf, pExp pe, utPointer utp) {
+	void __push_listFE(pFace& pf, pExp& pe, utPointer& utp) {
 		// utp ---> ListFE
 		ListFE& lpexp = CAST_REF(ListFE*, utp);
 		PairFE pfe(pf, pe);
@@ -268,12 +235,13 @@ public:
 					|| (ft == _FineCoarse_))				//3
 					{
 				// work on pn
-				pFace pf = new Face(pn, pnei, dir, ft);
+				pFace pf_adv = new Face(pn, pnei, dir, ft);
+				pFace pf_dif = new Face(pn, pnei, dir, ft);
 				//
-				_face_scheme_adv_dif(pf, *pexp_adv, *pexp_dif);
+				_face_scheme_adv_dif(pf_adv, *pexp_adv, *pexp_dif);
 				//
-				__push_listFE(pf, pexp_adv, utp_adv);
-				__push_listFE(pf, pexp_dif, utp_dif);
+				__push_listFE(pf_adv, pexp_adv, utp_adv);
+				__push_listFE(pf_dif, pexp_dif, utp_dif);
 				flag = false;
 			}
 			// case 2 3
@@ -286,12 +254,13 @@ public:
 				utPointer& utpn_adv = pnei->utp(aui);
 				utPointer& utpn_dif = pnei->utp(dui);
 				FaceType oft = (ft == _FineCoarse_) ? _CoarseFine_ : _Equal_;
-				pFace pfn = new Face(pnei, pn, Opposite(dir), oft);
+				pFace pfn_adv = new Face(pnei, pn, Opposite(dir), oft);
+				pFace pfn_dif = new Face(pnei, pn, Opposite(dir), oft);
 				pExp pexpn_adv = new Exp(*pexp_adv);
 				pExp pexpn_dif = new Exp(*pexp_dif);
 				pexpn_dif->times(-1.0);
-				__push_listFE(pfn, pexpn_adv, utpn_adv);
-				__push_listFE(pfn, pexpn_dif, utpn_dif);
+				__push_listFE(pfn_adv, pexpn_adv, utpn_adv);
+				__push_listFE(pfn_dif, pexpn_dif, utpn_dif);
 			}
 			if (flag) {
 				delete pexp_adv;
@@ -329,8 +298,7 @@ public:
 		for (st i = 0; i < NumFaces; i++) {
 			exp.plus(FF[i]);
 		}
-
-		_delete_list_face_exp(pn, aui);
+		// _delete_list_face_exp(pn, aui);
 	}
 
 	void _node_exp_dif_term(pNode pn, Axes ai, Exp& exp) {
@@ -369,7 +337,7 @@ public:
 			}
 		}
 		//
-		_delete_list_face_exp(pn, utp_idx);
+		// _delete_list_face_exp(pn, utp_idx);
 
 	}
 
@@ -429,6 +397,15 @@ public:
 			_node_exp_u_star(pn, ai, exp, dt);
 			vt u_star = exp.subsitute(_v_idx[ai]);
 			pn->cd(_vt_idx[ai]) = u_star;
+		}
+		//3 delete face expression adv and dif
+		for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
+				it != pgrid->end_leaf(); ++it) {
+			pNode pn = it.get_pointer();
+			for (st i = 0; i < Dim; i++) {
+				_delete_list_face_exp(pn, _adv_utp_idx[i]);
+				_delete_list_face_exp(pn, _dif_utp_idx[i]);
+			}
 		}
 	}
 
@@ -524,8 +501,16 @@ protected:
 			ListFE& lpexp = CAST_REF(ListFE*, utp);
 			for (typename ListFE::iterator iter = lpexp.begin();
 					iter != lpexp.end(); ++iter) {
-				delete iter->first;
-				delete iter->second;
+				//first is pFace
+				if (iter->first != nullptr) {
+					delete iter->first;
+					iter->first = nullptr;
+				}
+				//seconde is pexp
+				if (iter->second != nullptr) {
+					delete iter->second;
+					iter->second = nullptr;
+				}
 			}
 			lpexp.clear();
 			delete &lpexp;

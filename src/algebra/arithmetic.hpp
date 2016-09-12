@@ -14,11 +14,12 @@
 #include <math.h>
 #include <iostream>
 
-# define _PI_           3.14159265358979323846
+
 
 namespace carpio {
 
-
+const Float PI  = 3.14159265358979323846;
+const Float EXP = 2.71828182845904523536;
 
 template<typename TYPE>
 inline int StepFun(TYPE x) {
@@ -107,7 +108,7 @@ inline int CountSignificanceDigit(Float a) {
 }
 
 inline Float VolumeOfCircularTruncatedCone(Float R, Float r, Float h) {
-	return _PI_ * h * (R * R + r * r + R * r) / 3;
+	return PI * h * (R * R + r * r + R * r) / 3;
 }
 
 template<class TYPE>
@@ -338,7 +339,7 @@ int SolveCubicEquation(const TYPE &a, const TYPE &b, const TYPE &c,
 }
 
 inline Float Rand(Float r1, Float r2) {
-	assert(r1 != r2);
+	ASSERT(r1 != r2);
 	Float rnum1 = rand() % 100;
 	Float rmax = std::max(r1, r2);
 	Float rmin = std::min(r1, r2);

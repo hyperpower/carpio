@@ -177,7 +177,7 @@ bool IsIntersect(const Point_<TYPE, 2>& s1s, const Point_<TYPE, 2>& s1e,
 }
 template<typename TYPE>
 Point_<TYPE, 2> CalIntersect(const Segment_<TYPE, 2> &s1, const Segment_<TYPE, 2> &s2) {
-	assert(IsIntersect(s1, s2));
+	ASSERT(IsIntersect(s1, s2));
 	Float x1, x2, y1, y2;
 	Float x3, x4, y3, y4;
 	Float resxx;
@@ -215,7 +215,7 @@ Point_<TYPE, 2> CalIntersect(const Segment_<TYPE, 2> &s1, const Segment_<TYPE, 2
 		Float d = (x2 - x1) * (y4 - y3) - (x4 - x3) * (y2 - y1);
 		Float d1 = b2 * (x2 - x1) - b1 * (x4 - x3);
 		Float d2 = b2 * (y2 - y1) - b1 * (y4 - y3);
-		assert(d != 0);
+		ASSERT(d != 0);
 		resxx = d1 / d;
 		resyy = d2 / d;
 	}
@@ -324,7 +324,7 @@ ArrayListT<Segment_<TYPE, 2> > ToArraySegment(const Polygon_<TYPE>& p) {
 template<typename TYPE>
 bool IsSimple(const Polygon_<TYPE>& ap) {
 	int nap = ap.size_vertexs();
-	//assert(nap >= 3);
+	//ASSERT(nap >= 3);
 	if (nap == 3) {
 		return true;
 	}

@@ -708,7 +708,7 @@ protected:
 		}
 		}
 
-		assert(!(IsZero(am1) && IsZero(am2)));
+		ASSERT(!(IsZero(am1) && IsZero(am2)));
 		//This step produce error;
 		if (IsZero(am1)) {
 			am1 = SMALL;

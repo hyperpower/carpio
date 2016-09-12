@@ -9,10 +9,14 @@
 #define _TEST_SOLVER_H_
 
 #include "../io/mmio.h"
+#include "../utility/format.h"
 #include "../algebra/algebra.hpp"
 #include "gtest/gtest.h"
+#include "../io/gnuplot.h"
+#include "../io/io_gnuplot_domain.h"
 
 namespace carpio {
+using namespace std;
 
 void test_gauss_e() {
 	Matrix A(3, 3);
@@ -69,23 +73,22 @@ TEST(test_solver,Gauss) {
 TEST(test_solver,read_matrix) {
 	string workdir = "./src/_test/input_files/";
 	MatrixSCO_<Float> mf;
-	string fn_matrix = "steam3";
+	string fn_matrix = "pde225";
 	mm_read_mtx_sparse(workdir + fn_matrix + ".mtx", mf);
+	//mm_read_mtx_sparse(".mtx", mf);
 	//ASSERT_EQ(3249, mf.NumNonzeros());
 	cout << "matrix information oo==============\n";
-	cout << "i = " << mf.iLen() << "   j = " << mf.jLen() << endl;
+	fmt::print(" i = {:>5} j = {:>5}\n", mf.iLen(), mf.jLen());
 
 	MatrixSCR_<Float> mfr(mf);
-	cout << "matrix information  ==============\n";
-	cout << "i = " << mfr.iLen() << "   j = " << mfr.jLen() << endl;
-
-	cout << "matrix information  ==============\n";
-	cout << "  " << mf(0, 0) << "    " << mfr(0, 0) << endl;
-
-	ArrayListV<Float> b(mfr.iLen());
-	b.assign(0);
+	//mf.show(0);
+	// read b
+	ArrayListV<Float> b = mfr.sum_row();
+	//string fn_array = "e05r0100_rhs1";
+	//mm_read_array(workdir + fn_array + ".mtx", b);
+	//b.show();
 	ArrayListV<Float> x(mfr.iLen());
-	x.assign(1);
+	x.assign(0);
 
 	//arrayListV<Float> ax = mf*x;
 	//ax.show();
@@ -93,36 +96,36 @@ TEST(test_solver,read_matrix) {
 
 	//set up ========
 	int max_iter = 1000;
-	Float tol = 1e-6;
+	Float tol    = 1e-6;
 	std::list<Float> lr;  //list residual
 	//solver =======================
-	int res1 = IC_BiCGSTAB(mfr, x, b, max_iter, tol, lr);
-	EXPECT_EQ(0, res1) << " >! Solver return " << res1;
-	cout << "max iter = " << max_iter << endl;
-	cout << "tol      = " << tol << endl;
-	cout << "x 10       " << x[10] << endl;
+	//int res1 = IC_BiCGSTAB(mfr, x, b, max_iter, tol, lr);
+	//EXPECT_EQ(0, res1) << " >! Solver return " << res1;
+	//cout << "max iter = " << max_iter << endl;
+	//cout << "tol      = " << tol << endl;
+	//cout << "x 10       " << x[10] << endl;
 
 	//gnuplot_show_ylog(lr);
 	cout << "solver jacobi " << endl;
-	x.assign(1);
+	x.assign(0);
 	lr.clear();
-	max_iter = 1000;
-	tol = 1e-6;
-	int res2 = Dia_BiCGSTAB(mfr, x, b, max_iter, tol, lr);
-	cout << "Dia_BiCG stab -----------------\n";
-	cout << "return code" << res2 << endl;
-	cout << "max iter = " << max_iter << endl;
-	cout << "tol      = " << tol << endl;
-	cout << "x 10       " << x[10] << endl;
+	max_iter = 5000;
+	tol = 1e-12;
+	int res2 = BiCGSTAB(mfr, x, b, max_iter, tol, lr);
 
-	x.assign(1);
-	res2 = BiCGSTAB(mfr, x, b, max_iter, tol, lr);
-	cout << "BiCG stab -----------------\n";
-	cout << "return code" << res2 << endl;
-	cout << "max iter = " << max_iter << endl;
-	cout << "tol      = " << tol << endl;
-	cout << "x 10       " << x[10] << endl;
-	//gnuplot_show_ylog(lr);
+	fmt::print("{}", "BiCGSTAB -----------------\n");
+	fmt::print("return code : {:>10d}\n", res2);
+	fmt::print("max iter    : {:>10d}\n", max_iter);
+	fmt::print("max iter    : {:>10d}\n", lr.size());
+	fmt::print("tol         : {:>10f}\n", tol);
+
+	//res2 = BiCGSTAB(mfr, x, b, max_iter, tol, lr);
+	//cout << "BiCG stab -----------------\n";
+	//cout << "return code" << res2 << endl;
+	//cout << "max iter = " << max_iter << endl;
+	//cout << "tol      = " << tol << endl;
+	//cout << "x 10       " << x[10] << endl;
+	gnuplot_show_ylog(lr);
 	//
 	//gnuplot_show(mfr);
 	//int i=0;
@@ -134,6 +137,7 @@ TEST(test_solver,read_matrix) {
 	//cout << max_iter << "  " << tol << endl;
 	//to row comp
 }
+#ifdef VIENNACL_WITH_OPENCL
 
 TEST(test_solver,cl_matrix) {
 
@@ -173,6 +177,7 @@ TEST(test_solver,cl_matrix) {
 	//copy(vclx.begin(), vclx.end(), x.begin());
 
 }
+#endif
 
 } //end namespace
 

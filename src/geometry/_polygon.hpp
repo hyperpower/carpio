@@ -31,12 +31,12 @@ public:
 		this->_arrp = a._arrp;
 	}
 	Polygon_(const ArrP &a) {
-		assert(a.size() >= 3);
+		ASSERT(a.size() >= 3);
 		this->_arrp = a;
 		_trim_same_points();
 	}
 	void reconstruct(const ArrP & a) {
-		assert(a.size() >= 3);
+		ASSERT(a.size() >= 3);
 		this->_arrp = a;
 		_trim_same_points();
 	}
@@ -91,11 +91,11 @@ public:
 		return _arrp.size();
 	}
 	const_ref_Point v(st i) const {
-		assert(i < _arrp.size());
+		ASSERT(i < _arrp.size());
 		return _arrp[i];
 	}
 	ref_Point v(st i) {
-		assert(i < _arrp.size());
+		ASSERT(i < _arrp.size());
 		return _arrp[i];
 	}
 	Segment get_segment(st i) const {
@@ -103,7 +103,7 @@ public:
 	}
 
 	vt max_x() const { //
-		assert(_arrp.size() > 0);
+		ASSERT(_arrp.size() > 0);
 		Float max = _arrp[0].x();
 		for (st i = 1; i < _arrp.size(); i++) {
 			if (_arrp[i].x() > max) {
@@ -113,9 +113,9 @@ public:
 		return max;
 	}
 	vt min_x() const { //
-		assert(_arrp.size() > 0);
+		ASSERT(_arrp.size() > 0);
 		Float min = _arrp[0].x();
-		for (int i = 1; i < _arrp.size(); i++) {
+		for (st i = 1; i < _arrp.size(); i++) {
 			if (_arrp[i].x() < min) {
 				min = _arrp[i].x();
 			}
@@ -123,7 +123,7 @@ public:
 		return min;
 	}
 	vt max_y() const {
-		assert(_arrp.size() > 0);
+		ASSERT(_arrp.size() > 0);
 		Float max = _arrp[0].y();
 		for (st i = 1; i < _arrp.size(); i++) {
 			if (_arrp[i].y() > max) {
@@ -133,7 +133,7 @@ public:
 		return max;
 	}
 	vt min_y() const { //
-		assert(_arrp.size() > 0);
+		ASSERT(_arrp.size() > 0);
 		Float min = _arrp[0].y();
 		for (st i = 1; i < _arrp.size(); i++) {
 			if (_arrp[i].y() < min) {
@@ -144,7 +144,7 @@ public:
 	}
 
 	st find_closest_vertex(const Point& p) const {
-		assert(_arrp.size() > 0);
+		ASSERT(_arrp.size() > 0);
 		st idx = 0;
 		vt mindis = Distance(_arrp[0], p);
 		for (st i = 1; i < _arrp.size(); i++) {

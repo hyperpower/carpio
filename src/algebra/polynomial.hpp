@@ -10,8 +10,8 @@
 
 #include "../carpio_define.hpp"
 #include <utility>
-
 #include <stdint.h>
+#include "../utility/hash_table.hpp"
 
 template<class T>
 struct IsZero_: std::unary_function<T, bool> {
@@ -112,8 +112,10 @@ public:
 	}
 	Polynomial_(const_ref_Self rhs) :
 			_map(rhs._map) {
+		//std::cout<<"copy c"<<std::endl;
 	}
-	Polynomial_ operator=(const_ref_Self rhs) {
+	ref_Self operator=(const_ref_Self rhs) {
+		//std::cout<<"operator="<<std::endl;
 		this->_map = rhs._map;
 		return *this;
 	}
@@ -193,12 +195,16 @@ public:
 	iterator find(const Term &x) {
 		return _map.find(x.first);
 	}
-	const_iterator find(const Term &x) const{
+	const_iterator find(const Term &x) const {
 		return _map.find(x.first);
 	}
 
 	void erase(iterator& iter) {
 		_map.erase(iter);
+	}
+
+	void clear() {
+		_map.clear();
 	}
 
 	void plus(const_ref_Self poly) {
@@ -220,7 +226,7 @@ public:
 	void times(const COE& rhs) {   //overload operator*
 		for (Polynomial_::iterator iter = this->begin(); iter != this->end();
 				++iter) {
-			iter->second = iter->second * rhs;
+			iter->second *= rhs;
 		}
 	}
 	void divide(const COE& rhs) {  //overload operator/
@@ -295,6 +301,152 @@ public:
 //Polynomial operator-(const Polynomial &, const Polynomial &);
 //Polynomial operator+(const Polynomial &, const Polynomial &);
 //Polynomial operator*(const Float&, const Polynomial&);
+
+template<class TERM, class COE, typename Equal = std::equal_to<TERM> >
+class Polynomial2_ {
+public:
+	typedef COE Coe;
+	typedef TERM Term;
+protected:
+	Term _constterm;
+	HashTable_<Term, Coe> _container;
+
+	typedef HashTable_<Term, Coe> Container;
+
+	typedef Polynomial2_<Term, Coe> Self;
+	typedef Polynomial2_<Term, Coe>& ref_Self;
+	typedef const Polynomial2_<Term, Coe>& const_ref_Self;
+
+public:
+	typedef typename Container::iterator iterator;
+	typedef typename Container::const_iterator const_iterator;
+
+	Polynomial2_(const Term& ct) :
+			_constterm(ct), _container() {
+		ASSERT(std::is_arithmetic<COE>::value);
+	}
+	Polynomial2_(const_ref_Self rhs) :
+			_container(rhs._container) {
+	}
+	ref_Self operator=(const_ref_Self rhs) {
+		this->_container = rhs._container;
+		return *this;
+	}
+	/*
+	 *  iterator
+	 */
+	iterator begin() {
+		return _container.begin();
+	}
+	const_iterator begin() const {
+		return _container.begin();
+	}
+	iterator end() {
+		return _container.end();
+	}
+	const_iterator end() const {
+		return _container.end();
+	}
+	/*
+	 * capacity
+	 */
+	bool empty() const {
+		return _container.empty();
+	}
+	size_t size() const {
+		return _container.size();
+	}
+	Coe& operator[](const Term& k) {
+		return _container[k];
+	}
+	const Coe& operator[](const Term& k) const {
+		return _container[k];
+	}
+
+	bool IsConstant(const iterator& iter) {
+		return Equal { }(iter.key, _constterm);
+	}
+
+	void insert(Coe coe, Term term) {
+		_IF_TRUE_RETRUN(coe == 0);
+		Coe* pc = _container.get(term);
+		if (pc != nullptr) {
+			(*pc) += coe;
+		} else {
+			_container.set(term, coe);
+		}
+	}
+
+	void insert_constant(Coe coe) {
+		insert(coe, _constterm);
+	}
+
+	iterator find(const Term &x) {
+		return _container.find(x);
+	}
+	const_iterator find(const Term &x) const {
+		return _container.find(x);
+	}
+
+	void plus(const_ref_Self poly) {
+		for (auto& iter : poly) {
+			this->insert(iter.value, iter.key);
+		}
+	}
+
+	void minus(const_ref_Self poly) {
+		for (auto& iter : poly) {
+			this->insert(-(iter->value), iter->key);
+		}
+	}
+
+	void times(const Coe& rhs) {   //overload operator*
+		for (auto& iter : _container) {
+			iter.value *= rhs;
+		}
+	}
+
+	void divide(const Coe& rhs) {  //overload operator/
+		for (auto& iter : _container) {
+			iter.value /= rhs;
+		}
+	}
+
+	void erase() {
+		this->erase();
+	}
+
+	void trim_zero() {
+		const_iterator it_b = _container.begin();
+		const_iterator it_e = _container.end();
+		const_iterator it_t = _container.begin();
+
+		while (it_b != it_e) {
+			if (it_b->value == 0) {  // Criteria checking here
+				it_t = it_b;            // Keep a reference to the iter
+				++it_b;                 // Advance in the map
+				_container.erase(it_t);       // Erase it !!!
+			} else {
+				++it_b;                 // Just move on ...
+			}
+		}
+	}
+
+	void concise() {
+		trim_zero();
+	}
+
+	void show() const {
+		// all the valuable should overload <<
+		std::cout << " size = " << this->size() << "\n";
+		for (auto& iter : this->_container) {
+			std::cout << iter.value << " ";
+			std::cout << iter.key << " ";
+			std::cout << "\n";
+		}
+	}
+};
+
 
 }
 

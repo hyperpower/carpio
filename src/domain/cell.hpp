@@ -104,17 +104,6 @@ public:
 		return res;
 	}
 
-	bool is_in_on(const vt& x, const vt& y = 0, const vt& z = 0) const {
-		return (IsInRange(this->get(_M_, _X_), x, this->get(_P_, _X_), _cc_)
-				&& ((Dim >= 2) ?
-						IsInRange(this->get(_M_, _Y_), y, this->get(_P_, _Y_),
-								_cc_) :
-						true)
-				&& ((Dim == 3) ?
-						IsInRange(this->get(_M_, _Z_), z, this->get(_P_, _Z_),
-								_cc_) :
-						true));
-	}
 protected:
 	static const int INSIDE = 0; // 000000
 	static const int LEFT = 1;   // 000001
@@ -158,20 +147,31 @@ protected:
 	}
 
 public:
-	bool is_in_on(const Point_<vt, Dim>& p) {
+	bool is_in_on(const vt& x, const vt& y = 0, const vt& z = 0) const {
+		return (IsInRange(this->get(_M_, _X_), x, this->get(_P_, _X_), _cc_)
+				&& ((Dim >= 2) ?
+						IsInRange(this->get(_M_, _Y_), y, this->get(_P_, _Y_),
+								_cc_) :
+						true)
+				&& ((Dim == 3) ?
+						IsInRange(this->get(_M_, _Z_), z, this->get(_P_, _Z_),
+								_cc_) :
+						true));
+	}
+	bool is_in_on(const Point_<vt, Dim>& p) const{
 		if (Dim >= 2) {
-			return is_in_on(p.x(), p.y());
+			return this->is_in_on(p.x(), p.y());
 		} else if (Dim >= 3) {
-			return is_in_on(p.x(), p.y(), p.z());
+			return this->is_in_on(p.x(), p.y(), p.z());
 		} else {
 			return false;
 		}
 	}
-	bool is_in_on(const Axes& axes, vt& cor, Range r = _cc_) {
+	bool is_in_on(const Axes& axes, const vt& cor, Range r = _cc_) const {
 		ASSERT(axes < Dim);
 		vt m = this->get(_M_, axes);
 		vt p = this->get(_P_, axes);
-		return IsInRange(m,cor,p , r);
+		return IsInRange(m, cor, p, r);
 	}
 	bool is_in_on(const Segment_<vt, Dim>& seg) {
 		if (Dim >= 2) {

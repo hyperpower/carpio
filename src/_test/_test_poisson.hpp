@@ -6,6 +6,7 @@
 #include "../domain/domain.hpp"
 #include "../calculation/poisson.hpp"
 #include "gtest/gtest.h"
+#include "../io/io_gnuplot_domain.h"
 #include <math.h>
 
 namespace carpio {
@@ -13,6 +14,9 @@ Float coe_set_b(Float x, Float y, Float z) {
 	return 1;
 }
 Float coe_set_f(Float x, Float y, Float z) {
+	if(IsInRange(-0.25, x , 0.0 , _oo_)){
+		return 1;
+	}
 	return 0;
 }
 
@@ -26,24 +30,26 @@ TEST(Poisson, unigrid) {
 	// define unit length
 	Float UL = 1.0;
 	// build grid ------------------
-	Domain_<Float, Float, dim> domain(&shape, UL, 4, 4);
+	Domain_<Float, Float, dim> domain(&shape, UL, 2, 10);
 	domain.build();
 	Poisson_<Float, Float, dim> poisson(&domain, 0, 1, 2);
 	poisson.set_beta_all(coe_set_b);
 	poisson.set_f_all(coe_set_f);
 	// boundary condition
 	Poisson_<Float, Float, dim>::BoundaryCondition bc;
-	bc.set_default_1_bc(10);
+	bc.set_default_1_bc(1);
 	Poisson_<Float, Float, dim>::BoundaryCondition bc2;
-	bc2.set_default_1_bc(0);
-	poisson.set_boundary_condition(0, 0, 1, &bc);
-	poisson.set_boundary_condition(0, 1, 1, &bc2);
-	poisson.set_boundary_condition(0, 2, 1, &bc);
-	poisson.set_boundary_condition(0, 3, 1, &bc2);
+	bc2.set_default_2_bc(0);
+	Poisson_<Float, Float, dim>::BoundaryCondition bc21;
+	bc21.set_default_2_bc(1);
+	poisson.set_boundary_condition(0, 0, 1, &bc2);
+	poisson.set_boundary_condition(0, 1, 1, &bc);
+	poisson.set_boundary_condition(0, 2, 1, &bc2);
+	poisson.set_boundary_condition(0, 3, 1, &bc21);
 	poisson.set_phi_ghost();
-	cout << "solve -----------\n";
+	std::cout << "solve -----------\n";
 	poisson.solve();
-	cout << "end solve -------\n";
+	std::cout << "end solve -------\n";
 	// show ================================
 	std::list<Gnuplot_actor> lga;
 	Gnuplot_actor ga;
@@ -91,7 +97,7 @@ TEST(DISABLED_Poisson, adpgrid) {
 	poisson.set_phi_ghost();
 	std::cout << "solve -----------\n";
 	poisson.solve();
-	cout << "end solve -------\n";
+	std::cout << "end solve -------\n";
 	// show ================================
 	std::list<Gnuplot_actor> lga;
 	Gnuplot_actor ga;
@@ -116,7 +122,7 @@ TEST(DISABLED_Poisson, adpgrid) {
 Float f_fun(Float x, Float y, Float z) {
 	Float k = 3;
 	Float l = 3;
-	Float pi = _PI_;
+	Float pi = PI;
 	//return 0;
 	return -pi * pi * (k * k + l * l) * sin(pi * k * x) * sin(pi * l * y);
 }
@@ -147,7 +153,7 @@ TEST(DISABLED_Poisson, test2_unigrid) {
 	poisson.set_phi_ghost();
 	std::cout << "solve -----------\n";
 	poisson.solve();
-	cout << "end solve -------\n";
+	std::cout << "end solve -------\n";
 	// show ================================
 	std::list<Gnuplot_actor> lga;
 	Gnuplot_actor ga;

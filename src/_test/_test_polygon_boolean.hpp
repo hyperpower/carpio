@@ -454,14 +454,14 @@ void test_list() {
 
 	it = mylist.begin();  //                                 1 2 3 4 5
 	++it;                 // it points now to number 2         ^
-	assert(*it == 2);
+	ASSERT(*it == 2);
 	it = mylist.insert(it, 10);   // 1 10 2 3 4 5
-	assert(*it == 10);
-	assert(*(++it) == 2);
+	ASSERT(*it == 10);
+	ASSERT(*(++it) == 2);
 
 	it = mylist.end();
 	++it;
-	assert(*it == 1);
+	ASSERT(*it == 1);
 	cout << "list test pass ==============\n";
 }
 
@@ -484,37 +484,37 @@ void test_list() {
 //	ShowWAType(wt);
 //	int ass;
 //	ass = WA_IN | WA_OUT_R | WA_HEAD_C | WA_HEAD_S | WA_CLIP | WA_SUBJ;
-//	assert(ass == wt);
+//	ASSERT(ass == wt);
 //	cout << "pass 2  =========================\n";
 //	so.reconstruct(1.0, 0.5, 0.0, 0.5);
 //	wt = IntersectWAType(sc, so);
 //	ShowWAType(wt);
 //	ass = WA_IN | WA_OUT_R | WA_HEAD_S | WA_SUBJ;
-//	assert(ass == wt);
+//	ASSERT(ass == wt);
 //	cout << "pass 3  =========================\n";
 //	so.reconstruct(0.5, 0.0, 0.5, 1.0);
 //	wt = IntersectWAType(sc, so);
 //	ShowWAType(wt);
 //	ass = WA_IN | WA_OUT_R | WA_TAIL_S | WA_SUBJ;
-//	assert(ass == wt);
+//	ASSERT(ass == wt);
 //	cout << "pass 4  =========================\n";
 //	so.reconstruct(0.0, 0.5, 1.0, 0.5);
 //	wt = IntersectWAType(sc, so);
 //	ShowWAType(wt);
 //	ass = WA_OUT | WA_IN_R | WA_HEAD_S | WA_SUBJ;
-//	assert(ass == wt);
+//	ASSERT(ass == wt);
 //	cout << "pass 5  =========================\n";
 //	so.reconstruct(0.0, 1.0, 1.0, 1.0);
 //	wt = IntersectWAType(sc, so);
 //	ShowWAType(wt);
 //	ass = WA_OUT | WA_IN_R | WA_HEAD_C | WA_HEAD_S | WA_CLIP | WA_SUBJ;
-//	assert(ass == wt);
+//	ASSERT(ass == wt);
 //	cout << "pass 6  =========================\n";
 //	so.reconstruct(0.0, 0.0, 1.0, 0.0);
 //	wt = IntersectWAType(sc, so);
 //	ShowWAType(wt);
 //	ass = WA_OUT | WA_IN_R | WA_TAIL_C | WA_HEAD_S | WA_CLIP | WA_SUBJ;
-//	assert(ass == wt);
+//	ASSERT(ass == wt);
 //	cout << "pass 7  =========================\n";
 //	//show segments
 //	std::list<Gnuplot_actor> lga;

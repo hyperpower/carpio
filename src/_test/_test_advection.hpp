@@ -1,12 +1,14 @@
 #ifndef __TEST_ADVECTION_H_
 #define __TEST_ADVECTION_H_
 
-#include "../io/gnuplot.h"
+#include "../io/io_gnuplot_domain.h"
 
 #include "../domain/domain.hpp"
 #include "../calculation/advection.hpp"
 #include "gtest/gtest.h"
+
 #include <math.h>
+using namespace std;
 
 namespace carpio {
 Float v_half1half0(Float x, Float y, Float z) {

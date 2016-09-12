@@ -11,12 +11,7 @@
 using namespace std;
 namespace carpio {
 
-Float set_v_1(Float x, Float y, Float z) {
-	return 1.0;
-}
-Float set_v_0(Float x, Float y, Float z) {
-	return 0.0;
-}
+
 
 Float exact_case1(Float x, Float y, Float z) {
 	if (y >= x) {

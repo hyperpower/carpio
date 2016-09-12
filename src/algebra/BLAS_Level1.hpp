@@ -24,10 +24,10 @@ int rotg(          //
 		{
 	VALUE r, roe, scale, z;
 	roe = sb;
-	if (ABS(sa) > ABS(sb)) {
+	if (Abs(sa) > Abs(sb)) {
 		roe = sa;
 	}
-	scale = ABS(sa) + ABS(sb);
+	scale = Abs(sa) + Abs(sb);
 	if (scale == 0.0) {
 		c = 1.0;
 		s = 0.0;
@@ -42,10 +42,10 @@ int rotg(          //
 		c = sa / r;
 		s = sb / r;
 		z = 1.0;
-		if (ABS(sa) > ABS(sb)) {
+		if (Abs(sa) > Abs(sb)) {
 			z = s;
 		}
-		if (ABS(sb) > ABS(sa) && c != 0.0) {
+		if (Abs(sb) > Abs(sa) && c != 0.0) {
 			z = 1.0 / c;
 		}
 	}
@@ -100,7 +100,7 @@ int srotmg( //
 		sq2 = sp2 * sy1;
 		sq1 = sp1 * sx1;
 		//
-		if (ABS(sq1) > ABS(sq2)) {
+		if (Abs(sq1) > Abs(sq2)) {
 			sh21 = -sy1 / sx1;
 			sh12 = sp2 / sp1;
 			//
@@ -162,7 +162,7 @@ int srotmg( //
 		}
 
 		if (sd2 != zero) {
-			while ((ABS(sd2) <= rgamsq) || (ABS(sd2) >= gamsq))
+			while ((Abs(sd2) <= rgamsq) || (Abs(sd2) >= gamsq))
 				if (sflag == zero) {
 					sh11 = one;
 					sh22 = one;
@@ -172,7 +172,7 @@ int srotmg( //
 					sh12 = one;
 					sflag = -one;
 				}
-			if (abs(sd2) <= rgamsq) {
+			if (Abs(sd2) <= rgamsq) {
 				sd2 = sd2 * gam * gam;
 				sh21 = sh21 / gam;
 				sh22 = sh22 / gam;
@@ -374,20 +374,20 @@ VALUE asum( //
 		int LN = 6;
 		int m = (n - 1) % LN;
 		for (int i = 0; i <= m; ++i) {
-			asum = asum + ABS(sx[i]);
+			asum = asum + Abs(sx[i]);
 		}
 		if (n <= LN) {
 			return asum;
 		}
 		int mp1 = m + 1;
 		for (int i = mp1; i < n; i += LN) {  //unrolled loop
-			asum = asum + ABS(sx[i]) + ABS(sx[i + 1]) + ABS(sx[i + 2])
-					+ ABS(sx[i + 3]) + ABS(sx[i + 4]) + ABS(sx[i + 5]);
+			asum = asum + Abs(sx[i]) + Abs(sx[i + 1]) + Abs(sx[i + 2])
+					+ Abs(sx[i + 3]) + Abs(sx[i + 4]) + Abs(sx[i + 5]);
 		}
 	} else {
 		int nincx = n * incx;
 		for (int i = 0; i < nincx; i += incx) {
-			asum = asum + ABS(sx[i]);
+			asum = asum + Abs(sx[i]);
 		}
 	}
 	return asum;
@@ -412,18 +412,18 @@ VALUE amax( //
 	}
 	if (incx == 1) {
 		//increase = 1
-		max = ABS(sx[0]);
+		max = Abs(sx[0]);
 		for (int i = 1; i < n; ++i) {
-			if (ABS(sx[i]) > max) {
-				max = ABS(sx[i]);
+			if (Abs(sx[i]) > max) {
+				max = Abs(sx[i]);
 			}
 		}
 	} else {
 		int nincx = n * incx;
-		max = ABS(sx[0]);
+		max = Abs(sx[0]);
 		for (int i = 0; i < nincx; i += incx) {
-			if (ABS(sx[i]) > max) {
-				max = ABS(sx[i]);
+			if (Abs(sx[i]) > max) {
+				max = Abs(sx[i]);
 			}
 		}
 	}
@@ -603,11 +603,11 @@ VALUE nrmp( //
 	if (n <= 0 || incx <= 0) {
 		return norm;
 	} else if (n == 1) {
-		norm = ABS(x[0]);
+		norm = Abs(x[0]);
 	} else {
 		for (int i = 0; i < (n - 1) * incx; i += incx) {
 			if (x[i] != zero) {
-				norm += pow(ABS(x[i]), p);
+				norm += pow(Abs(x[i]), p);
 			}
 		}
 		norm = pow(norm, 1.0 / double(p));

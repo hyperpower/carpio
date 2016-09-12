@@ -209,7 +209,7 @@ protected:
 				(*pfun)(pn, utp);
 				_IF_TRUE_RETRUN(pn==nullptr);
 				if (pn->has_child()) {
-					for (int i = 0; i < NumChildren; i++) {
+					for (st i = 0; i < NumChildren; i++) {
 						pNode c = pn->child[i];
 						if (c != nullptr) {
 							_traversal(c, pfun, utp);
@@ -227,10 +227,44 @@ protected:
 				fun(pn, args);
 				_IF_TRUE_RETRUN(pn==nullptr);
 				if (pn->has_child()) {
-					for (int i = 0; i < NumChildren; i++) {
+					for (st i = 0; i < NumChildren; i++) {
 						pNode c = pn->child[i];
 						if (c != nullptr) {
 							_traversal(c, fun, args);
+						}
+					}
+				}
+			}
+		}
+
+		void _traversal(pNode& pn, std::function<void(pNode&)> fun) {
+			if (pn == nullptr) {
+				return;
+			} else {
+				fun(pn);
+				_IF_TRUE_RETRUN(pn==nullptr);
+				if (pn->has_child()) {
+					for (st i = 0; i < NumChildren; i++) {
+						pNode c = pn->child[i];
+						if (c != nullptr) {
+							_traversal(c, fun);
+						}
+					}
+				}
+			}
+		}
+
+		void _traversal(const_pNode& pn, std::function<void(const_pNode&)> fun) const{
+			if (pn == nullptr) {
+				return;
+			} else {
+				fun(pn);
+				_IF_TRUE_RETRUN(pn==nullptr);
+				if (pn->has_child()) {
+					for (st i = 0; i < NumChildren; i++) {
+						const_pNode c = pn->child[i];
+						if (c != nullptr) {
+							_traversal(c, fun);
 						}
 					}
 				}
@@ -290,10 +324,10 @@ protected:
 			_path = _p;
 
 			data = nullptr;
-			for (int i = 0; i < this->NumChildren; i++) {
+			for (st i = 0; i < this->NumChildren; i++) {
 				child[i] = nullptr;
 			}
-			for (int i = 0; i < this->NumNeighbors; i++) {
+			for (st i = 0; i < this->NumNeighbors; i++) {
 				neighbor[i] = nullptr;
 			}
 		}
@@ -320,7 +354,7 @@ protected:
 				return;
 			}
 			if (pn->has_child()) {
-				for (int i = 0; i < NumChildren; i++) {
+				for (st i = 0; i < NumChildren; i++) {
 					pNode ch = pn->child[i];
 					if (ch != nullptr) {
 						_Delete(ch);
@@ -1035,18 +1069,18 @@ protected:
 		 *  data
 		 *  overload data functions
 		 */
-		void new_data(const st& nc, const st& nf, const st& nv, const st& nutp, const st& nfutp=0) {
+		void new_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
 			if(this->data ==nullptr) {
-				this->data = new Data(nc,nf,nv,nutp, nfutp);
+				this->data = new Data(nc,nf,nv,nutp);
 			} else {
-				this->data->reconstruct(nc,nf,nv,nutp, nfutp);
+				this->data->reconstruct(nc,nf,nv,nutp);
 			}
 		}
-		void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp, const st& nfutp=0) {
+		void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
 			if(this->data ==nullptr) {
-				this->data = new Data(nc,nf,nv,nutp, nfutp);
+				this->data = new Data(nc,nf,nv,nutp);
 			} else {
-				this->data->resize(nc,nf,nv,nutp, nfutp);
+				this->data->resize(nc,nf,nv,nutp);
 			}
 		}
 		pData pdata() {
@@ -1121,7 +1155,7 @@ protected:
 						if(pn->data != nullptr) {
 							if(pn->data->has_center(i)) {
 								nullflag = false;
-								sum= sum+ pn->cd(i) * pn->cell->volume();
+								sum+= pn->cd(i) * pn->cell->volume();
 							}
 						}
 					}
@@ -1484,8 +1518,15 @@ public:
 		return direction;
 	}
 	vt area() const {
-		return pnode->face_area(direction);
+		ASSERT(pnode!=nullptr);
+		ASSERT(pneighbor!=nullptr);
+		vt res = pnode->face_area(direction);
+		if (this->face_type == _CoarseFine_) {
+			res = pneighbor->face_area(Opposite(this->direction));
+		}
+		return res;
 	}
+
 	void set(pNode pn, pNode pnei, const Direction& d, const FaceType& ft) {
 		pnode = pn;
 		pneighbor = pnei;
@@ -1527,6 +1568,25 @@ void Traversal(Node*& pn, std::function<Ret(Node*&, Args)> fun, Args &args) {
 		}
 	}
 }
+
+template<class Node>
+void Traversal(Node*& pn, std::function<void(Node*&)> fun) {
+	if (pn == nullptr) {
+		return;
+	} else {
+		fun(pn);
+		_IF_TRUE_RETRUN(pn == nullptr);
+		if (pn->has_child()) {
+			for (st i = 0; i < Node::NumChildren; i++) {
+				Node*& c = pn->child[i];
+				if (c != nullptr) {
+					Traversal(c, fun);
+				}
+			}
+		}
+	}
+}
+
 
 }
 //

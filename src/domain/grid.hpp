@@ -27,7 +27,12 @@ public:
 	typedef Data_<VALUE, Dim> Data;
 	typedef Data *pData;
 	typedef Node_<COO_VALUE, VALUE, DIM> Node;
+	typedef Node_<COO_VALUE, VALUE, DIM>& ref_Node;
+	typedef const Node_<COO_VALUE, VALUE, DIM>& const_ref_Node;
+	typedef const Node_<COO_VALUE, VALUE, DIM> const_Node;
 	typedef Node_<COO_VALUE, VALUE, DIM> *pNode;
+	typedef const Node_<COO_VALUE, VALUE, DIM> * const_pNode;
+
 	typedef Path_<Dim> Path;
 	typedef Face_<Node, pNode> Face;
 	typedef Face_<Node, pNode> *pFace;
@@ -277,25 +282,128 @@ public:
 	 * new data
 	 */
 	void new_data_on_leaf(const st& nc, const st& nf, const st& nv,
-			const st& nutp, const st& nfutp =0) {
+			const st& nutp) {
 		for (iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
 				++iter) {
 			pNode pn = iter.get_pointer();
 			if (pn != nullptr) {
-				pn->new_data(nc, nf, nv, nutp, nfutp);
+				pn->new_data(nc, nf, nv, nutp);
 			}
 		}
 	}
 	void resize_data_on_leaf(const st& nc, const st& nf, const st& nv,
-			const st& nutp, const st& nfutp =0) {
+			const st& nutp) {
 		for (iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
 				++iter) {
 			pNode pn = iter.get_pointer();
 			if (pn != nullptr) {
-				pn->resize_data(nc, nf, nv, nutp, nfutp);
+				pn->resize_data(nc, nf, nv, nutp);
 			}
 		}
 	}
+	/*
+	 * get grid range
+	 */
+	cvt max(Axes a) const {
+		cvt max;
+		int f = 0;
+		for (const_iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
+				++iter) {
+			const_pNode pn = iter.get_pointer();
+			if (pn != nullptr) {
+				cvt lm = pn->p(_P_, a);
+				if (f == 0) {
+					max = lm;
+					f = 1;
+				} else if (lm > max) {
+					max = lm;
+				}
+			}
+		}
+		return max;
+	}
+	cvt min(Axes a) const {
+		cvt min;
+		int f = 0;
+		for (const_iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
+				++iter) {
+			const_pNode pn = iter.get_pointer();
+			if (pn != nullptr) {
+				cvt lm = pn->p(_M_, a);
+				if (f == 0) {
+					min = lm;
+					f = 1;
+				} else if (lm < min) {
+					min = lm;
+				}
+			}
+		}
+		return min;
+	}
+	/*
+	 * for each
+	 */
+	typedef std::function<void(const_ref_Node)> Fun_const_ref_Node;
+	typedef std::function<void(ref_Node)> Fun_ref_Node;
+	typedef std::function<void(const_pNode)> Fun_const_pNode;
+	typedef std::function<void(pNode)> Fun_pNode;
+
+	void for_each_root(Fun_const_ref_Node fun) const {
+		for (st i = 0; i < nodes.size(); i++) {
+			const_pNode pn = nodes.at_1d(i);
+			if (pn != nullptr) {
+				fun((*pn));
+			}
+		}
+	}
+
+	void for_each_root(Fun_ref_Node fun) {
+		for (st i = 0; i < nodes.size(); i++) {
+			pNode pn = nodes.at_1d(i);
+			if (pn != nullptr) {
+				fun((*pn));
+			}
+		}
+	}
+	void for_each_root(Fun_const_pNode fun) const {
+		for (st i = 0; i < nodes.size(); i++) {
+			const_pNode pn = nodes.at_1d(i);
+			if (pn != nullptr) {
+				fun(pn);
+			}
+		}
+	}
+
+	void for_each_root(Fun_pNode fun) {
+		for (st i = 0; i < nodes.size(); i++) {
+			pNode pn = nodes.at_1d(i);
+			if (pn != nullptr) {
+				fun(pn);
+			}
+		}
+	}
+
+	void for_each_leaf(Fun_pNode fun) {
+		// this function can be improved by using traversal
+		for (iterator_leaf iter = this->begin_leaf(); iter != this->end_leaf();
+				++iter) {
+			pNode pn = iter.get_pointer();
+			if (pn != nullptr) {
+				fun(pn);
+			}
+		}
+	}
+
+	void for_each_leaf(Fun_const_pNode fun) const {
+		for (const_iterator_leaf iter = this->begin_leaf();
+				iter != this->end_leaf(); ++iter) {
+			const_pNode pn = iter.get_pointer();
+			if (pn != nullptr) {
+				fun(pn);
+			}
+		}
+	}
+
 	/*
 	 *  iterator leaf node
 	 */
@@ -666,8 +774,9 @@ public:
 		}
 		return nullptr;
 	}
+
 	/*
-	 * get leaf on
+	 * get leaf on Axes
 	 */
 	std::list<pNode> get_leaf(Axes aix, const cvt& x) {
 		std::list<pNode> ret;
@@ -697,7 +806,7 @@ public:
 	}
 	st count_non_empty() const {
 		st res = 0;
-		for (int i = 0; i < nodes.size(); i++) {
+		for (st i = 0; i < nodes.size(); i++) {
 			if (nodes.at_1d(i) != nullptr) {
 				res++;
 			}
@@ -706,7 +815,7 @@ public:
 	}
 	st count_leaf() const {
 		st res = 0;
-		for (int i = 0; i < nodes.size(); i++) {
+		for (st i = 0; i < nodes.size(); i++) {
 			if (nodes.at_1d(i) != nullptr) {
 				res += nodes.at_1d(i)->count_leaf();
 			}
@@ -741,7 +850,7 @@ public:
 		int _maxlevel = pt->max_level();
 		arrayList_int num_node(_maxlevel + 1);
 		arrayList_int num_leaf(_maxlevel + 1);
-		for (int i = 0; i < size(); i++) {
+		for (st i = 0; i < size(); i++) {
 			pNode tree = this->nodes.at_1d(i);
 			if (tree != nullptr) {
 				for (int il = 0; il <= _maxlevel; il++) {

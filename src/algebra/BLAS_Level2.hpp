@@ -8,9 +8,9 @@
 #ifndef BLAS_LEVEL2_H_
 #define BLAS_LEVEL2_H_
 
-#include "../TypeDef.h"
-#include "Arithmetic.h"
-#include "../Utility/ArrayList.h"
+#include "../carpio_define.hpp"
+#include "arithmetic.hpp"
+#include "array_list.hpp"
 
 namespace Larus {
 /**

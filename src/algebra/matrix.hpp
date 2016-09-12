@@ -269,12 +269,12 @@ MatrixT<T>::~MatrixT() {
 }
 template<typename T>
 const ArrayListT<T>& MatrixT<T>::operator[](st index) const {
-	assert(index >= 0 && index < m_iLen);
+	ASSERT(index >= 0 && index < m_iLen);
 	return m_mp[index];
 }
 template<typename T>
 ArrayListT<T>& MatrixT<T>::operator[](st index) {
-	assert(index >= 0 && index < m_iLen);
+	ASSERT(index >= 0 && index < m_iLen);
 	return m_mp[index];
 }
 template<typename T>
@@ -325,56 +325,56 @@ st MatrixT<T>::size_j() const {
 }
 template<typename T>
 T MatrixT<T>::get(st i, st j) {
-	assert(i >= 0 && i < m_iLen);
-	assert(j >= 0 && j < m_jLen);
+	ASSERT(i >= 0 && i < m_iLen);
+	ASSERT(j >= 0 && j < m_jLen);
 	return m_mp[i][j];
 }
 template<typename T>
 typename MatrixT<T>::reference MatrixT<T>::operator()(size_type i,
 		size_type j) {
-	assert(i >= 0 && i < m_iLen);
-	assert(j >= 0 && j < m_jLen);
+	ASSERT(i >= 0 && i < m_iLen);
+	ASSERT(j >= 0 && j < m_jLen);
 	return m_mp[i][j];
 }
 template<typename T>
 typename MatrixT<T>::const_reference MatrixT<T>::operator()(size_type i,
 		size_type j) const {
-	assert(i >= 0 && i < m_iLen);
-	assert(j >= 0 && j < m_jLen);
+	ASSERT(i >= 0 && i < m_iLen);
+	ASSERT(j >= 0 && j < m_jLen);
 	return m_mp[i][j];
 }
 
 template<typename T>
 T& MatrixT<T>::at(st i, st j) {
-	assert(i >= 0 && i < m_iLen);
-	assert(j >= 0 && j < m_jLen);
+	ASSERT(i >= 0 && i < m_iLen);
+	ASSERT(j >= 0 && j < m_jLen);
 	return m_mp[i][j];
 }
 
 template<typename T>
 const T& MatrixT<T>::at(st i, st j) const {
-	assert(i >= 0 && i < m_iLen);
-	assert(j >= 0 && j < m_jLen);
+	ASSERT(i >= 0 && i < m_iLen);
+	ASSERT(j >= 0 && j < m_jLen);
 	return m_mp[i][j];
 }
 
 template<typename T>
 T* MatrixT<T>::getpValue(st i, st j) {
-	assert(i >= 0 && i < m_iLen);
-	assert(j >= 0 && j < m_jLen);
+	ASSERT(i >= 0 && i < m_iLen);
+	ASSERT(j >= 0 && j < m_jLen);
 	return &m_mp[i][j];
 }
 
 template<typename T>
 void MatrixT<T>::set(st i, st j, const T& value) {
-	assert(i >= 0 && i < m_iLen);
-	assert(j >= 0 && j < m_jLen);
+	ASSERT(i >= 0 && i < m_iLen);
+	ASSERT(j >= 0 && j < m_jLen);
 	m_mp[i][j] = value;
 }
 
 template<typename T>
 void MatrixT<T>::set_row(st i, const T& value) {
-	assert(i >= 0 && i < m_iLen);
+	ASSERT(i >= 0 && i < m_iLen);
 	for (size_type j = 0; j < m_jLen; j++) {
 		m_mp[i][j] = value;
 	}
@@ -382,7 +382,7 @@ void MatrixT<T>::set_row(st i, const T& value) {
 
 template<typename T>
 void MatrixT<T>::set_col(st j, const T& value) {
-	assert(j >= 0 && j < m_jLen);
+	ASSERT(j >= 0 && j < m_jLen);
 	for (size_type i = 0; i < m_iLen; i++) {
 		m_mp[i][j] = value;
 	}
@@ -399,8 +399,8 @@ void MatrixT<T>::assign(const T& value) {
 
 template<typename T>
 void MatrixT<T>::swap(st i1, st j1, st i2, st j2) {
-	assert(i1 >= 0 && i1 < m_iLen && i2 >= 0 && i2 < m_iLen);
-	assert(j1 >= 0 && j1 < m_jLen && j2 >= 0 && j2 < m_jLen);
+	ASSERT(i1 >= 0 && i1 < m_iLen && i2 >= 0 && i2 < m_iLen);
+	ASSERT(j1 >= 0 && j1 < m_jLen && j2 >= 0 && j2 < m_jLen);
 	if (i1 == i2 && j1 == j2) {
 		return;
 	}
@@ -424,7 +424,7 @@ st MatrixT<T>::count_equal(T value) {
 }
 template<typename T>
 void MatrixT<T>::append_row(const ArrayListT<T> &a) {
-	assert(a.size()==m_jLen||m_mp==NULL);
+	ASSERT(a.size()==m_jLen||m_mp==NULL);
 	if (m_mp == NULL) {
 		m_iLen = 1;
 		m_jLen = a.size();
@@ -457,7 +457,7 @@ void MatrixT<T>::append_row(const ArrayListT<T> &a) {
 }
 template<typename T>
 void MatrixT<T>::appendCol(const ArrayListT<T> &a) {
-	assert(a.size()==m_iLen||m_mp==NULL);
+	ASSERT(a.size()==m_iLen||m_mp==NULL);
 	if (m_mp == NULL) {
 		m_iLen = a.size();
 		m_jLen = 1;
@@ -491,8 +491,8 @@ void MatrixT<T>::appendCol(const ArrayListT<T> &a) {
 template<typename T>
 void MatrixT<T>::insert_row_back(MatrixT<T>::size_type ii,
 		const ArrayListT<T>& a) {
-	assert(ii >= 0 && ii < m_iLen);
-	assert(a.Len() == m_jLen);
+	ASSERT(ii >= 0 && ii < m_iLen);
+	ASSERT(a.Len() == m_jLen);
 	m_iLen += 1;
 	ArrayListT<T> *tmp = new ArrayListT<T> [m_iLen];
 	for (size_type i = 0; i < m_iLen; i++) {
@@ -519,8 +519,8 @@ void MatrixT<T>::insert_row_back(MatrixT<T>::size_type ii,
 template<typename T>
 void MatrixT<T>::insert_col_back(MatrixT<T>::size_type jj,
 		const ArrayListT<T>& a) {
-	assert(jj >= 0 && jj < m_jLen);
-	assert(a.Len() == m_iLen);
+	ASSERT(jj >= 0 && jj < m_jLen);
+	ASSERT(a.Len() == m_iLen);
 	m_jLen += 1;
 	ArrayListT<T> *tmp = new ArrayListT<T> [m_iLen];
 	for (size_type i = 0; i < m_iLen; i++) {
@@ -546,7 +546,7 @@ void MatrixT<T>::insert_col_back(MatrixT<T>::size_type jj,
 }
 template<typename T>
 void MatrixT<T>::delete_row(MatrixT<T>::size_type ii) {
-	assert(ii >= 0 && ii < m_iLen);
+	ASSERT(ii >= 0 && ii < m_iLen);
 	m_iLen -= 1;
 	if (m_iLen == 0) {
 		m_iLen = 0;
@@ -576,7 +576,7 @@ void MatrixT<T>::delete_row(MatrixT<T>::size_type ii) {
 }
 template<typename T>
 void MatrixT<T>::delete_col(MatrixT<T>::size_type jj) {
-	assert(jj >= 0 && jj < m_iLen);
+	ASSERT(jj >= 0 && jj < m_iLen);
 	m_jLen -= 1;
 	if (m_jLen == 0) {
 		m_iLen = 0;
@@ -658,8 +658,8 @@ MatrixV<T>::MatrixV(st iLen, st jLen, T **value) :
 
 template<typename T>
 MatrixV<T> MatrixV<T>::operator+(const MatrixV<T> &a) {
-	assert(a.iLen() == this->iLen());
-	assert(a.jLen() == this->jLen());
+	ASSERT(a.iLen() == this->iLen());
+	ASSERT(a.jLen() == this->jLen());
 	MatrixT<T> sum(this->m_iLen, this->m_jLen);
 	for (size_type i = 0; i < this->m_iLen; i++) {
 		for (size_type j = 0; j < this->m_jLen; j++) {
@@ -670,8 +670,8 @@ MatrixV<T> MatrixV<T>::operator+(const MatrixV<T> &a) {
 }
 template<typename T>
 MatrixV<T> MatrixV<T>::operator-(const MatrixV<T> &a) {
-	assert(a.iLen() == this->iLen());
-	assert(a.jLen() == this->jLen());
+	ASSERT(a.iLen() == this->iLen());
+	ASSERT(a.jLen() == this->jLen());
 	MatrixT<T> sum(this->m_iLen, this->m_jLen);
 	for (size_type i = 0; i < this->m_iLen; i++) {
 		for (size_type j = 0; j < this->m_jLen; j++) {
@@ -682,7 +682,7 @@ MatrixV<T> MatrixV<T>::operator-(const MatrixV<T> &a) {
 }
 template<typename T>
 MatrixV<T> MatrixV<T>::operator*(const MatrixV<T> &a) {
-	assert(a.iLen() == this->jLen());
+	ASSERT(a.iLen() == this->jLen());
 	size_type nrow = this->m_iLen;
 	size_type ncol = a.jLen();
 	MatrixT<T> res(nrow, ncol);
@@ -715,7 +715,7 @@ void MatrixV<T>::show() const {
 //===============================================
 template<typename T>
 ArrayListV<T> operator*(const MatrixV<T> &m, const ArrayListV<T> &a) {
-	assert(m.jLen() == a.size());
+	ASSERT(m.jLen() == a.size());
 	arrayList res(a.size());
 	for (int i = 0; i < m.iLen(); i++) {
 		for (int j = 0; j < m.jLen(); j++) {

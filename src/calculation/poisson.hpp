@@ -219,7 +219,7 @@ public:
 
 		// interpolate beta f
 		Exp expb = Interpolate::OnFace(pori, dir, 1);
-		Float beta_f = expb.subsitute(_beta_idx);
+		Float beta_f = expb.substitute(_beta_idx);
 
 		Exp expg = Interpolate::OnFace_Gradient(pori, dir, 2);
 		expg.times(sign * beta_f);
@@ -317,7 +317,7 @@ public:
 				PairFE pairn(fn, pexpn);
 				lpexp.push_back(pairn);
 			}
-			if(flag){
+			if (flag) {
 				delete pexp;
 			}
 		}
@@ -447,7 +447,7 @@ public:
 	}
 
 	int _bulid_matrix(Mat& mat, Arr& b) { //
-        //1 Traverse face
+		//1 Traverse face
 		pGrid pgrid = this->_pdomain->p_grid();
 		for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
 				it != pgrid->end_leaf(); ++it) {
@@ -562,7 +562,18 @@ public:
 #endif
 		//gnuplot_show_ylog(lr);
 		//put the value back
-		x.show();
+		b.show();
+		std::list<Gnuplot_actor> lga;
+		Gnuplot_actor ga;
+		GnuplotActor_MatrixSCR(ga, mat);
+		lga.push_back(ga);
+		Gnuplot gp;
+		gp.set_equal_ratio();
+		//gp.set_xrange(2.0,3.0);
+		//gp.set_yrange(1.5,2.5);
+		//gp.set_cbrange(-2.0, 2.0);
+		gp.plot(lga);
+
 		_arr_to_grid(x);
 		return 1;
 	}

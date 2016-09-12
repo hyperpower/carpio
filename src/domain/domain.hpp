@@ -64,7 +64,10 @@ public:
 	typedef Data_<vt, Dim> Data;
 	typedef Data *pData;
 	typedef Node_<cvt, vt, Dim> Node;
+	typedef Node_<cvt, vt, Dim>& ref_Node;
+	typedef const Node_<cvt, vt, Dim>& const_ref_Node;
 	typedef Node_<cvt, vt, Dim> *pNode;
+	typedef const Node_<cvt, vt, Dim>* const_pNode;
 	typedef Ghost_<cvt, vt, Dim> Ghost;
 	typedef Ghost_<cvt, vt, Dim> *pGhost;
 	typedef const Ghost_<cvt, vt, Dim> * const_pGhost;
@@ -92,6 +95,11 @@ public:
 
 	typedef std::function<vt(cvt, cvt, cvt)> Function;
 
+	typedef std::function<void(const_ref_Node)> Fun_const_ref_Node;
+	typedef std::function<void(ref_Node)> Fun_ref_Node;
+	typedef std::function<void(const_pNode)> Fun_const_pNode;
+	typedef std::function<void(pNode)> Fun_pNode;
+
 public:
 	// data
 	// 2D : the domain is bounded by a shape
@@ -107,6 +115,7 @@ public:
 	pBoundaryIndex _pbindex;
 	// Ghost nodes
 	pGhost _pghost;
+
 
 protected:
 
@@ -150,8 +159,9 @@ public:
 		//_padaptive->adapt_full();
 	}
 
-	Domain_(pShape bound, const std::list<pShape>& l_pshape_inner, cvt unit_length, st minl, st maxl) :
-			_pshape_bound(bound), _l_pshape_inner(l_pshape_inner){
+	Domain_(pShape bound, const std::list<pShape>& l_pshape_inner,
+			cvt unit_length, st minl, st maxl) :
+			_pshape_bound(bound), _l_pshape_inner(l_pshape_inner) {
 		_new_grid(unit_length);
 		_new_adaptive(minl, maxl);
 		_new_boundary_index();
@@ -287,7 +297,7 @@ public:
 						pg->p(_C_, _Z_));
 			}
 		};
-		this->p_ghost()->for_each_ghost_node(_fun);
+		this->p_ghost()->for_each_node(_fun);
 	}
 	void set_val(st idx, Function fun) {
 		this->set_val_grid(idx, fun);
@@ -303,22 +313,34 @@ public:
 				st si = node.second.shape_idx;
 				st segi = node.second.seg_idx;
 				const_pBoundaryCondition pbc = this->find_bc(si, segi, idx);
-				pg->cd(idx) = pbc->get_val(pg->p(_C_, _X_), pg->p(_C_, _Y_),
-						pg->p(_C_, _Z_));
+				if(pbc->get_type() == BoundaryCondition::_BC1_) {
+					pg->cd(idx) = pbc->get_val(pg->p(_C_, _X_), pg->p(_C_, _Y_),
+							pg->p(_C_, _Z_));
+				} else { //bc 2
+					typename Ghost::GhostID gid = Ghost::ToGhostID(pg);
+					ASSERT(gid.step == 0);
+					const_pNode po = pg->father;
+					Axes a = FaceDirectionToAxes(gid.direction);
+					vt val = pbc->get_val(pg->cp(_X_), pg->cp(_Y_),
+							pg->cp(_Z_), a);
+					cvt dl = (po->cp(a) - pg->cp(a));
+					// pg = po - val*dl
+					pg->cd(idx) = po->cd(idx) - val*dl;
+				}
 			}
 		};
-		this->p_ghost()->for_each_ghost_node(_fun);
+		this->p_ghost()->for_each_node(_fun);
 	}
 	/*
 	 * new data
 	 */
-	void new_data(const st& nc, const st& nf, const st& nv, const st& nutp, const st& nfutp = 0) {
-		this->_pgrid->new_data_on_leaf(nc, nf, nv, nutp, nfutp);
-		this->_pghost->new_data(nc, nf, nv, nutp, nfutp);
+	void new_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+		this->_pgrid->new_data_on_leaf(nc, nf, nv, nutp);
+		this->_pghost->new_data(nc, nf, nv, nutp);
 	}
-	void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp, const st& nfutp =0) {
-		this->_pgrid->resize_data_on_leaf(nc, nf, nv, nutp, nfutp);
-		this->_pghost->resize_data(nc, nf, nv, nutp, nfutp);
+	void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp) {
+		this->_pgrid->resize_data_on_leaf(nc, nf, nv, nutp);
+		this->_pghost->resize_data(nc, nf, nv, nutp);
 	}
 };
 

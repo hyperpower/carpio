@@ -11,6 +11,7 @@
 #include "../carpio_define.hpp"
 #include "array_list.hpp"
 #include "matrix.hpp"
+#include "arithmetic.hpp"
 
 namespace carpio {
 
@@ -122,6 +123,10 @@ public:
 		dim_[1] = N;
 	}
 
+	vt* get_nz_pointer() {
+		return this->val_.getPointer();
+	}
+
 	vt& val(st i) {
 		return val_(i);
 	}
@@ -176,6 +181,26 @@ public:
 
 	vt min() const {
 		return val_.findMin();
+	}
+
+	vt sum() const {
+		return val_.sum();
+	}
+	/*
+	 * returns the sum along dimension dim.
+	 * For example, if A is a matrix,
+	 * then sum_row() is a column vector
+	 * containing the sum of each row.
+	 */
+	ArrayListV<vt> sum_row() const {
+		ArrayListV<vt>  res(this->iLen());
+		for (st i = 0; i < this->iLen(); ++i) {
+			res[i] = 0;
+			for (st j = this->row_ptr(i); j < this->row_ptr(i + 1); ++j) {
+				res[i] += this->val(j);
+			}
+		}
+		return res;
 	}
 
 	MatrixSCR_<vt>& operator=(const MatrixSCR_<vt> &R) {
@@ -266,11 +291,38 @@ public:
 			}
 		}
 	}
-
+	/*
+	 *  get a new matrix. It is the Transpose of this matrix
+	 *  Expensive function
+	 */
 	MatrixSCR_<vt> getTrans() const {
 		MatrixSCR_ res(dim_[0], dim_[1], nz_, val_, rowptr_, colind_);
 		res.trans();
 		return res;
+	}
+
+	/*
+	 *  check this is a diagonally dominant matrix or not
+	 */
+	bool is_diagonally_dominant() const {
+		st Mt = dim_[1];
+		//  Check for compatible dimensions:
+		for (st i = 0; i < Mt; ++i) {
+			vt sum_ = 0;
+			vt vdiag = 0;
+			for (st j = rowptr_[i]; j < rowptr_[i + 1]; ++j) {
+				st col_idx = this->colind_(j);
+				if (i == col_idx) {
+					vdiag = Abs(this->val_[j]);
+				} else {
+					sum_ += Abs(this->val_[j]);
+				}
+			}
+			if (sum_ > vdiag) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	void show(st a) const {
@@ -302,8 +354,6 @@ public:
 		}
 	}
 };
-
-
 
 }
 // This is the end of namespace

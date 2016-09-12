@@ -973,7 +973,7 @@ public:
 		st istep = 0;
 		while (istep < _max_step) {
 			if (info == 1) {
-				std::cout << setw(5);
+				std::cout << std::setw(5);
 				std::cout << "i = " << istep;
 			}
 			//for (int i = 0; i < step; i++) {

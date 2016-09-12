@@ -24,7 +24,7 @@ Float f_fun_0(Float x, Float y, Float z) {
 Float f_fun_2(Float x, Float y, Float z) {
 	Float k = 3;
 	Float l = 3;
-	Float pi = _PI_;
+	Float pi = PI;
 	//return 0;
 	return -pi * pi * (k * k + l * l) * sin(pi * k * x) * sin(pi * l * y);
 }
@@ -32,7 +32,7 @@ Float f_fun_2(Float x, Float y, Float z) {
 Float exact_fun_2(Float x, Float y, Float z) {
 	Float k = 3;
 	Float l = 3;
-	Float pi = _PI_;
+	Float pi = PI;
 	//return 0;
 	return sin(pi * k * x) * sin(pi * l * y);
 }

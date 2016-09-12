@@ -9,7 +9,6 @@
 #define _SOLVER_MATRIX_H_
 
 #include <iostream>
-#include <assert.h>
 #include "../carpio_define.hpp"
 #include "array_list.hpp"
 #include "matrix_SparCompRow.hpp"
@@ -52,10 +51,10 @@ public:
 	static void Copy(MatSCR & cpu_matrix,
 			MatSCR_vcl & gpu_matrix,
 			st_vcl nonzeros) {
-		assert(
+		ASSERT(
 				(gpu_matrix.size1() == 0 || cpu_matrix.size1() == gpu_matrix.size1())
 				&& bool("Size mismatch"));
-		assert(
+		ASSERT(
 				(gpu_matrix.size2() == 0 || cpu_matrix.size2() == gpu_matrix.size2())
 				&& bool("Size mismatch"));
 
@@ -115,12 +114,11 @@ public:
  * a2 x + b2 y = c2
  *
  */
-
 template<class VALUE>
 int solve(VALUE a1, VALUE b1, VALUE c1, VALUE a2, VALUE b2, VALUE c2, VALUE& x,
 		VALUE& y) {
-	assert(!(a2 == 0 && b2 == 0));
-	assert(!(a1 == 0 && b1 == 0));
+	ASSERT(!(a2 == 0 && b2 == 0));
+	ASSERT(!(a1 == 0 && b1 == 0));
 	if (a2 == 0) {
 		y = double(c2) / double(b2);
 	} else {
@@ -128,6 +126,7 @@ int solve(VALUE a1, VALUE b1, VALUE c1, VALUE a2, VALUE b2, VALUE c2, VALUE& x,
 	}
 	x = double(c1 - b1 * y) / double(a1 + SMALL);
 }
+
 template<class VALUE>
 int solver_gaussian_elimination(  //solver
 		MatrixV<VALUE>& A,      //the Matrix     [in]  solver will change matrix
@@ -191,9 +190,10 @@ int solver_gaussian_elimination(  //solver
 // Jacobi solver
 template<class VALUE>
 int Jacobi(const MatrixSCR_<VALUE> &A,    // A  The matrix
-		ArrayListV<VALUE> &x,        // x
-		const ArrayListV<VALUE>& b,  // b
-		int &max_iter, Float &tol,   // Tolerance
+		ArrayListV<VALUE> &x,            // x
+		const ArrayListV<VALUE>& b,      // b
+		int &max_iter,                   // max iter
+		Float &tol,                      // Tolerance
 		std::list<Float>& lresid)        // list residual
 		{
 	Float resid;
@@ -215,7 +215,6 @@ int Jacobi(const MatrixSCR_<VALUE> &A,    // A  The matrix
 	}
 
 	// construct T
-	typedef typename MatrixSCR_<VALUE>::st st;
 	st M = T.iLen();
 	//st N = T.jLen();
 
@@ -232,7 +231,7 @@ int Jacobi(const MatrixSCR_<VALUE> &A,    // A  The matrix
 			}
 		}
 		for (st j = T.row_ptr(i); j < T.row_ptr(i + 1); ++j) {
-			if (j == flag) {
+			if (j == st(flag)) {
 				C(i) = b(T.col_ind(j)) / dv;
 			} else {
 				T.val(j) = -T.val(j) / dv;
@@ -579,11 +578,12 @@ int IC_BiCGSTAB( //
 	tol = resid;
 	return 1;
 }
+
 template<class VALUE>
 double Residual( //
 		const MatrixSCR_<VALUE> &A,    // A  The matrix
-		const ArrayListV<VALUE> &x,        // x
-		const ArrayListV<VALUE>& b)  // b
+		const ArrayListV<VALUE> &x,    // x
+		const ArrayListV<VALUE>& b)    // b
 		{
 	double resid = 0.0;
 	double normb = nrm2(b);
@@ -595,13 +595,17 @@ double Residual( //
 	return resid;
 }
 
+
+
+
+
 template<class VALUE>
 int Dia_BiCGSTAB( //
-		const MatrixSCR_<VALUE> &A,    // A  The matrix
-		ArrayListV<VALUE> &x,        // x
-		const ArrayListV<VALUE>& b,  // b
-		int &max_iter,   //max_iter
-		Float &tol,      // Tolerance
+		const MatrixSCR_<VALUE> &A,  // A  The matrix [in]
+		ArrayListV<VALUE> &x,        // x             [in, out]
+		const ArrayListV<VALUE>& b,  // b             [in]
+		int &max_iter,               //max_iter       [in, out]
+		Float &tol,                  // Tolerance     [in, out]
 		std::list<Float>& lresid) {
 	DiaPre<VALUE> preA(A, 1);
 	Float resid;
@@ -623,19 +627,19 @@ int Dia_BiCGSTAB( //
 	}
 
 	for (int i = 1; i <= max_iter; i++) {
-		rho_1 = dot(rtilde, r);          //dot(v,v)
+		rho_1 = dot(rtilde, r);                         //dot(v,v)
 		if (rho_1 == 0) {
-			tol = nrm2(r) / normb;       //norm(v) / s
+			tol = nrm2(r) / normb;                      //norm(v) / s
 			return 2;
 		}
 		if (i == 1)
-			p = r;                       // v=v
+			p = r;                                      // v=v
 		else {
 			beta = (rho_1 / rho_2) * (alpha / omega);   // s
 			p = r + beta * (p - omega * v);             // v + s*(v-s*v)
 		}
 		phat = preA.solve(p);
-		v = A * phat;
+		v = A * phat;                                   // v = A * phat
 		alpha = rho_1 / dot(rtilde, v);
 		s = r - alpha * v;
 		if ((resid = nrm2(s) / normb) < tol) {

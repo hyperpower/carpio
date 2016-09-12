@@ -125,8 +125,8 @@ protected:
 			if (pnt == nullptr) {
 				break;
 			} else {
-				pNode& ref_pn =
-						((a == _X_) ?
+				pNode& ref_pn = (
+						(a == _X_) ?
 								_pnodes(ixc + i + 1, iyc).pnode :
 								_pnodes(ixc, iyc + i + 1).pnode);
 				if (ref_pn != nullptr) {
@@ -280,6 +280,7 @@ public:
 	const_pNode operator()(st i, st j = 0, st k = 0) const {
 		return _pnodes(i, j, k).pnode;
 	}
+
 	pNode at_1d(st i) {
 		return _pnodes.at_1d(i).pnode;
 	}
@@ -436,11 +437,12 @@ public:
 		} else if (Dim == 2) {
 			return _get_pnode_2d(step1, step2);
 		} else {
+			SHOULD_NOT_REACH;
 			return nullptr; //unfinish
 		}
 	}
 
-	const_pNode get_pnode(st step1, st step2 = 0, st step3 = 0) const{
+	const_pNode get_pnode(st step1, st step2 = 0, st step3 = 0) const {
 		if (Dim == 1) {
 			return _get_pnode_1d(step1);
 		} else if (Dim == 2) {

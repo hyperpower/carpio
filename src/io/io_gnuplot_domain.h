@@ -43,6 +43,8 @@ int GnuplotActor_GhostNodesDataIndex(Gnuplot_actor& actor, const Ghost_2D& g);
 int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g);
 int GnuplotActor_Shape2D(Gnuplot_actor& actor, const Shape2D& g, st base_idx);
 int GnuplotActor_Vof2D(Gnuplot_actor& actor, const Vof_<Float, Float, 2>& vof);
+int GnuplotActor_Velocity_field(Gnuplot_actor& actor, const Grid_2D& g, st idxu,
+		st idxv, Float ratio);
 // this part is create gnuplot actor for calculation
 //int GnuplotActor_Expression(Gnuplot_actor& actor, const Poisson_<Float, Float, 2>::Exp& exp);
 int GnuplotActor_Expression(Gnuplot_actor& actor,
@@ -76,6 +78,18 @@ void gnuplot_show_ylog(const std::list<VALUE>& list) {
 	gp.plot_1(arr, "");
 }
 
+template<class VALUE>
+int GnuplotActor_List(Gnuplot_actor& actor, const std::list<VALUE>& list) {
+	actor.clear();
+	actor.command() = "using 1:2 title \"\" ";
+	int i = 0;
+	for (typename std::list<VALUE>::const_iterator it = list.begin();
+				it != list.end(); ++it){
+		actor.data().push_back(ToString(i, *it, " "));
+		i++;
+	}
+	return 1;
+}
 
 }
 

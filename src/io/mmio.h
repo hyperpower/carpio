@@ -268,12 +268,12 @@ void mm_read_mtx_sparse(std::string filename, MatrixSCO_<VALUE>& m) {
 			}
 		}
 		m.resize(M, N, nz + count_ndia);
-		int ii=0;
+		int ii = 0;
 		for (int i = 0; i < nz; i++) {
 			if (m.row_ind(i) != m.col_ind(i)) {
 				m.row_ind(nz + ii) = m.col_ind(i);
 				m.col_ind(nz + ii) = m.row_ind(i);
-				m.val(nz + ii) = m.val(i) ;
+				m.val(nz + ii) = m.val(i);
 				++ii;
 			}
 		}
@@ -281,13 +281,38 @@ void mm_read_mtx_sparse(std::string filename, MatrixSCO_<VALUE>& m) {
 		m.newsize(M, N, nz);
 		for (int i = 0; i < nz; i++) {
 			int rind, cind;
-			double val=0;
+			double val = 0;
 			fscanf(f, "%d %d %le\n", &rind, &cind, &val);
 			m.val(i) = typename MatrixSCO_<VALUE>::vt(val);
 			m.row_ind(i) = rind - 1;
 			m.col_ind(i) = cind - 1;
 		}
 	}
+}
+
+template<class VALUE>
+void mm_write_mtx_sparse(std::string filename, MatrixSCR_<VALUE>& m) {
+
+	FILE* f = fopen(filename.c_str(), "w");
+
+	MatrixSCO_<VALUE> mco(m);
+	MM_typecode matcode;
+
+	mm_initialize_typecode(&matcode);
+	mm_set_sparse(&matcode);
+	mm_set_coordinate(&matcode);
+	mm_set_real(&matcode);
+
+	mm_write_banner(f, matcode);
+
+	mm_write_mtx_crd_size(f, m.size1(), m.size2(), m.NumNonzeros());
+
+	/* NOTE: matrix market files use 1-based indices, i.e. first element
+	 of a vector has index 1, not 0.  */
+
+	for (st i = 0; i < m.NumNonzeros(); i++)
+		fprintf(f, "%d %d %20.10e\n", int(mco.row_ind(i) + 1), int(mco.col_ind(i) + 1), mco.val(i));
+
 }
 
 }

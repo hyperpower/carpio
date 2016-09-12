@@ -80,10 +80,10 @@ public:
 	MatrixSCO_(const MatrixSCR_<vt> &R) :
 			val_(R.NumNonzeros()), rowind_(R.NumNonzeros()), colind_(
 					R.NumNonzeros()), nz_(R.NumNonzeros()) {
-		dim_[0] = R.getiLen();
-		dim_[1] = R.getjLen();
-		int count = 0;
-		int i, j;
+		dim_[0] = R.iLen();
+		dim_[1] = R.jLen();
+		st count = 0;
+		st i, j;
 //  Loop through rows...
 		for (i = 1; i <= dim_[0]; i++) {
 			for (j = count; j < R.row_ptr(i); j++) {
@@ -147,8 +147,8 @@ public:
 //slow---
 
 	vt operator()(st i, st j) const {
-		assert(i >= 0 && i < dim_[0]);
-		assert(j >= 0 && j < dim_[1]);
+		ASSERT(i >= 0 && i < dim_[0]);
+		ASSERT(j >= 0 && j < dim_[1]);
 		for (st t = 0; t < nz_; t++) {
 			if (rowind_(t) == i && colind_(t) == j) {
 				return val_(t);
@@ -161,7 +161,7 @@ public:
 		st M = dim_[0];
 		st N = dim_[1];
 //  Check for compatible dimensions:
-		assert(x.size() == N);
+		ASSERT(x.size() == N);
 		ArrayListV<vt> res(M);
 		for (st i = 0; i < nz_; i++) {
 			res[rowind_[i]] += x[colind_[i]] * val_[i];
@@ -172,7 +172,7 @@ public:
 	ArrayListV<vt> transMult(const ArrayListV<vt> &x) const {
 		st tM = dim_[1];
 		st tN = dim_[0];
-		assert(!(x.Len() == tN));
+		ASSERT(!(x.Len() == tN));
 		ArrayListV<vt> res(tM);
 		for (st i = 0; i < nz_; i++) {
 			res[colind_[i]] += x[rowind_[i]] * val_[i];

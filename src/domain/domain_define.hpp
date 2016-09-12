@@ -137,7 +137,9 @@ inline Direction ToDirection(const Plane &p, const Orientation &o1,
 		return p + (o1 << 1) + (o2 << 2);
 	case _ZX_:
 		return p + (o1 << 2) + o2;
-	};
+	}
+	SHOULD_NOT_REACH;
+	return 0;
 }
 
 inline Direction ToDirection(const Orientation &x, const Orientation &y,
@@ -212,7 +214,7 @@ inline void FaceDirectionToOrientationAndAxes(const Direction &d,
 	unsigned short hi = d >> 3;
 	if ((hi & 1) == 1) {
 		a = _X_;
-		o = (GetBit(d, 0)) ? _P_ : _M_;
+        o = (GetBit(d, 0)) ? _P_ : _M_;
 		return;
 	}
 	if ((hi & 2) == 2) {
@@ -274,6 +276,7 @@ inline Axes FaceDirectionToAxes(const Direction &d) {
 	SHOULD_NOT_REACH;
 	return a;
 }
+
 /*
  * Does Direction on axes active
  */

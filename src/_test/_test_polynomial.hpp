@@ -2,10 +2,14 @@
 #define _TEST_POLYNOMIAL_H_
 
 #include "../algebra/algebra.hpp"
+#include "../algebra/vector_list.hpp"
+#include "../utility/Clock.h"
+#include "../utility/random.h"
+//#include "../calculation/expression.hpp"
 #include "gtest/gtest.h"
 
 namespace carpio {
-TEST(test_polynomial,simple1) {
+TEST(DISABLED_test_polynomial,simple1_DISABLED) {
 	typedef Polynomial_<Float, std::string, int> Poly;
 	Poly poly;
 	Poly::Term t1(1.0, "b", 0);
@@ -23,7 +27,7 @@ TEST(test_polynomial,simple1) {
 	poly.show();
 }
 
-TEST(test_polynomial,const1) {
+TEST(DISABLED_test_polynomial,const1_DISABLED) {
 	typedef Polynomial_<Float, std::string, int> Poly;
 	Poly poly;
 	Poly::Term t1(3.0, "a", 1);
@@ -38,7 +42,7 @@ TEST(test_polynomial,const1) {
 	poly.show();
 }
 
-TEST(test_polynomial,plus_ploy) {
+TEST(DISABLED_test_polynomial,plus_ploy_DISABLED) {
 	typedef Polynomial_<Float, std::string, int> Poly;
 	Poly poly;
 	Poly::Term t1(1.0, "a", 1);
@@ -60,12 +64,12 @@ TEST(test_polynomial,plus_ploy) {
 	poly2.show();
 	poly.plus(poly2);
 	poly.show();
-	std::cout<<"concise ------ \n"<<std::endl;
+	std::cout << "concise ------ \n" << std::endl;
 	poly.concise();
 	poly.show();
 }
 
-TEST(test_polynomial,plus_ploy2) {
+TEST(DISABLED_test_polynomial,plus_ploy2) {
 	typedef Polynomial_<Float, int, int> Poly;
 	Poly poly;
 	Poly::Term t1(1.0, 10, 1);
@@ -83,9 +87,74 @@ TEST(test_polynomial,plus_ploy2) {
 	poly2.show();
 	poly.plus(poly2);
 	poly.show();
-	std::cout<<"concise ------ \n"<<std::endl;
+	std::cout << "concise ------ \n" << std::endl;
 	poly.concise();
 	poly.show();
 }
+
+TEST(DISABLED_test_polynomial,vector_list_base) {
+	Clock t;
+	VectorList_<int> vl(10);
+	std::cout << " size :" << vl.size() << std::endl;
+	std::cout << " cap  :" << vl.capacity() << std::endl;
+	//vl[1] = 5;
+	vl.push_back(3);
+	for (VectorList_<int>::iterator iter = vl.begin(); iter != vl.end();
+			++iter) {
+		std::cout << *iter << std::endl;
+	}
+
+}
+
+Polynomial_<Float, int, int> get_a_ploy() {
+	typedef Polynomial_<Float, int, int> Poly;
+	Poly res;
+	Poly::Term t1(1.0, 10, 1);
+	Poly::Term t2(2.0, 11, 0);
+	res.insert(t1);
+	res.insert(t2);
+
+	return res;
+}
+
+TEST(test_polynomial,move_contructor) {
+	typedef Polynomial_<Float, int, int> Poly;
+	Poly p = get_a_ploy();
+	p.show();
+}
+
+void poly_add() {
+	Polynomial2_<std::string, Float> poly("z");
+	poly.insert(1.0, "a");
+	poly.insert(2.0, "b");
+	poly.insert(3.0, "a");
+	poly.show();
+
+	Polynomial2_<std::string, Float> poly2("z");
+	poly2.insert(1.0, "a");
+	poly2.insert(2.0, "b");
+	poly2.insert(3.0, "c");
+	poly2.show();
+
+	poly.plus(poly2);
+	poly.times(0);
+	poly.concise();
+	poly.show();
+}
+
+
+TEST(test_polynomial,random_number) {
+	Random::randomSeed();
+	for (int i = 0; i < 10; i++) {
+		std::cout << Random::nextFloat() << "\n";
+		std::cout << Random::nextString(50) << "\n";
+	}
+
+	//Polynomial2_<std::string, Float> poly("z");
+	//Expression2_<Float, Float, 3> exp;
+	poly_add();
+
+}
+
 }
 #endif

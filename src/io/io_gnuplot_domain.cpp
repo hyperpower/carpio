@@ -131,7 +131,7 @@ int GnuplotActor_GhostNodesContour_BoundaryIndex(Gnuplot_actor& actor,
 								pn->p(_M_, _Y_), pn->p(_P_, _Y_), v, " "));
 			}
 		};
-	g.for_each_ghost_node(fun);
+	g.for_each_node(fun);
 
 	return _SUCCESS;
 }
@@ -156,7 +156,7 @@ int GnuplotActor_GhostNodesContours(Gnuplot_actor& actor, const Ghost_2D& g,
 								pn->p(_M_, _Y_), pn->p(_P_, _Y_), v, " "));
 			}
 		};
-	g.for_each_ghost_node(fun);
+	g.for_each_node(fun);
 
 	return _SUCCESS;
 }
@@ -180,7 +180,7 @@ int GnuplotActor_GhostNodesDataIndex(Gnuplot_actor& actor, const Ghost_2D& g) {
 								pn->p(_M_, _Y_), pn->p(_P_, _Y_), v, " "));
 			}
 		};
-	g.for_each_ghost_node(fun);
+	g.for_each_node(fun);
 
 	return _SUCCESS;
 }
@@ -267,7 +267,7 @@ int GnuplotActor_NodesSurface(Gnuplot_actor& actor, pNode_2D pn, st idx) {
 				Inter::Exp exp = Inter::OnCorner_1Order(pn,dir);
 				Inter::vt x = pn->p(dir,_X_);
 				Inter::vt y = pn->p(dir,_Y_);
-				Inter::vt v = exp.subsitute(idx);
+				Inter::vt v = exp.substitute(idx);
 				actor.data().push_back(ToString(x, y, v, " "));
 				std::cout<< ToString(x, y, v, " ")<<"\n";
 			};
@@ -300,7 +300,7 @@ int GnuplotActor_LeafNodesSurface(Gnuplot_actor& actor, Grid_2D& g, st idx) {
 					Inter::Exp exp = Inter::OnCorner_1Order(pn,dir);
 					Inter::vt x = pn->p(dir,_X_);
 					Inter::vt y = pn->p(dir,_Y_);
-					Inter::vt v = exp.subsitute(idx);
+					Inter::vt v = exp.substitute(idx);
 					actor.data().push_back(ToString(x, y, v, " "));
 				};
 		_fun(_M_, _M_);
@@ -328,7 +328,7 @@ int GnuplotActor_GhostNodesSurface(Gnuplot_actor& actor, Ghost_2D& g, st idx) {
 					Inter::Exp exp = Inter::OnCorner_1Order(pn,dir);
 					Inter::vt x = pn->p(dir,_X_);
 					Inter::vt y = pn->p(dir,_Y_);
-					Inter::vt v = exp.subsitute(idx);
+					Inter::vt v = exp.substitute(idx);
 					actor.data().push_back(ToString(x, y, v, " "));
 				};
 		_fun(_M_, _M_);
@@ -553,6 +553,30 @@ int GnuplotActor_Polygon_vector(Gnuplot_actor& actor, const Polygon& g) {
 		actor.data().push_back(sstr.str());
 		actor.data().push_back("");
 	}
+	return _SUCCESS;
+}
+
+int GnuplotActor_Velocity_field(Gnuplot_actor& actor, const Grid_2D& g,
+		st idxu, st idxv, Float ratio) {
+	actor.clear();
+	actor.command() = "using 1:2:3:4:5 title \"\"";
+	actor.style() = "with vectors palette";
+	if (g.empty()) {
+		actor.data().push_back("");
+		return _ERROR;
+	}
+	for (typename Grid_2D::const_iterator_leaf iter = g.begin_leaf();
+			iter != g.end_leaf(); ++iter) {
+		const_pNode_2D pn = iter.get_pointer();
+		Float u = pn->cda(idxu);
+		Float v = pn->cda(idxv);
+		Float veo = sqrt(u * u + v*v);
+		std::stringstream sstr;
+		sstr << pn->cp(_X_) << " " << pn->cp(_Y_) << " " <<u * ratio << " " << v* ratio <<" " << veo;
+		actor.data().push_back(sstr.str());
+	    actor.data().push_back("");
+	}
+
 	return _SUCCESS;
 }
 

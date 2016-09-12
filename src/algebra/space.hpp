@@ -23,7 +23,7 @@ public:
 	static const st Dim = DIM;
 	// type definitions===================
 	typedef T value_t;
-	typedef SpaceT<value_t, Dim>  self;
+	typedef SpaceT<value_t, Dim> self;
 	typedef SpaceT<value_t, Dim>* pself;
 	typedef T* pointer;
 	typedef const T* const_pointer;
@@ -70,16 +70,16 @@ public:
 	/*
 	 *  iterator
 	 */
-	iterator begin(){
+	iterator begin() {
 		return m_mp.begin();
 	}
-	const_iterator begin() const{
+	const_iterator begin() const {
 		return m_mp.begin();
 	}
-	iterator end(){
+	iterator end() {
 		return m_mp.end();
 	}
-	const_iterator end() const{
+	const_iterator end() const {
 		return m_mp.end();
 	}
 	//Element access===============================
@@ -109,8 +109,8 @@ public:
 		}
 	}
 	inline bool check_idx_ijk(size_type i, size_type j, size_type k) const {
-		return check_idx(0, i) && ((Dim >= 2) ? check_idx(1, j) :
-				true) && ((Dim >= 3) ? check_idx(2, k) : true);
+		return check_idx(0, i) && ((Dim >= 2) ? check_idx(1, j) : true)
+				&& ((Dim >= 3) ? check_idx(2, k) : true);
 	}
 
 	inline size_type count_equal(const T& nd) const { //overload ==
@@ -146,7 +146,7 @@ void SpaceT<T, Dim>::reconstruct(size_type iLen, size_type jLen,
 		size_type kLen) {
 	size_type Len = 0;
 	this->m_len[0] = iLen;
-	if (Dim == 1 ) {
+	if (Dim == 1) {
 		Len = iLen;
 	}
 	if (Dim >= 2) {
@@ -171,16 +171,19 @@ SpaceT<T, DIM>& SpaceT<T, DIM>::operator=(const SpaceT<T, DIM>& a) {
 	return *this;
 }
 template<typename T, st DIM>
-typename SpaceT<T, DIM>::size_type SpaceT<T, DIM>::to_1d_idx(SpaceT<T, DIM>::size_type i,
-		SpaceT<T, DIM>::size_type j, SpaceT<T, DIM>::size_type k) const {
+typename SpaceT<T, DIM>::size_type SpaceT<T, DIM>::to_1d_idx(
+		SpaceT<T, DIM>::size_type i, SpaceT<T, DIM>::size_type j,
+		SpaceT<T, DIM>::size_type k) const {
 	ASSERT(i < this->m_len[0]);
-	if (DIM >= 2)
+	if (Dim >= 2)
 		ASSERT(j < this->m_len[1]);
 	if (Dim >= 3)
 		ASSERT(k < this->m_len[2]);
 	std::array<size_type, Dim> inp;
 	inp[0] = i;
-	inp[1] = j;
+	if (Dim >= 2) {
+		inp[1] = j;
+	}
 	if (Dim >= 3) {
 		inp[2] = k;
 	}
@@ -196,15 +199,15 @@ typename SpaceT<T, DIM>::size_type SpaceT<T, DIM>::to_1d_idx(SpaceT<T, DIM>::siz
 }
 
 template<typename T, st DIM>
-T& SpaceT<T, DIM>::at(SpaceT<T, DIM>::size_type i,
-		SpaceT<T, DIM>::size_type j, SpaceT<T, DIM>::size_type k) {
-	size_type idx = to_1d_idx(i,j,k);
+T& SpaceT<T, DIM>::at(SpaceT<T, DIM>::size_type i, SpaceT<T, DIM>::size_type j,
+		SpaceT<T, DIM>::size_type k) {
+	size_type idx = to_1d_idx(i, j, k);
 	return m_mp[idx];
 }
 template<typename T, st DIM>
 const T& SpaceT<T, DIM>::at(SpaceT<T, DIM>::size_type i,
 		SpaceT<T, DIM>::size_type j, SpaceT<T, DIM>::size_type k) const {
-	size_type idx = to_1d_idx(i,j,k);
+	size_type idx = to_1d_idx(i, j, k);
 	return m_mp[idx];
 }
 template<typename T, st DIM>
@@ -228,8 +231,8 @@ const T& SpaceT<T, DIM>::operator()(SpaceT<T, DIM>::size_type i,
 	return at(i, j, k);
 }
 template<typename T, st DIM>
-T SpaceT<T, DIM>::get(SpaceT<T, DIM>::size_type i,
-		SpaceT<T, DIM>::size_type j, SpaceT<T, DIM>::size_type k) {
+T SpaceT<T, DIM>::get(SpaceT<T, DIM>::size_type i, SpaceT<T, DIM>::size_type j,
+		SpaceT<T, DIM>::size_type k) {
 	return at(i, j, k);
 }
 template<typename T, st DIM>

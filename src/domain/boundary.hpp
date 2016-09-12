@@ -327,12 +327,12 @@ public:
 
 	}
 
-	void for_each_ghost_node(std::function<void(GhostNode&)> fun) {
+	void for_each_node(std::function<void(GhostNode&)> fun) {
 		for (iterator iter = this->begin(); iter != this->end(); ++iter) {
 			fun(*iter);
 		}
 	}
-	void for_each_ghost_node(std::function<void(const GhostNode&)> fun) const {
+	void for_each_node(std::function<void(const GhostNode&)> fun) const {
 		for (const_iterator iter = this->begin(); iter != this->end(); ++iter) {
 			fun((*iter));
 		}
@@ -349,24 +349,24 @@ public:
 			// the date index of the ghost node is (
 				pg->d_idx() = -(id);//negative added here;
 			};
-		for_each_ghost_node(fun);
+		for_each_node(fun);
 	}
 
-	void new_data(const st& nc, const st& nf, const st& nv, const st& nutp,
-			const st& nfutp = 0) {
+	void new_data(const st& nc, const st& nf, const st& nv, const st& nutp
+			) {
 		std::function<void(GhostNode&)> fun = [&](GhostNode& node) {
 			pNode pg = node.second.pghost;
-			pg->new_data(nc, nf, nv, nutp,nfutp);
+			pg->new_data(nc, nf, nv, nutp);
 		};
-		for_each_ghost_node(fun);
+		for_each_node(fun);
 	}
-	void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp,
-			const st& nfutp = 0) {
+	void resize_data(const st& nc, const st& nf, const st& nv, const st& nutp
+			) {
 		std::function<void(GhostNode&)> fun = [&](GhostNode& node) {
 			pNode pg = node.second.pghost;
-			pg->resize_data(nc, nf, nv, nutp, nfutp);
+			pg->resize_data(nc, nf, nv, nutp);
 		};
-		for_each_ghost_node(fun);
+		for_each_node(fun);
 	}
 
 	iterator find(const GhostID& gid) {
@@ -544,13 +544,15 @@ protected:
 			if (lhs.shape_idx < rhs.shape_idx) {
 				return true;
 			} else if (lhs.shape_idx == rhs.shape_idx) {
-				return lhs.seg_idx < rhs.seg_idx;
-			} else if (lhs.seg_idx == rhs.seg_idx) {
-				return int(lhs.val_idx) < int(rhs.val_idx);
-			} else {
-				return false;
+				if (lhs.seg_idx < rhs.seg_idx){
+					return true;
+				}else if(lhs.seg_idx == rhs.seg_idx){
+					return lhs.val_idx < rhs.val_idx;
+				}
 			}
+			return false;
 		}
+
 	};
 public:
 	typedef COO_VALUE cvt;

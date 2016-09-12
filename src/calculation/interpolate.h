@@ -1,18 +1,24 @@
-#ifndef INTERPOLATE_H_
-#define INTERPOLATE_H_
+#ifndef _INTERPOLATE_H_
+#define _INTERPOLATE_H_
+
+
+#include <functional>
+#include <math.h>
 
 #include "../carpio_define.hpp"
 #include "../domain/domain.hpp"
 #include "expression.hpp"
 
-#include <functional>
-#include <math.h>
 
 namespace carpio {
 /*
  *  static class
  *  template all the function
  */
+
+template<typename COO_VALUE, typename VALUE, int DIM>
+class Expression_;
+
 template<typename COO_VALUE, typename VALUE, int DIM>
 class Interpolate_ {
 public:
@@ -64,7 +70,7 @@ public:
 	typedef Expression_<COO_VALUE, VALUE, DIM> Exp;
 	typedef Expression_<COO_VALUE, VALUE, DIM>* pExp;
 	typedef Expression_<COO_VALUE, VALUE, DIM>& ref_Exp;
-	typedef typename Exp::Term Term;
+	//typedef typename Exp::Term Term;
 	typedef typename Exp::iterator ExpIter;
 	typedef typename Exp::const_iterator const_ExpIter;
 
@@ -228,7 +234,7 @@ public:
 		ASSERT(stc.non_null_nodes() == 2);
 		Axes axes = FaceDirectionToAxes(dir);
 		pNode pc = stc.center_pnode();
-		PExp cexp = _AverangeExpFromCenterLeaf(pc);
+		PExp&& cexp = _AverangeExpFromCenterLeaf(pc);
 		// another pnode is close to center
 		PExp nexp;
 		pNode pn = stc.forward_pnode(1, stc.axes());
@@ -329,7 +335,7 @@ public:
 	 */
 	static Exp _3NodeOnAxes(cvt x, ref_Stencil_1 stc, //
 			const Direction& dir, //previous direction
-			const int& order // previous order
+			const int& order      // previous order
 			) {
 		// assert
 		ASSERT(stc.non_null_nodes() == 3);
@@ -517,8 +523,8 @@ public:
 		// pn
 		pNode pn = stc.get_pnode(IsP(o1) ? 1 : -1, IsP(o2) ? 1 : -1);
 		Direction dir_n = ToCornerDirection(Opposite(o1), a1, Opposite(o2), a2);
-		pNode pnc =nullptr;
-		if( pn!=nullptr){
+		pNode pnc = nullptr;
+		if (pn != nullptr) {
 			pnc = Node::GetChild_CornerLeaf(pn, dir_n);
 		}
 		if (pnc == nullptr) {
@@ -727,6 +733,7 @@ public:
 		}
 		}
 	}
+
 	static Exp OnFace(  //
 			pNode pn,  //
 			const Direction& dir,  //
@@ -755,6 +762,66 @@ public:
 		arridx[0] = idx;
 		OnFace_2Order(pn, dir, arridx, arrres);
 		res = arrres[0];
+	}
+	/*
+	 * Interpolate on the random point in the Node
+	 *
+	 */
+	static Exp OnPlane(   //
+			pNode pn,     //
+			Axes a1, Axes a2,  // the axes
+			cvt c1, cvt c2,    // the coordinate
+			int order)         //
+			{
+
+		switch (order) {
+		case 1: {
+			return OnPlane_1Order(pn, a1, a2, c1, c2);
+		}
+		case 2: {
+			SHOULD_NOT_REACH;
+			return Exp();
+		}
+		default: {
+			SHOULD_NOT_REACH;
+			return Exp();
+		}
+		}
+	}
+	static Exp OnPlane_1Order(         //
+			pNode pn,     //
+			Axes a1, Axes a2,  // the axes
+			cvt c1, cvt c2    // the coordinate
+			)// the coordinate
+			 //
+			{
+		// assert the point is in the node
+		ASSERT(a1 != a2);
+		ArrayListV<cvt> point(3);
+		point[st(a1)] = c1;
+		point[st(a2)] = c2;
+		ASSERT(pn->is_in_on(point[0], point[1], point[2]));
+
+		// get two face direction
+		Orientation o1 = ((c1 - pn->cp(a1)) >= 0) ? _P_ : _M_;
+		Direction d1 = ToFaceDirection(o1, a1);
+		Orientation o2 = ((c2 - pn->cp(a2)) >= 0) ? _P_ : _M_;
+		Direction d2 = ToFaceDirection(o2, a2);
+		// a corner direction
+		Direction dc = d1 | d2;
+		// get three expression
+		Exp&& exp1 = OnFace_1Order(pn, d1);
+		Exp&& exp2 = OnFace_1Order(pn, d2);
+		Exp&& exp3 = OnCorner_1Order(pn, dc);
+		Exp exp0;
+		exp0.plus(1.0, pn, 1);
+		// get coordinate
+		cvt x1 = pn->cp(a1);
+		cvt x2 = pn->p(o1,a1);
+		cvt y1 = pn->cp(a2);
+		cvt y2 = pn->p(o2,a2);
+
+		return __BilinearInterpolation(c1, c2, x1, x2, y1, y2, exp0, exp1, exp3, exp2);
 	}
 	/*
 	 * gradient
@@ -1075,6 +1142,29 @@ protected:
 		return __LinearInterpolation(xx, xx0, v0, xx1, v1);
 	}
 
+	inline static Exp __BilinearInterpolation( //
+			const cvt& x, const cvt& y, //
+			const cvt& x1, const cvt& x2, //
+			const cvt& y1, const cvt& y2,  //
+			const Exp& v11, const Exp& v21, //
+			const Exp& v22, const Exp& v12
+			) {
+		Exp res(v11);
+		res.times((x2 - x) * (y2 - y));
+		Exp tv21(v21);
+		tv21.times((x - x1) * (y2 - y));
+		res.plus(tv21);
+		Exp tv22(v22);
+		tv22.times((x - x1) * (y - y1));
+		res.plus(tv22);
+		Exp tv12(v12);
+		tv12.times((x2 - x) * (y - y1));
+		res.plus(tv12);
+
+		res.times(1.0 / (x2 - x1) / (y2 - y1));
+		return res;
+	}
+
 	inline static vt __2OrderInterpolation( //
 			const cvt& x, //
 			const cvt& x1, const vt& y1, //
@@ -1129,8 +1219,8 @@ protected:
 		res.plus(res3);
 		return res;
 	}
-
 };
+
 }
 
 #endif

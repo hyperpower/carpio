@@ -74,7 +74,8 @@ public:
 	Expression_(const_ref_Self rhs) :
 			_exp(rhs._exp) {
 	}
-	Self operator=(const_ref_Self& rhs) {
+	ref_Self operator=(const_ref_Self& rhs) {
+		//std::cout<<"operator="<<std::endl;
 		this->_exp = rhs._exp;
 		return *this;
 	}
@@ -109,7 +110,7 @@ public:
 	//	return _exp[k];
 	//}
 
-	static bool IsConstant(const_iterator& iter) {
+	static bool IsConstant(const const_iterator& iter) {
 		return Exp::IsConstant(iter);
 	}
 	static bool IsConstant(const iterator& iter) {
@@ -163,13 +164,17 @@ public:
 		return _exp.find(t);
 	}
 
-	const_iterator find(const_pNode pn, int exp) const{
+	const_iterator find(const_pNode pn, int exp) const {
 		Term t(1.0, pn, exp);
 		return _exp.find(t);
 	}
 
 	void erase(iterator& iter) {
 		_exp.erase(iter);
+	}
+
+	void clear() {
+		_exp.clear();
 	}
 
 	void plus(const_ref_Self exp) {
@@ -204,7 +209,7 @@ public:
 
 	void show() const {
 		// all the valuable should overload <<
-		std::cout << " size = " << _exp.size() << "\n";
+		std::cout << "  size = " << _exp.size() << "\n";
 		for (const_iterator iter = _exp.begin(); iter != _exp.end(); ++iter) {
 			std::cout.flags(std::ios::right);
 			std::cout.width(9);
@@ -221,8 +226,55 @@ public:
 		}
 		//_exp.show();
 	}
+	void show(std::fstream& fs) const {
+		std::ios oldState(nullptr);
+		oldState.copyfmt(fs);
+		// all the valuable should overload <<
+		fs << "  size = " << _exp.size() << "\n";
+		for (const_iterator iter = _exp.begin(); iter != _exp.end(); ++iter) {
+			fs.flags(std::ios::right);
+			fs.width(9);
+			fs << iter->second << " ";
+			const_pNode pn = iter->first.first;
+			fs.width(5);
+			fs << pn->d_idx() << " ";
+			fs.width(3);
+			fs << iter->first.second << " ";
+			if (Self::IsConstant(iter)) {
+				fs << "CONST";
+			}
+			fs << "\n";
+		}
+		fs.copyfmt(oldState);
+		//_exp.show();
+	}
+	void show_substitute(st idx) const {
+		std::ios oldState(nullptr);
+		oldState.copyfmt(std::cout);
+		// all the valuable should overload <<
+		std::cout << " size = " << _exp.size() << "\n";
+		for (const_iterator iter = _exp.begin(); iter != _exp.end(); ++iter) {
+			std::cout.flags(std::ios::right);
+			std::cout.width(11);
+			std::cout.precision(3);
+			std::cout << std::scientific << iter->second << " ";
+			const_pNode pn = iter->first.first;
+			std::cout.width(7);
+			std::cout << pn->d_idx() << " ";
+			std::cout.width(5);
+			std::cout << iter->first.second << " ";
+			std::cout.width(7);
+			std::cout << pn->cd(idx) << " ";
+			if (Self::IsConstant(iter)) {
+				std::cout << "CONST";
+			}
+			std::cout << "\n";
+		}
+		std::cout.copyfmt(oldState);
+		//_exp.show();
+	}
 
-	vt subsitute(st idx) const {
+	vt substitute(st idx) const {
 		// get the value of the expression
 		// idx is the center data index on pnode
 		vt res = 0;
@@ -231,13 +283,204 @@ public:
 			vt coe = GetCoe(iter);
 			int exp = GetExp(iter);
 			if (exp == 0) {
-				res = res + coe;
+				res += coe;
+			} else if (exp == 1) {
+				vt v = pn->cdva(idx);
+				res += coe * v;
 			} else {
 				vt v = pn->cdva(idx);
-				res = res + coe * pow(v, exp);
+				res += coe * pow(v, exp);
 			}
 		}
 		return res;
+	}
+};
+
+template<typename COO_VALUE, typename VALUE, int DIM>
+class Expression2_ {
+public:
+	static const st Dim = DIM;
+	static const st NumFaces = DIM + DIM;
+	static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
+	static const st NumNeighbors = NumFaces;
+
+	typedef COO_VALUE cvt;
+	typedef VALUE vt;
+
+	typedef Expression_<COO_VALUE, VALUE, DIM> Self;
+	typedef Expression_<COO_VALUE, VALUE, DIM> pSelf;
+	typedef const Expression_<COO_VALUE, VALUE, DIM> const_Self;
+	typedef Expression_<COO_VALUE, VALUE, DIM>& ref_Self;
+	typedef const Expression_<COO_VALUE, VALUE, DIM>& const_ref_Self;
+
+	typedef Domain_<COO_VALUE, VALUE, DIM> Domain;
+	typedef Domain_<COO_VALUE, VALUE, DIM>& ref_Domain;
+	typedef const Domain_<COO_VALUE, VALUE, DIM>& const_ref_Domain;
+	typedef Domain_<COO_VALUE, VALUE, DIM>* pDomain;
+	typedef const Domain_<COO_VALUE, VALUE, DIM>* const_pDomain;
+
+	typedef Grid_<COO_VALUE, VALUE, DIM> Grid;
+	typedef Grid_<COO_VALUE, VALUE, DIM> *pGrid;
+	typedef const Grid_<COO_VALUE, VALUE, DIM> * const_pGrid;
+	typedef Ghost_<COO_VALUE, VALUE, DIM> Ghost;
+	typedef const Ghost_<COO_VALUE, VALUE, DIM> const_Ghost;
+	typedef Ghost_<COO_VALUE, VALUE, DIM>* pGhost;
+	typedef const Ghost_<COO_VALUE, VALUE, DIM>* const_pGhost;
+	typedef typename Ghost::GhostNode GhostNode;
+	typedef Cell_<COO_VALUE, Dim> Cell;
+	typedef Cell *pCell;
+	typedef Data_<VALUE, Dim> Data;
+	typedef Data *pData;
+	typedef Node_<COO_VALUE, VALUE, DIM> Node;
+	typedef Node_<COO_VALUE, VALUE, DIM> *pNode;
+	typedef const Node_<COO_VALUE, VALUE, DIM> *const_pNode;
+	typedef typename Node::Path Path;
+
+	typedef typename Domain::Face Face;
+	typedef typename Domain::pFace pFace;
+
+	typedef Polynomial2_<pNode, vt> Poly;
+	typedef Poly* pPoly;
+	typedef const Poly& const_ref_Poly;
+
+	typedef typename Poly::iterator iterator;
+	typedef typename Poly::const_iterator const_iterator;
+
+protected:
+	Poly _exp;
+public:
+
+	Expression2_() :
+			_exp(nullptr) {
+	}
+	Expression2_(const_ref_Self rhs) :
+			_exp(rhs._exp) {
+	}
+	ref_Self operator=(const_ref_Self& rhs) {
+		//std::cout<<"operator="<<std::endl;
+		this->_exp = rhs._exp;
+		return *this;
+	}
+	/*
+	 *  iterator
+	 */
+	iterator begin() {
+		return _exp.begin();
+	}
+	const_iterator begin() const {
+		return _exp.begin();
+	}
+	iterator end() {
+		return _exp.end();
+	}
+	const_iterator end() const {
+		return _exp.end();
+	}
+	/*
+	 * capacity
+	 */
+	bool empty() const {
+		return _exp.empty();
+	}
+	st size() const {
+		return _exp.size();
+	}
+
+	static bool IsConstant(const const_iterator& iter) {
+		return Poly::IsConstant(iter);
+	}
+	static bool IsConstant(const iterator& iter) {
+		return Poly::IsConstant(iter);
+	}
+
+	void insert(vt val, pNode pnode) {
+		this->_exp.insert(val, pnode);
+	}
+
+	iterator find(const_pNode pn) {
+		return _exp.find(pn);
+	}
+
+	const_iterator find(const_pNode pn) const {
+		return _exp.find(pn);
+	}
+
+	void erase(iterator& iter) {
+		_exp.erase(iter);
+	}
+
+	void clear() {
+		_exp.clear();
+	}
+
+	void plus(const_ref_Self exp) {
+		_exp.plus(exp._exp);
+	}
+
+	void plus(const vt& coe, const_pNode pn) {
+		this->insert(coe, pn);
+	}
+
+	void minus(const_ref_Self exp) {
+		_exp.minus(exp._exp);
+	}
+	void times(const vt& rhs) {   //overload operator*
+		_exp.times(rhs);
+	}
+	void divide(const vt& rhs) {  //overload operator/
+		_exp.divide(rhs);
+	}
+
+	void trim_zero() {
+		_exp.trim_zero();
+	}
+
+	void concise() {
+		_exp.concise();
+	}
+
+	void show() const {
+		std::ios oldState(nullptr);
+		oldState.copyfmt(std::cout);
+		// all the valuable should overload <<
+		std::cout << "  size = " << _exp.size() << "\n";
+		for (const_iterator iter = _exp.begin(); iter != _exp.end(); ++iter) {
+			std::cout.flags(std::ios::right);
+			std::cout.width(9);
+			std::cout << iter->value << " ";
+			const_pNode pn = iter->key;
+			std::cout.width(5);
+			if (pn != nullptr) {
+				std::cout << pn->d_idx();
+			} else {
+				std::cout << "CONST";
+			}
+			std::cout << "\n";
+		}
+		std::cout.copyfmt(oldState);
+		//_exp.show();
+	}
+
+	void show(std::fstream& fs) const {
+		std::ios oldState(nullptr);
+		oldState.copyfmt(fs);
+		// all the valuable should overload <<
+		fs << "  size = " << _exp.size() << "\n";
+		for (const_iterator iter = _exp.begin(); iter != _exp.end(); ++iter) {
+			fs.flags(std::ios::right);
+			fs.width(9);
+			fs << iter->value << " ";
+			const_pNode pn = iter->key;
+			fs.width(5);
+			if (pn == nullptr) {
+				fs << pn->d_idx();
+			} else {
+				fs << "CONST";
+			}
+			fs << "\n";
+		}
+		fs.copyfmt(oldState);
+		//_exp.show();
 	}
 
 };

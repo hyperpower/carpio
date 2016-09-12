@@ -12,16 +12,19 @@
 #include <unordered_map>
 #include <assert.h>
 
+//#define NDEBUG  //disable assert()
+
 namespace carpio {
 
 #define ASSERT(expr) assert(expr)
 #define ASSERT_MSG(expr, msg) assert((expr)&&(msg))
+
 #define SHOULD_NOT_REACH assert((false)&&(" >! Should not reach"))
-#define CAST(type, p)          ((type)p)
-#define CAST_REF(type, p)      (*((type)p))
-#define _IF_TRUE_RETRUN(expr)  if(expr){return;};
+#define CAST(type, p)           ((type)p)
+#define CAST_REF(type, p)       (*((type)p))
+#define _IF_TRUE_RETRUN(expr)   if(expr){return;};
 #define _IF_FALSE_RETRUN(expr)  if(false==(expr)){return;};
-#define SMALL                  1.0e-11
+#define SMALL                   1.0e-11
 // value type
 typedef std::size_t st; //size type
 typedef double Float;

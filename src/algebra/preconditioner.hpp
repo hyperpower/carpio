@@ -196,15 +196,15 @@ public:
 		inv_ = inv;
 		int flagi = -1;
 		/* Find the diagonal elements */
-		for (int i = 0; i < M.iLen(); i++) {
-			for (int j = M.row_ptr(i); j < M.row_ptr(i + 1); j++) {
+		for (st i = 0; i < M.iLen(); i++) {
+			for (st j = M.row_ptr(i); j < M.row_ptr(i + 1); j++) {
 				if (M.col_ind(j) == i) {
-					if (M.val(j) == 0) {
+					if (M.val(j) == 0.0) {
 						flagi = i;
 						break;
 					} else {
 						if (inv_ == 1) {
-							diag_[i] = 1. / M.val(j);
+							diag_[i] = 1. / (M.val(j));
 						} else {
 							diag_[i] = M.val(j);
 						}
@@ -221,7 +221,7 @@ public:
 		if (flagi != -1) {
 			std::cerr << " >! Diagonal preconditioner failure.";
 			std::cerr << " >! Zero detected  \n";
-			exit(1);
+			exit(0);
 		}
 	}
 	~DiaPre()
@@ -233,7 +233,7 @@ public:
 	{
 		ArrayListV<VALUE> y(x.size());
 
-		for (int i = 0; i < x.size(); i++)
+		for (st i = 0; i < x.size(); i++)
 			y[i] = x[i] * diag_[i];
 
 		return y;

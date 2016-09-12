@@ -24,7 +24,7 @@ protected:
 	int _idx;
 	ArrayListV<vt> _center;
 	ArrayListV<vt> _face[NumFaces];
-	ArrayListT<utPointer> _face_untype[NumFaces];
+	//ArrayListT<utPointer> _face_untype[NumFaces];
 	ArrayListV<vt> _vertex[NumVertexes];
 	ArrayListT<utPointer> _untype;
 public:
@@ -36,7 +36,7 @@ public:
 		_idx = 0;
 		for (st i = 0; i < NumFaces; ++i) {
 			_face[i].reconstruct(nf);
-			_face_untype[i].reconstruct(0);
+			//_face_untype[i].reconstruct(0);
 		}
 		for (st i = 0; i < NumVertexes; ++i) {
 			_vertex[i].reconstruct(nv);
@@ -46,11 +46,11 @@ public:
 	Data_(const st& nc, const st& nf, const st& nv, const st& nutp) :
 			_center(nc), _untype(nutp) {
 		_idx = 0;
-		for (int i = 0; i < NumFaces; ++i) {
+		for (st i = 0; i < NumFaces; ++i) {
 			_face[i].reconstruct(nf);
-			_face_untype[i].reconstruct(0);
+			//_face_untype[i].reconstruct(0);
 		}
-		for (int i = 0; i < NumVertexes; ++i) {
+		for (st i = 0; i < NumVertexes; ++i) {
 			_vertex[i].reconstruct(nv);
 		}
 		_untype.assign(nullptr);
@@ -59,11 +59,11 @@ public:
 			const st& nfutp) :
 			_center(nc), _untype(nutp) {
 		_idx = 0;
-		for (int i = 0; i < NumFaces; ++i) {
+		for (st i = 0; i < NumFaces; ++i) {
 			_face[i].reconstruct(nf);
-			_face_untype[i].reconstruct(nfutp);
+			//_face_untype[i].reconstruct(nfutp);
 		}
-		for (int i = 0; i < NumVertexes; ++i) {
+		for (st i = 0; i < NumVertexes; ++i) {
 			_vertex[i].reconstruct(nv);
 		}
 		_untype.assign(nullptr);
@@ -71,11 +71,11 @@ public:
 	Data_(const Self& s) :
 			_center(s._center.size()), _untype(s._untype.size()) {
 		_idx = s._idx;
-		for (int i = 0; i < NumFaces; ++i) {
+		for (st i = 0; i < NumFaces; ++i) {
 			_face[i] = s._face[i];
-			_face_untype[i] = s._face_untype[i];
+			//_face_untype[i] = s._face_untype[i];
 		}
-		for (int i = 0; i < NumVertexes; ++i) {
+		for (st i = 0; i < NumVertexes; ++i) {
 			_vertex[i] = s._vertex[i];
 		}
 		_center = s._center;
@@ -83,29 +83,17 @@ public:
 	}
 	void reconstruct(const st& nc, const st& nf, const st& nv, const st& nutp) {
 		_center.reconstruct(nc);
-		for (int i = 0; i < NumFaces; ++i) {
+		for (st i = 0; i < NumFaces; ++i) {
 			_face[i].reconstruct(nf);
 		}
-		for (int i = 0; i < NumVertexes; ++i) {
+		for (st i = 0; i < NumVertexes; ++i) {
 			_vertex[i].reconstruct(nv);
-			_face_untype[i].reconstruct(0);
+			//_face_untype[i].reconstruct(0);
 		}
 		_untype.reconstruct(nutp);
 		_untype.assign(nullptr);
 	}
-	void reconstruct(const st& nc, const st& nf, const st& nv, const st& nutp,
-			const st& nfutp) {
-		_center.reconstruct(nc);
-		for (int i = 0; i < NumFaces; ++i) {
-			_face[i].reconstruct(nf);
-		}
-		for (int i = 0; i < NumVertexes; ++i) {
-			_vertex[i].reconstruct(nv);
-			_face_untype[i].reconstruct(nfutp);
-		}
-		_untype.reconstruct(nutp);
-		_untype.assign(nullptr);
-	}
+
 	inline int& idx() {
 		return _idx;
 	}
@@ -182,7 +170,11 @@ public:
 	}
 	void resize_utp(st len) {
 		ASSERT(len >= 0);
+		st len_o = this->_untype.size();
 		this->_untype.resize(len);
+		for(st i = len_o; i< len;i++){
+			this->_untype[i] = nullptr;
+		}
 	}
 
 	bool empty() const {

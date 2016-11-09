@@ -155,7 +155,7 @@ public:
 					//}
 				};
 
-		for (int i = 0; i < _grid->size(); i++) {
+		for (st i = 0; i < _grid->size(); i++) {
 			pNode pn = _grid->nodes.at_1d(i);
 			if (pn != nullptr) {
 				pn->traversal(fun, _max_l);
@@ -204,7 +204,7 @@ public:
 					//}
 				};
 
-		for (int i = 0; i < _grid->size(); i++) {
+		for (st i = 0; i < _grid->size(); i++) {
 			pNode& pn = _grid->nodes.at_1d(i);
 			if (pn != nullptr) {
 				Traversal(pn, fun, _max_l);
@@ -252,6 +252,45 @@ public:
 		}
 		_update_current_info();
 	}
+	void adapt_shape_inner(const Shape_<VALUE, DIM>& shape) {
+			// 1 adapt to min level
+			// adapt_full();
+			// 2 all out   -> adapt to min level
+			// 3 all in    -> adapt to min level
+			// 4 intersect -> adapt to max level
+			std::function<void(pNode&, st)> fun =
+					[this, &shape](pNode& pn, st max_l) {
+						if(pn->is_leaf()) {
+							Shape2D sn,res;
+							CreatCube(sn,
+									pn->p(_M_,_X_), pn->p(_M_,_Y_),
+									pn->p(_P_,_X_), pn->p(_P_,_Y_));
+							Intersect(sn,shape,res);
+							if(res.empty()) { //node is all out
+								if(pn->get_level() < this->_min_l) {
+									pn->new_full_child();
+								}
+							} else if(Abs(res.volume() - sn.volume())<1e-8) { // all in
+								if(pn->get_level() < max_l) {
+									pn->new_full_child();
+								}
+							} else {  //intersect
+								if(pn->get_level() < max_l) {
+									pn->new_full_child();
+								}
+							}
+						}
+					};
+
+			for (typename Grid::iterator_leaf iter = _grid->begin_leaf();
+					iter != _grid->end_leaf(); ++iter) {
+				pNode pn = iter.get_pointer();
+				if (pn != nullptr) {
+					pn->traversal(fun, _max_l);
+				}
+			}
+			_update_current_info();
+		}
 
 	/*
 	 * show information
@@ -259,8 +298,7 @@ public:
 	void show_i() const {
 
 	}
-}
-;
+};
 
 }
 

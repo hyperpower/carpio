@@ -17,124 +17,69 @@
 namespace carpio {
 
 template<typename COO_VALUE, typename VALUE, int DIM>
-class NS_ {
+class NS_ :public Equation_<COO_VALUE, VALUE, DIM>{
 public:
 	static const st Dim = DIM;
 	static const st NumFaces = DIM + DIM;
 	static const st NumVertexes = (DIM == 3) ? 8 : (DIM + DIM);
 	static const st NumNeighbors = NumFaces;
 
-	typedef COO_VALUE cvt;
-	typedef VALUE vt;
+	typedef Equation_<COO_VALUE, VALUE, DIM> Equation;
+	typedef Equation_<COO_VALUE, VALUE, DIM>& ref_Equation;
 
-	typedef NS_<cvt, vt, Dim> Self;
-	typedef NS_<cvt, vt, Dim>& ref_Self;
-	typedef NS_<cvt, vt, Dim>* pSelf;
-	typedef Domain_<cvt, vt, Dim> Domain;
-	typedef Domain_<cvt, vt, Dim>& ref_Domain;
-	typedef const Domain_<cvt, vt, Dim>& const_ref_Domain;
-	typedef Domain_<cvt, vt, Dim>* pDomain;
-	typedef const Domain_<cvt, vt, Dim>* const_pDomain;
-	typedef BoundaryCondition_<cvt, vt> BoundaryCondition;
-	typedef BoundaryCondition_<cvt, vt>* pBoundaryCondition;
-	typedef const BoundaryCondition_<cvt, vt>* const_pBoundaryCondition;
+	typedef Poisson_<COO_VALUE, VALUE, DIM> Self;
+	typedef Poisson_<COO_VALUE, VALUE, DIM>& ref_Self;
+	typedef Poisson_<COO_VALUE, VALUE, DIM>* pSelf;
+	typedef const Poisson_<COO_VALUE, VALUE, DIM>* const_pSelf;
 
-	typedef Grid_<cvt, vt, Dim> Grid;
-	typedef Grid_<cvt, vt, Dim> *pGrid;
-	typedef const Grid_<cvt, vt, Dim> * const_pGrid;
-	typedef Ghost_<cvt, vt, Dim> Ghost;
-	typedef const Ghost_<cvt, vt, Dim> const_Ghost;
-	typedef Ghost_<cvt, vt, Dim>* pGhost;
-	typedef const Ghost_<cvt, vt, Dim>* const_pGhost;
-	typedef typename Ghost::GhostNode GhostNode;
-	typedef Cell_<cvt, Dim> Cell;
-	typedef Cell *pCell;
-	typedef Data_<vt, Dim> Data;
-	typedef Data *pData;
-	typedef Node_<cvt, vt, Dim> Node;
-	typedef Node_<cvt, vt, Dim> *pNode;
-	typedef const Node_<cvt, vt, Dim> *const_pNode;
+	typedef typename Equation::vt vt;
+	typedef typename Equation::cvt cvt;
 
-	typedef Face_<Node, pNode> Face;
-	typedef Face_<Node, pNode> *pFace;
-	typedef const Face_<Node, pNode> * const_pFace;
-	typedef Shape_<cvt, Dim> Shape;
-	typedef Shape_<cvt, Dim>* pShape;
+	typedef typename Equation::pDomain pDomain;
+	typedef typename Equation::spEvent spEvent;
 
-	typedef Stencil_<cvt, vt, Dim, Dim> Stencil;
+	typedef typename Equation::Grid Grid;
+	typedef typename Equation::pGrid pGrid;
+	typedef typename Equation::const_pGrid const_pGrid;
 
-	typedef Interpolate_<cvt, vt, Dim> Interpolate;
+	typedef typename Equation::Node Node;
+	typedef typename Equation::pNode pNode;
+	typedef typename Equation::const_pNode const_pNode;
 
-	typedef std::function<vt(cvt, cvt, cvt)> Function;
-	//typedef std::function<void(pSelf)> Event;
 
-	typedef Expression_<cvt, vt, Dim> Exp;
-	typedef Exp* pExp;
-	typedef std::shared_ptr<Exp> spExp;
-	typedef std::shared_ptr<Face> spFace;
+	typedef typename Equation::Exp Exp;
+	typedef typename Equation::pExp pExp;
+	typedef typename Equation::spExp spExp;
+	typedef typename Equation::spFace spFace;
 
-	typedef typename Exp::Term Term;
-	typedef typename Exp::iterator ExpIter;
-	typedef typename Exp::const_iterator const_ExpIter;
+	typedef typename Equation::Face Face;
+	typedef typename Equation::pFace pFace;
+	typedef typename Equation::const_pFace const_pFace;
 
-	typedef std::function<vt(vt)> Limiter;
-protected:
-	typedef MatrixSCR_<vt> Mat;
-	typedef ArrayListV<vt> Arr;
+	typedef typename Equation::Flag Flag;
 
 	typedef ArrayListT<spExp> Arr_spExp;
+	typedef typename Equation::Map_FE Map_FE;
+	typedef typename Equation::pMap_FE pMap_FE;
+	typedef typename Equation::Iter_FE Iter_FE;
+	typedef typename Equation::const_Iter_FE const_Iter_FE;
+	typedef typename Equation::Pair_FE Pair_FE;
+	typedef typename Equation::Ret_FE Ret_FE;
 
-	struct comp_spFace {
-		bool operator()(const spFace& lhs, const spFace& rhs) {
-			// just compare pface
-			if (lhs->pori() < rhs->pori()) {
-				return true;
-			} else if (lhs->pori() == rhs->pori()) {
-				if (lhs->pnei() < rhs->pnei()) {
-					return true;
-				} else if (lhs->pnei() == rhs->pnei()) {
-					if (lhs->dir() < rhs->dir()) {
-						return true;
-					} else {
-						return false;
-					}
-				} else {
-					return false;
-				}
-			} else {
-				return false;
-			}
-		}
-	};
-	typedef std::map<spFace, Arr_spExp, comp_spFace> Map_FE;
-	typedef std::map<spFace, Arr_spExp, comp_spFace>* pMap_FE;
-	typedef typename std::map<spFace, Arr_spExp, comp_spFace>::iterator Iter_FE;
-	typedef typename std::map<spFace, Arr_spExp, comp_spFace>::const_iterator const_Iter_FE;
-	typedef std::pair<spFace, Arr_spExp> Pair_FE;
-	typedef std::pair<Iter_FE, bool> Ret_FE;
+	typedef typename Equation::Mat Mat;
+	typedef typename Equation::Arr Arr;
 
-	void _new_map_fe(pNode pn) {
-		utPointer& utp = pn->utp(_utp_fe);
-		if (utp == nullptr) {
-			utp = new Map_FE();
+	typedef typename Equation::BoundaryCondition BoundaryCondition;
+	typedef typename Equation::pBoundaryCondition pBoundaryCondition;
+	typedef typename Equation::const_pBoundaryCondition const_pBoundaryCondition;
 
-		} else {
-			Map_FE& mfe = CAST_REF(pMap_FE, utp);
-			mfe.clear();
-		}
-	}
+	typedef typename Equation::Function Function;
+	typedef typename Equation::Fun_get_spExp Fun_get_spExp;
 
-	void _delete_map_fe(pNode pn) {
-		utPointer& utp = pn->utp(_utp_fe);
-		if (utp != nullptr) {
-			pMap_FE mfe = CAST(pMap_FE, utp);
-			mfe->clear();
-			delete mfe;
-			utp = nullptr;
-		} else {
-			SHOULD_NOT_REACH;
-		}
-	}
+protected:
+
+	vt _tol;
+	int _max_iter;
 
 	void _face_val_gra(Face& pf, Exp& exp_val, Exp& exp_gra) {
 		// face direction
@@ -189,32 +134,6 @@ protected:
 				spFace spface_nei(new Face(pnei, pn, Opposite(dir), oft));
 				mfe_nei.insert(Pair_FE(spface_nei, arr_exp));
 			}
-		}
-	}
-
-	void _build_FE_on_leaf() {
-		Grid& grid = _pdomain->grid();
-		// new map FE on leaf
-		for (typename Grid::iterator_leaf it = grid.begin_leaf();
-				it != grid.end_leaf(); ++it) {
-			pNode pn = it.get_pointer();
-			_new_map_fe(pn);
-		}
-		// inert face value and gradient
-		for (typename Grid::iterator_leaf it = grid.begin_leaf();
-				it != grid.end_leaf(); ++it) {
-			pNode pn = it.get_pointer();
-			_insert_face_val_gra(pn);
-		}
-	}
-
-	void _delete_FE_on_leaf() {
-		Grid& grid = _pdomain->grid();
-		// delete map FE on leaf
-		for (typename Grid::iterator_leaf it = grid.begin_leaf();
-				it != grid.end_leaf(); ++it) {
-			pNode pn = it.get_pointer();
-			_delete_map_fe(pn);
 		}
 	}
 

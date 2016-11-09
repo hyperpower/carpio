@@ -6,6 +6,8 @@
 #include "event.hpp"
 #include "../utility/Clock.h"
 #include "../io/mmio.h"
+#include "../utility/format.h"
+#include "timestep.hpp"
 
 #include <vector>
 #include <memory>
@@ -76,23 +78,31 @@ public:
 	typedef std::shared_ptr<Event> spEvent;
 	typedef std::unordered_map<std::string, spEvent> Events;
 
+	typedef EventFlag_<cvt, vt, Dim> Flag;
+
 	// Variables ------------------------------------
 	typedef std::map<std::string, st> Variables;
 
 	typedef Expression_<cvt, vt, Dim> Exp;
 	typedef Exp* pExp;
 	typedef std::shared_ptr<Exp> spExp;
+	typedef std::function<spExp(pNode)> Fun_get_spExp;
 	typedef std::shared_ptr<Face> spFace;
 
 	typedef typename Exp::Term Term;
 	typedef typename Exp::iterator ExpIter;
 	typedef typename Exp::const_iterator const_ExpIter;
 
+	// Time step ------------------------------------
+	typedef TimeStep_<cvt, vt, Dim> TimeStep;
+	typedef std::shared_ptr<TimeStep> spTimeStep;
+
 protected:
 	typedef MatrixSCR_<vt> Mat;
 	typedef ArrayListV<vt> Arr;
 
 	typedef ArrayListT<spExp> Arr_spExp;
+	typedef ArrayListT<spExp>* pArr_spExp;
 
 	struct comp_spFace {
 		bool operator()(const spFace& lhs, const spFace& rhs) {
@@ -133,12 +143,44 @@ protected:
 		}
 	}
 
+	// new node expression
+	void _new_ne(pNode pn, st len, st idx) {
+		utPointer& utp = pn->utp(idx);
+		if (utp == nullptr) {
+			utp = new Arr_spExp(len);
+			Arr_spExp& arrne = CAST_REF(pArr_spExp, utp);
+			for (st i = 0; i < len; i++) {
+				spExp sp(new Exp());
+				arrne[i] = sp;
+			}
+		} else {
+			Arr_spExp& arrne = CAST_REF(pArr_spExp, utp);
+			for (st i = 0; i < len; i++) {
+				arrne[i]->clear();
+			}
+		}
+	}
+
 	void _delete_map_fe(pNode pn, st idx) {
 		utPointer& utp = pn->utp(idx);
 		if (utp != nullptr) {
 			pMap_FE mfe = CAST(pMap_FE, utp);
 			mfe->clear();
 			delete mfe;
+			utp = nullptr;
+		} else {
+			SHOULD_NOT_REACH;
+		}
+	}
+
+	void _delete_ne(pNode pn, st idx) {
+		utPointer& utp = pn->utp(idx);
+		if (utp != nullptr) {
+			pArr_spExp arrne = CAST(pArr_spExp, utp);
+			for (st i = 0; i < arrne->size(); i++) {
+				(*arrne)[i]->clear();
+			}
+			delete arrne;
 			utp = nullptr;
 		} else {
 			SHOULD_NOT_REACH;
@@ -217,6 +259,16 @@ protected:
 		}
 	}
 
+	void _build_NE_on_leaf(st len) {
+		Grid& grid = _pdomain->grid();
+		// new map FE on leaf
+		for (typename Grid::iterator_leaf it = grid.begin_leaf();
+				it != grid.end_leaf(); ++it) {
+			pNode pn = it.get_pointer();
+			_new_ne(pn, len, this->_vars_ut["NE"]);
+		}
+	}
+
 	void _delete_FE_on_leaf() {
 		Grid& grid = _pdomain->grid();
 		// delete map FE on leaf
@@ -224,6 +276,16 @@ protected:
 				it != grid.end_leaf(); ++it) {
 			pNode pn = it.get_pointer();
 			_delete_map_fe(pn, this->_vars_ut["FE"]);
+		}
+	}
+
+	void _delete_NE_on_leaf() {
+		Grid& grid = _pdomain->grid();
+		// delete map FE on leaf
+		for (typename Grid::iterator_leaf it = grid.begin_leaf();
+				it != grid.end_leaf(); ++it) {
+			pNode pn = it.get_pointer();
+			_delete_ne(pn, this->_vars_ut["NE"]);
 		}
 	}
 
@@ -236,6 +298,7 @@ protected:
 	// time relates variables
 	vt _dt;
 	vt _max_step;
+	spTimeStep _timestep;
 
 	// Flag
 	Events _events;
@@ -243,6 +306,8 @@ protected:
 	// Variables
 	Variables _vars_c;  //!< variables on the center of node
 	Variables _vars_ut; //!< untype variables on the node
+
+	Fun_get_spExp _get_node_spexp;
 
 #ifdef __Debug__
 	std::fstream debug_log;
@@ -259,67 +324,113 @@ public:
 			_pdomain(pf) {
 		_dt = dt;
 		_max_step = maxstep;
+		_timestep = spTimeStep(nullptr);
+		_get_node_spexp = nullptr;
 	}
 
-	virtual int run_one_step(st step){
-		std::cout<<step<<"  Equation: run one step \n";
+	virtual int run_one_step(st step) {
+		std::cout << step << "  Equation: run one step \n";
 		return -1;
 	}
 
-	virtual int solve(){
-		std::cout<<"  Equation: solve \n";
+	virtual int initial() {
+		std::cout << "  Equation: initial \n";
 		return -1;
 	}
 
-	void run(){
+	virtual int finalize() {
+		std::cout << "  Equation: finalize \n";
+		return -1;
+	}
+
+	virtual int solve() {
+		std::cout << "  Equation: solve \n";
+		return -1;
+	}
+
+	void run() {
 		// the equation don't have time
-		if(!this->has_time()){
+		if (!this->has_time_term()) {
 			_dt = 0;
 			_max_step = 1;
+			initial();
 			// start events
-			run_events(0, 0.0, -1);
+			run_events(0, 0.0, Event::START);
 
 			solve();
 
-			run_events(_max_step, -1, 1);
-			// start events
-		}
-		vt t = 0.0;
-		st step = 0;
-		// events before calculation
-		run_events(0 ,0.0 , -1);
-		// loop
-		for(;step < _max_step; ++step){
-			//
-			// events before each step
-			run_events(step ,t , -1);
+			run_events(_max_step, 0.0, Event::END);
+			finalize();
+		} else {
+			vt t = 0.0;
+			st step = 0;
+			// events before calculation
+			initial();
+			run_events(0, 0.0, Event::START);
+			// loop
+			for (; step < _max_step; ++step) {
+				//
+				// events before each step
+				run_events(step, t, Event::BEFORE);
 
-			// run one step =================
-			run_one_step(step);
-			// ==============================
+				// run one step =================
+				run_one_step(step);
+				// ==============================
 
-			// events after each step
-			run_events(step ,t , 1);
-			//
-			t += this->_dt;
+				// events after each step
+				run_events(step, t, Event::AFTER);
+				//
+				t += this->_dt;
+			}
+			// events after calculation
+			run_events(_max_step, t, Event::END);
+			finalize();
 		}
-		// events after calculation
-		run_events( _max_step, t , 1);
 	}
 
 	virtual ~Equation_() {
 
 	}
 
-	void run_events(st step, vt t, int fob){
-		for(auto& event : this->_events){
-			if(event.second->_do_execute(step, t,fob)){
+	void run_events(st step, vt t, int fob) {
+		for (auto& event : this->_events) {
+			if (event.second->_do_execute(step, t, fob)) {
 				event.second->execute(step, t, fob);
 			}
 		}
 	}
 
 public:
+	/**
+	 * @brief set value on center of node
+	 */
+	void set_val_grid(Function pfun, st idx) {
+		_pdomain->set_val_grid(idx, pfun);
+	}
+
+	void set_val_grid(Function pfun, const std::string& name) {
+		st idx = this->get_var_center_idx(name);
+		set_val_grid(pfun, idx);
+	}
+
+	void set_val_ghost(Function pfun, st idx) {
+		_pdomain->set_val_ghost(idx, pfun);
+	}
+
+	void set_val_ghost(Function pfun, const std::string& name) {
+		st idx = this->get_var_center_idx(name);
+		set_val_ghost(pfun, idx);
+	}
+
+	void set_val(Function pfun, st idx) {
+		this->set_val_grid(pfun, idx);
+		this->set_val_ghost(pfun, idx);
+	}
+
+	void set_val(Function pfun, const std::string& name) {
+		st idx = this->get_var_center_idx(name);
+		set_val(pfun, idx);
+	}
 
 	/**
 	 * @brief this function returns the max index of the valuables in
@@ -350,23 +461,75 @@ public:
 		return false;
 	}
 
-	void set_output_time(int is = -1, int ie = -1, int istep = -1, std::FILE * f = nullptr) {
+	void set_output_time(int is = -1, int ie = -1, int istep = -1,
+			int flag = -1, std::FILE * f = nullptr) {
 		// output to screen
-spEvent pse(new EventOutputTime_<cvt,vt, Dim>(is, ie, istep, f));
-		this->_events["OutputTime"] = pse ;
+		spEvent pse(new EventOutputTime_<cvt, vt, Dim>(is, ie, istep, flag, f));
+		this->_events["OutputTime"] = pse;
 	}
 
 	/*
 	 * Does the equation has term of time
 	 */
-	bool has_time() const {
-		return this->has("time");
+	bool has_time_term() const {
+		return this->has("time_term");
+	}
+	/**
+	 *  @brief set time term
+	 *         default --> no time term
+	 */
+
+	void set_time_term(vt dt, st max_step, const std::string& scheme =
+			"explicit") {
+		spEvent pse(new EventFlag_<cvt, vt, Dim>("time_term", 1));
+		this->_events["time_term"] = pse;
+		this->_dt = dt;
+		this->_max_step = max_step;
+		this->_timestep = TimeStep::Creator(scheme);
+	}
+	void unset_time_term() {
+		this->_events.erase("time_term");
+	}
+
+	/*
+	 * Boundary condition
+	 */
+	void set_boundary_condition(st si, st segi, st vi, pBoundaryCondition pbc) {
+		_pdomain->_pbindex->insert(si, segi, vi, pbc);
+	}
+
+	/*
+	 * Show valuable table
+	 */
+	void show_var_center() {
+		for (auto& term : this->_vars_c) {
+			fmt::print("({:<20} : {})\n", term.first, term.second);
+		}
+	}
+
+	void show_var_ut() {
+		for (auto& term : this->_vars_ut) {
+			fmt::print("({:<20} : {})\n", term.first, term.second);
+		}
+	}
+
+	/*
+	 * add var center
+	 */
+	void add_var_center(const std::string& name) {
+		st max = this->max_idx(this->_vars_c);
+		this->_vars_c[name] = max + 1;
+		this->_pdomain->resize_data(this->max_idx(this->_vars_c) + 1, 0, 0,
+				this->max_idx(this->_vars_ut) + 1);
+	}
+
+	st get_var_center_idx(const std::string& name) const {
+		Variables::const_iterator got = this->_vars_c.find(name);
+		ASSERT(got != this->_vars_c.end());
+		return got->second;
 	}
 
 protected:
-	void _output_time(st step, vt dt, vt t, vt cpu, vt wall) {
-
-	}
 
 	/*
 	 *
@@ -440,17 +603,110 @@ protected:
 	}
 
 	void _arr_to_grid(const Arr& x, st idx) {
-		pGrid pgrid = this->_pdomain->p_grid();
+		pGrid pgrid = this->_pdomain->pgrid();
 		for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
 				it != pgrid->end_leaf(); ++it) {
 			it->cd(idx) = x[it->d_idx()];
 		}
 	}
 	void _grid_to_arr(Arr& x, st idx) {
-		pGrid pgrid = this->_pdomain->p_grid();
+		pGrid pgrid = this->_pdomain->pgrid();
 		for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
 				it != pgrid->end_leaf(); ++it) {
 			x[it->d_idx()] = it->cd(idx);
+		}
+	}
+
+	void _build_node_exp(std::function<void(pNode, Exp&)> fun_node_exp,
+			st idx) {
+		Grid& grid = _pdomain->grid();
+		// new map FE on leaf
+		for (typename Grid::iterator_leaf it = grid.begin_leaf();
+				it != grid.end_leaf(); ++it) {
+			pNode pn = it.get_pointer();
+			utPointer& utp = pn->utp(this->_vars_ut["NE"]);
+			if (utp != nullptr) {
+				Arr_spExp& arrne = CAST_REF(pArr_spExp, utp);
+				fun_node_exp(pn, *(arrne[idx]));
+			} else {
+				SHOULD_NOT_REACH;
+			}
+		}
+	}
+
+	void _build_matrix(Mat& mat, Arr& b, //
+			Fun_get_spExp fun) {
+		//2 Treverse face
+		//  to calculate the expression for solver
+		typedef std::list<st> ListST;
+		typedef std::list<vt> ListVT;
+		ListST l_rowptr;
+		l_rowptr.push_back(0);
+		ListST l_colid;
+		ListVT l_val;
+		ListVT l_b;
+		int countnz = 0;
+
+		pGrid pgrid = _pdomain->pgrid();
+
+		for (typename Grid::iterator_leaf it = pgrid->begin_leaf();
+				it != pgrid->end_leaf(); ++it) {
+			pNode pn = it.get_pointer();
+			spExp spexp = fun(pn);
+			Exp& exp = (*spexp);
+			exp.concise();
+
+			int fconst = 0;
+			for (typename Exp::iterator ite = exp.begin(); ite != exp.end();
+					++ite) {
+				if (!Exp::IsConstant(ite)) {
+					const_pNode pn = Exp::GetpNode(ite);
+					vt val = Exp::GetCoe(ite);
+					l_colid.push_back(pn->d_idx());
+					l_val.push_back(val);
+					countnz++;
+				} else {
+					fconst = 1;
+					vt val = Exp::GetCoe(ite);
+					l_b.push_back(-val);    //!!!!! negative added here
+				}
+			}
+			if (fconst == 0) {
+				l_b.push_back(0);
+			}
+			l_rowptr.push_back(countnz);
+			//exp.show();
+		}
+		//copy list to array  ======================
+		st nr = l_rowptr.size() - 1;
+		st nz = l_val.size();
+		ASSERT(nz == l_colid.size());
+		ASSERT(nr <= nz);
+		mat.newsize(nr, nr, nz);
+		b.reconstruct(l_b.size());
+		int i = 0;
+		for (typename ListST::iterator it = l_colid.begin();
+				it != l_colid.end(); ++it) {
+			mat.col_ind(i) = (*it);
+			i++;
+		}
+		i = 0;
+		for (typename ListST::iterator it = l_rowptr.begin();
+				it != l_rowptr.end(); ++it) {
+			mat.row_ptr(i) = (*it);
+			i++;
+		}
+		i = 0;
+		for (typename ListVT::iterator it = l_val.begin(); it != l_val.end();
+				++it) {
+			mat.val(i) = (*it);
+			i++;
+		}
+		i = 0;
+		for (typename ListVT::iterator it = l_b.begin(); it != l_b.end();
+				++it) {
+			b[i] = (*it);
+			i++;
 		}
 	}
 

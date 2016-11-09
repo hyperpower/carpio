@@ -198,7 +198,7 @@ TEST(Interpolate, plane) {
 	domain.new_data(1, 0, 0, 0);
 	domain.set_val(0, set_sin);
 	// generate points to get error
-	int nmax = 1000000;
+	int nmax = 100;
 	ArrayListV<Float> arrx(nmax);
 	ArrayListV<Float> arry(nmax);
 	ArrayListV<Float> err(nmax);
@@ -276,7 +276,7 @@ void test_order(int minlevel, int dl, Float& e1, Float& e2, Float &einf) {
 	einf = nrminf(err);
 }
 
-TEST(DISABLED_Interpolate, plane_order) {
+TEST(Interpolate, plane_order) {
 	int n = 5;
 	int bl = 3;
 	arrayList_st arr_level(n);

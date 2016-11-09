@@ -16,7 +16,7 @@
 
 namespace carpio {
 
-int GnuplotActor_Cell(Gnuplot_actor& actor, const Cell_2D& c);
+int GnuplotActor_Cell(Gnuplot_actor& actor, const Cell_2D& c);  //changed
 int GnuplotActor_Node(Gnuplot_actor& actor, const Node_2D& node);
 int GnuplotActor_RootNodes(Gnuplot_actor& actor, const Grid_2D& g);
 int GnuplotActor_LeafNodes(Gnuplot_actor& actor, const Grid_2D& g);
@@ -60,6 +60,8 @@ int GnuplotActor_ArrayList(Gnuplot_actor&, const ArrayListV<Float>&);
 
 int GnuplotShow_RootNodes(const Grid_2D& grid);
 int GnuplotShow_LeafNodes(const Grid_2D& grid);
+
+
 
 template<class VALUE>
 void gnuplot_show_ylog(const std::list<VALUE>& list) {

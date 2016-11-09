@@ -28,8 +28,11 @@ template<class COE, class TERM, class EXP,                                    //
 		class COMPARE_EXP = std::less<EXP> >                                 //
 class Polynomial_ {
 protected:
+	typedef TERM T;
+	typedef EXP  E;
+	typedef COE  C;
 	typedef std::pair<TERM, EXP> Key;
-	typedef COE Value;
+
 	typedef ISZERO_COE is_zero_coe;
 	typedef ISZERO_EXP is_zero_exp;
 	ISZERO_COE _is_zero_coe;
@@ -53,7 +56,7 @@ protected:
 		}
 	};
 
-	typedef std::map<Key, Value, _compare> Map;
+	typedef std::map<Key, C, _compare> Map;
 	Map _map;
 public:
 
@@ -72,18 +75,18 @@ public:
 	typedef typename Map::difference_type difference_type;
 	typedef typename Map::size_type size_type;
 
-	class Term: public std::pair<const Key, Value> {
+	class Term: public std::pair<const Key, C> {
 	public:
 		Term() {
 		}
-		Term(const Key& key, const Value& v) :
-				std::pair<const Key, Value>(key, v) {
+		Term(const Key& key, const C& v) :
+				std::pair<const Key, C>(key, v) {
 		}
-		Term(const std::pair<const Key, Value>& p) :
-				std::pair<const Key, Value>(p.first, p.second) {
+		Term(const std::pair<const Key, C>& p) :
+				std::pair<const Key, C>(p.first, p.second) {
 		}
 		Term(const COE& coe, const TERM& term, const EXP& exp) :
-				std::pair<const Key, Value>(std::pair<TERM, EXP>(term, exp),
+				std::pair<const Key, C>(std::pair<TERM, EXP>(term, exp),
 						coe) {
 		}
 		const COE& coe() const {
@@ -143,10 +146,10 @@ public:
 	size_type size() const {
 		return _map.size();
 	}
-	Value& operator[](const Key& k) {
+	C& operator[](const Key& k) {
 		return _map[k];
 	}
-	const Value& operator[](const Key& k) const {
+	const C& operator[](const Key& k) const {
 		return _map[k];
 	}
 
@@ -168,7 +171,7 @@ protected:
 	typedef std::pair<iterator, bool> _ret;
 public:
 
-	_ret insert(const std::pair<const Key, Value> &x) {
+	_ret insert(const std::pair<const Key, C> &x) {
 		iterator it = _map.find(x.first);
 		if (it != _map.end()) {
 			it->second = it->second + x.second;
@@ -185,10 +188,16 @@ public:
 		return _map.insert(x);
 	}
 
-	iterator find(const std::pair<const Key, Value> &x) {
+	_ret insert(const C& c, const T& t, const E& e){
+		const Key k(t, e);
+		std::pair<const Key, C> p(k, c);
+		return this->insert(p);
+	}
+
+	iterator find(const std::pair<const Key, C> &x) {
 		return _map.find(x.first);
 	}
-	const_iterator find(const std::pair<const Key, Value> &x) const {
+	const_iterator find(const std::pair<const Key, C> &x) const {
 		return _map.find(x.first);
 	}
 
@@ -218,7 +227,7 @@ public:
 		for (Polynomial_::const_iterator iter = poly.begin();
 				iter != poly.end(); ++iter) {
 			const Key& k = iter->first;
-			const Value& v = iter->second;
+			const C& v = iter->second;
 			Term term(k, -v);       //minus
 			this->insert(term);
 		}
@@ -257,7 +266,7 @@ public:
 		iterator it_e = _map.end();
 		iterator it_t;
 		size_type flag = 0;
-		std::pair<Key, Value> ct;
+		std::pair<Key, C> ct;
 		while (it_b != it_e) {
 			if (_is_zero_exp(it_b->first.second)) {  // Criteria checking here
 				if (flag == 0) {
@@ -422,7 +431,7 @@ public:
 		const_iterator it_t = _container.begin();
 
 		while (it_b != it_e) {
-			if (it_b->value == 0) {  // Criteria checking here
+			if (it_b->value == 0) {     // Criteria checking here
 				it_t = it_b;            // Keep a reference to the iter
 				++it_b;                 // Advance in the map
 				_container.erase(it_t);       // Erase it !!!

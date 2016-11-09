@@ -595,10 +595,6 @@ double Residual( //
 	return resid;
 }
 
-
-
-
-
 template<class VALUE>
 int Dia_BiCGSTAB( //
 		const MatrixSCR_<VALUE> &A,  // A  The matrix [in]
@@ -746,6 +742,33 @@ int BiCGSTAB( //
 	tol = resid;
 	return 1;
 }
+
+// abstract class solver
+
+template<class VALUE>
+class Solver_ {
+public:
+	typedef VALUE vt;
+protected:
+	int _max_iter;   //max_iter
+	vt  _tol;         // Tolerance
+	std::list<vt> _lresid;
+
+	Solver_(int max_iter = 10, vt tol = 1e-2) {
+		_max_iter = max_iter;
+		_tol      = tol;
+	}
+
+
+	virtual int solve() {
+	}
+	;
+
+	virtual ~Solver_() {
+	}
+	;
+
+};
 
 } //end namespace
 

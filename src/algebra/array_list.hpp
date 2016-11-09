@@ -507,8 +507,10 @@ public:
 	//fill ----------------------------------------
 	void assign_forward(const V& be, const V& step);
 	void assign_backward(const V& be, const V& step);
+	void ones();
+	void zeros();
 	//count ---------------------------------------
-	size_type countEq(const V &a) const;
+	size_type count_equal(const V &a) const;
 
 	void show() const;
 };
@@ -742,7 +744,17 @@ void ArrayListV<V>::assign_backward(const V& be, const V& step) {
 }
 
 template<typename V>
-st ArrayListV<V>::countEq(const V &a) const {
+void ArrayListV<V>::ones() {
+	this->assign_forward(1.0,0.0);
+}
+
+template<typename V>
+void ArrayListV<V>::zeros() {
+	this->assign_forward(V(0.0),V(0.0));
+}
+
+template<typename V>
+st ArrayListV<V>::count_equal(const V &a) const {
 	if (this->m_p != NULL) {
 		return 0;
 	}

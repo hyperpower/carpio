@@ -7,6 +7,9 @@
 #include "../utility/random.h"
 //#include "../calculation/expression.hpp"
 #include "gtest/gtest.h"
+#include "../io/gnuplot_actor.h"
+
+#include <string>
 
 namespace carpio {
 TEST(DISABLED_test_polynomial,simple1_DISABLED) {
@@ -123,36 +126,80 @@ TEST(test_polynomial,move_contructor) {
 	p.show();
 }
 
-void poly_add() {
-	Polynomial2_<std::string, Float> poly("z");
-	poly.insert(1.0, "a");
-	poly.insert(2.0, "b");
-	poly.insert(3.0, "a");
-	poly.show();
-
-	Polynomial2_<std::string, Float> poly2("z");
-	poly2.insert(1.0, "a");
-	poly2.insert(2.0, "b");
-	poly2.insert(3.0, "c");
-	poly2.show();
-
-	poly.plus(poly2);
-	poly.times(0);
-	poly.concise();
-	poly.show();
+void poly_add2(int num_repeat) {
+	for (int n = 0; n < num_repeat; n++) {
+		Random::randomSeed();
+		// generate the first ploynomial
+		Polynomial2_<std::string, Float> poly("z");
+		int num_term = Random::nextInt(1, 5);
+		for (int i = 0; i < num_term; i++) {
+			poly.insert(Random::nextFloat(-100, 100),
+					Random::nextString(1, "abcdefghijkz"));
+		}
+		Polynomial2_<std::string, Float> poly2("z");
+		num_term = Random::nextInt(1, 5);
+		for (int i = 0; i < num_term; i++) {
+			poly2.insert(Random::nextFloat(-100, 100),
+					Random::nextString(1, "abcdefghijkz"));
+		}
+		poly.plus(poly2);
+	}
 }
 
+void poly_add(long num_repeat) {
+	for (long n = 0; n < num_repeat; n++) {
+		Random::randomSeed();
+		// generate the first ploynomial
+		// class COE, class TERM, class EXP,
+		Polynomial_<Float, std::string, int> poly;
+		int num_term = Random::nextInt(1, 5);
+		for (int i = 0; i < num_term; i++) {
+			poly.insert(Random::nextFloat(-100, 100),
+					Random::nextString(1, "abcdefghijkz"),
+					Random::nextInt(0, 1));
+		}
+		Polynomial_<Float, std::string, int> poly2;
+		num_term = Random::nextInt(1, 5);
+		for (int i = 0; i < num_term; i++) {
+			poly2.insert(Random::nextFloat(-100, 100),
+					Random::nextString(1, "abcdefghijkz"),
+					Random::nextInt(0, 1));
+		}
+		poly.plus(poly2);
+	}
+}
 
 TEST(test_polynomial,random_number) {
-	Random::randomSeed();
-	for (int i = 0; i < 10; i++) {
-		std::cout << Random::nextFloat() << "\n";
-		std::cout << Random::nextString(50) << "\n";
-	}
-
 	//Polynomial2_<std::string, Float> poly("z");
 	//Expression2_<Float, Float, 3> exp;
-	poly_add();
+	std::vector<long> a = { 10, 100, 1000, 5000};
+	Clock c;
+	c.start();
+	for (auto& num : a) {
+		poly_add(num);
+		c.break_point("Poly RBtree", num);
+	}
+	c.show();
+	Clock c2;
+	c2.start();
+	for (auto& num : a) {
+		poly_add2(num);
+		c2.break_point("Poly Hash", num);
+	}
+	c2.show();
+	// draw
+	// show ================================
+	GnuplotActor::list_spActor lga;
+	lga.push_back(GnuplotActor::Clock_Wall(c));
+	lga.push_back(GnuplotActor::Clock_Wall(c2));
+	Gnuplot gp;
+	gp.set_equal_ratio();
+	//gp.set_xrange(2.0,3.0);
+	//gp.set_yrange(1.5,2.5);
+	gp.set_xlogscale(10);
+	gp.set_ylogscale(10);
+	gp.plot(lga);
+	//delete shape
 
 }
 

@@ -231,10 +231,10 @@ public:
 
 public:
 
-	pGrid p_grid() {
+	pGrid pgrid() {
 		return _pgrid;
 	}
-	const_pGrid p_grid() const {
+	const_pGrid pgrid() const {
 		return _pgrid;
 	}
 	ref_Grid grid() {

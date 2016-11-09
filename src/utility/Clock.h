@@ -52,6 +52,8 @@ const tick_t TICK_INF = 0xFFFFFFFFFFFFFFFFULL;
 class Clock {
 public:
 	Clock();
+	Clock(const std::string& name);
+
 //	~Clock() {}
 
 /// Sleeps the current thread for the given amount of milliseconds.
@@ -178,23 +180,97 @@ public:
 		this->_start_time_wt = Clock::Tick();
 	}
 
-	void break_point(const std::string& name) {
+	void break_point(const std::string& name = "", const Float& num = 1) {
 		_tp_name.push_back(name);
 		_tp_cpu.push_back(Clock::SystemTime());
 		_tp_wt.push_back(Clock::Tick());
+		_tp_num.push_back(num);
 	}
 
 	void clear_records() {
 		_tp_cpu.clear();
 		_tp_wt.clear();
 		_tp_name.clear();
+		_tp_num.clear();
+	}
+
+	st size() const {
+		return _tp_name.size();
+	}
+
+protected:
+	typedef std::list<tick_t>::iterator iterator_t;
+	typedef std::list<tick_t>::const_iterator const_iterator_t;
+
+	typedef std::list<Float>::iterator iterator_n;
+	typedef std::list<Float>::const_iterator const_iterator_n;
+
+public:
+	tick_t start_time_cpu() const {
+		return this->_start_time_cpu;
+	}
+
+	tick_t start_time_wall() const {
+		return this->_start_time_wt;
+	}
+
+	iterator_t begin_cpu() {
+		return this->_tp_cpu.begin();
+	}
+
+	const_iterator_t begin_cpu() const {
+		return this->_tp_cpu.begin();
+	}
+
+	iterator_t end_cpu() {
+		return this->_tp_cpu.end();
+	}
+
+	const_iterator_t end_cpu() const {
+		return this->_tp_cpu.end();
+	}
+
+	iterator_t begin_wall() {
+		return this->_tp_wt.begin();
+	}
+
+	const_iterator_t begin_wall() const {
+		return this->_tp_wt.begin();
+	}
+
+	iterator_t end_wall() {
+		return this->_tp_wt.end();
+	}
+
+	const_iterator_t end_wall() const {
+		return this->_tp_wt.end();
+	}
+
+	iterator_n begin_num() {
+		return this->_tp_num.begin();
+	}
+
+	const_iterator_n begin_num() const {
+		return this->_tp_num.begin();
+	}
+
+	iterator_n end_num() {
+		return this->_tp_num.end();
+	}
+
+	const_iterator_n end_num() const {
+		return this->_tp_num.end();
+	}
+
+	std::string name() const{
+		return this->_name;
 	}
 
 	void show() {
 		// get leatest time
 		tick_t d_end_cpu, d_end_wt;
-		fmt::print("{:<7} {:^10} {:^10} {:^5} {:^5} {}\n", " Index", "Cpu",
-				"Wall", "Cpu%", "Wall%", "Name");
+		fmt::print("{:<7} {:^10} {:^10} {:^5} {:^5} {:^7} {}\n", " Index",
+				"Cpu", "Wall", "Cpu%", "Wall%", "Num", "Name");
 		fmt::print("{:-<60}\n", " ");
 		if (_tp_cpu.empty()) {
 			std::cout << " Empty\n";
@@ -208,6 +284,7 @@ public:
 		std::list<tick_t>::iterator iter_c = _tp_cpu.begin(), iter_wt =
 				_tp_wt.begin();
 		std::list<std::string>::iterator iter_name = _tp_name.begin();
+		iterator_n iter_num = _tp_num.begin();
 
 		// loop --------------------
 		int i = 0;
@@ -224,14 +301,16 @@ public:
 				dt_wt = Clock::TicksInBetween(*iter_c, *prev_wt);
 			}
 			// output
-			fmt::print("{: ^7} {: >10.5f} {: >10.5f} {: >5.2f} {: >5.2f} {}\n",
-					i, Clock::TicksToSecondsD(dt_cpu),
-					Clock::TicksToSecondsD(dt_wt),
+			fmt::print(
+					"{: ^7} {: >10.5f} {: >10.5f} {: >5.2f} {: >5.2f} {: >4.1e} {}\n",
+					i,  // Index
+					Clock::TicksToSecondsD(dt_cpu), // d Cpu time
+					Clock::TicksToSecondsD(dt_wt),  // d Wall time
 					Clock::TicksToSecondsD(dt_cpu)
 							/ Clock::TicksToSecondsD(d_end_cpu) * 100,
 					Clock::TicksToSecondsD(dt_wt)
 							/ Clock::TicksToSecondsD(d_end_wt) * 100,
-					(*iter_name));
+					(*iter_num), (*iter_name));
 
 			//std::cout << "  " << i << "  " << Clock::TicksToSecondsD(dt_cpu)
 			//		<< "   " << Clock::TicksToSecondsD(dt_wt) << "   "
@@ -244,28 +323,30 @@ public:
 			++iter_c;
 			++iter_wt;
 			++iter_name;
+			++iter_num;
 			++i;
 		}
 		fmt::print("{:-<60}<\n", " ");
-		fmt::print("{: ^7} {: >10.5f} {: >10.5f}\n",
-				"sum", Clock::TicksToSecondsD(d_end_cpu),
+		fmt::print("{: ^7} {: >10.5f} {: >10.5f}\n", "sum",
+				Clock::TicksToSecondsD(d_end_cpu),
 				Clock::TicksToSecondsD(d_end_wt));
 
 	}
 
-private:
+protected:
 	static tick_t appStartTime;      ///< Application startup time in ticks.
 
 	/// Initializes clock tick frequency and marks the application startup time.
 	static void InitClockData();
 
-protected:
 	tick_t _start_time_cpu;
 	tick_t _start_time_wt;
 
+	std::string _name;          // clock name
 	std::list<tick_t> _tp_cpu;  // time points of cpu time
 	std::list<tick_t> _tp_wt;   // time points of wall time
 	std::list<std::string> _tp_name;
+	std::list<Float> _tp_num;   // store
 
 #ifdef WIN32
 	// The following two are actually used as LARGE_INTEGERs, but to avoid having to pull Windows.h in Clock.h, define them

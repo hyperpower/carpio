@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include "../carpio_define.hpp"
 #include "io_define.hpp"
+#include <memory>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
 //defined for 32 and 64-bit environments
@@ -328,6 +329,36 @@ public:
 			cmd("\n");
 		}
 		cmd("e\n");
+		return *this;
+	}
+
+	Gnuplot& plot(const std::list<std::shared_ptr<Gnuplot_actor> >& lga) {
+		if (lga.empty()) {
+			std::cerr << " >Warning! The Gnuplot actor is empty! \n";
+			return *this;
+		}
+		std::ostringstream ss;
+		ss << "plot ";
+		for (std::list<std::shared_ptr<Gnuplot_actor> >::const_iterator iter = lga.begin();
+				iter != lga.end(); ++iter) {
+			const std::shared_ptr<Gnuplot_actor> spa = (*iter);
+			if (spa->empty_style()) {
+				ss << "\"-\" " << spa->command() << "with lines lw 1";
+			} else {
+				ss << "\"-\" " << spa->command() << spa->style();
+			}
+
+			if (lga.size() >= 2 && (iter != (--lga.end()))) {
+				ss << ",\\\n";
+			}
+		}
+		cmd(ss.str() + "\n");
+		ss.str("");
+		for (std::list<std::shared_ptr<Gnuplot_actor> >::const_iterator iter = lga.begin();
+				iter != lga.end(); ++iter) {
+			const std::shared_ptr<Gnuplot_actor> spa = (*iter);
+			output_inline_data((*spa));
+		}
 		return *this;
 	}
 

@@ -187,6 +187,8 @@ public:
 				return (_pe2 == nullptr) ? true : false;
 			}
 		}
+		SHOULD_NOT_REACH;
+		return false;
 	}
 	/*
 	 * calculate face

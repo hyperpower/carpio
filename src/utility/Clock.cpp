@@ -98,6 +98,10 @@ Clock::Clock()
 	this->start();
 }
 
+Clock::Clock(const std::string& name) : Clock(){
+	this->_name = name;
+}
+
 void Clock::Sleep(int milliseconds)
 {
 #ifdef WIN8RT

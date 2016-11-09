@@ -12,11 +12,11 @@
 using namespace std;
 namespace carpio {
 
-inline Float generate_random_number(Float min, Float max) {
-	//srand((unsigned)time(0));
-	Float floor = min, ceiling = max, range = (ceiling - floor);
-	return floor + ((range * rand()) / (RAND_MAX + 1.0));
-}
+//inline Float generate_random_number(Float min, Float max) {
+//	//srand((unsigned)time(0));
+//	Float floor = min, ceiling = max, range = (ceiling - floor);
+//	return floor + ((range * rand()) / (RAND_MAX + 1.0));
+//}
 
 typedef Domain_<Float, Float, 2> Domain;
 

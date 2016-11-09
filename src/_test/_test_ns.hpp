@@ -150,7 +150,7 @@ TEST(ns2, unigrid) {
 
 	//show_plot_contour(domain, ns.idx_u(), "u field");
 	//show_plot_contour(domain, ns.idx_ut(), "u star field");
-	ns.advance(maxstep, 1e-2, 30, 1);
+	ns.advance(maxstep, 1e-6, 5, 1);
 	//show_plot_contour(domain, ns.idx_ut(), "u star field");
 	show_value_on_line(domain, _Y_, 0.0, ns.idx_v());
 	show_value_on_line(domain, _X_, 0.0, ns.idx_u());

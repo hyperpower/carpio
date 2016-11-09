@@ -193,12 +193,12 @@ inline void Sort(const TYPE &a, const TYPE &b, const TYPE &c,  //
 }
 
 template<class TYPE>
-bool Comp_great(const TYPE &a, const TYPE &b) {
+bool CompGreat(const TYPE &a, const TYPE &b) {
 	return a > b;
 }
 
 template<class TYPE>
-bool Comp_less(const TYPE &a, const TYPE &b) {
+bool CompLess(const TYPE &a, const TYPE &b) {
 	return a < b;
 }
 

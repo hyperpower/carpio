@@ -70,7 +70,7 @@ public:
 	ArrayListT(size_type Len, const T& nd);
 	ArrayListT(T *nd, size_type Len);
 	//=============================================
-	~ArrayListT();
+	virtual ~ArrayListT();
 	//=============================================
 	T* getPointer() {
 		return m_p;
@@ -117,7 +117,7 @@ public:
 	void push_back(const T& nd);
 	void pop_back();
 	void erase(size_type i);
-	void resize(const size_type& new_size);
+	virtual void resize(const size_type& new_size);
 
 	bool empty() const;
 	bool non_empty() const;

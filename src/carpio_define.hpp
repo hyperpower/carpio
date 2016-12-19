@@ -14,6 +14,9 @@
 
 //#define NDEBUG  //disable assert()
 
+#define __X__ 0.489
+#define __Y__ 0.489
+
 namespace carpio {
 
 #define ASSERT(expr) assert(expr)
@@ -27,6 +30,8 @@ namespace carpio {
 #define SMALL                   1.0e-11
 // value type
 typedef std::size_t st; //size type
+typedef int Int;
+typedef unsigned int uInt;
 typedef double Float;
 typedef void* utPointer;
 typedef const void* const_utPointer;
@@ -101,9 +106,9 @@ enum Axes {
 	_Y_ = 1, //
 	_Z_ = 2, //
 };
-inline Axes ToAxes(const st& i){
-	ASSERT(i>=0 && i<3);
-	switch(i){
+inline Axes ToAxes(const st& i) {
+	ASSERT(i >= 0 && i < 3);
+	switch (i) {
 	case 0:
 		return _X_;
 	case 1:
@@ -158,6 +163,8 @@ inline Axes VerticalAxes2(const Axes& a) {
 enum Plane {
 	_XY_ = 24, _YZ_ = 48, _ZX_ = 40,
 };
+
+
 
 }
 

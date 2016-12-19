@@ -137,9 +137,9 @@ TEST(Poisson, adpgrid_source) {
 
 }
 
-
 TEST(Poisson, adp_time_term) {
 	const st dim = 2;
+	st timestep = 300;
 	typedef Poisson_<Float, Float, dim> Poisson;
 	// new shape--------------------
 	Shape2D shape;
@@ -156,31 +156,45 @@ TEST(Poisson, adp_time_term) {
 	domain.build();
 
 	Poisson poisson(&domain);
-	poisson.set_time_term(0.1,10,"implicit");
+	//poisson.set_time_term(0.00001, timestep, "explicit");
+	poisson.set_time_term(0.00001, timestep, "CrankNicolson");
 	poisson.set_output_time(0, 10, 1,
-			Poisson::Event::START | Poisson::Event::END | Poisson::Event::AFTER);
+			Poisson::Event::START | Poisson::Event::END
+					| Poisson::Event::AFTER);
 	Poisson_<Float, Float, dim>::Function fun_beta =
-			[](Float, Float, Float) {return 1;};
+			[](Float, Float, Float) {return 2;};
 	poisson.set_beta(fun_beta);
 	Poisson_<Float, Float, dim>::Function fun_source =
 			[](Float x, Float y, Float z) {
 				bool res = IsInRange(-0.3,x,-0.1,_cc_);
 				res = res && IsInRange(-0.3,y,-0.1,_cc_);
-				return res ? -20: 0;
+				return res ? -20.0: 0;
 			};
+
+	Poisson_<Float, Float, dim>::Function fun_phi =
+			[](Float, Float, Float) {return 0;};
+	poisson.set_phi(fun_phi);
 	poisson.set_f(fun_source);
+
 	//poisson.set_alpha_term(fun_beta);
 
 	Poisson_<Float, Float, dim>::BoundaryCondition bc1;
 	bc1.set_default_1_bc(0);
 	Poisson_<Float, Float, dim>::BoundaryCondition bc2;
-	bc2.set_default_1_bc(0.25);
+	bc2.set_default_1_bc(1);
 	//bc.set_default_1_bc(exact_fun_2);
 	poisson.set_bc_phi(0, 0, &bc1);
 	poisson.set_bc_phi(0, 1, &bc2);
 	poisson.set_bc_phi(0, 2, &bc2);
 	poisson.set_bc_phi(0, 3, &bc1);
 	//poisson.set_output_time(0,10, 2);
+
+	typedef EventTraceCenterValue_<Float, Float, dim> EventTraceCenterValue;
+	EventTraceCenterValue eventtcv(0, timestep, 1, Poisson::Event::AFTER);
+	Poisson::spEvent spe = std::make_shared<EventTraceCenterValue>(eventtcv);
+	poisson.add_event("trace center", spe);
+
+	//---------------------------
 	poisson.run();
 	// output
 	// show ================================
@@ -191,6 +205,7 @@ TEST(Poisson, adp_time_term) {
 	//lga.push_back(
 	//		GnuplotActor::LeafNodes((*domain.pgrid())));
 	Gnuplot gp;
+	//gp.set_terminal_jpeg("phi.jpeg");
 	gp.set_equal_ratio();
 	//gp.set_xrange(2.0,3.0);
 	//gp.set_yrange(1.5,2.5);

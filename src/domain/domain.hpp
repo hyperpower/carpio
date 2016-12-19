@@ -116,7 +116,6 @@ public:
 	// Ghost nodes
 	pGhost _pghost;
 
-
 protected:
 
 	void _new_grid(cvt UL) {
@@ -343,6 +342,8 @@ public:
 		this->_pghost->resize_data(nc, nf, nv, nutp);
 	}
 };
+
+
 
 }
 

@@ -56,7 +56,7 @@ public:
 	typedef Cell *pCell;
 	typedef Data_<vt, Dim> Data;
 	typedef Data *pData;
-	typedef Node_<cvt, vt, Dim> Node;
+    typedef Node_<cvt, vt, Dim> Node;
 	typedef Node_<cvt, vt, Dim> *pNode;
 	typedef const Node_<cvt, vt, Dim> *const_pNode;
 
@@ -72,6 +72,11 @@ public:
 
 	// function define ------------------------------
 	typedef std::function<vt(cvt, cvt, cvt)> Function;
+	typedef std::unordered_map<std::string, Function> Functions;
+
+	typedef std::unordered_map<std::string, vt> Values;
+
+	typedef std::function<void(pNode)> Fun_pNode;
 
 	// Events ----------------------------------------
 	typedef Event_<cvt, vt, Dim> Event;
@@ -296,12 +301,16 @@ protected:
 	pDomain _pdomain;
 
 	// time relates variables
-	vt _dt;
-	vt _max_step;
+	// vt _dt;
+	// vt _max_step;
 	spTimeStep _timestep;
 
 	// Flag
 	Events _events;
+
+	// functions
+	Functions _functions;
+	Values _values;
 
 	// Variables
 	Variables _vars_c;  //!< variables on the center of node
@@ -320,11 +329,10 @@ public:
 	 * utp
 	 * utp map          0
 	 */
-	Equation_(pDomain pf, vt dt = -1, st maxstep = 1) :
+	Equation_(pDomain pf) :
 			_pdomain(pf) {
-		_dt = dt;
-		_max_step = maxstep;
 		_timestep = spTimeStep(nullptr);
+		this->set_stand_alone();
 		_get_node_spexp = nullptr;
 	}
 
@@ -351,15 +359,13 @@ public:
 	void run() {
 		// the equation don't have time
 		if (!this->has_time_term()) {
-			_dt = 0;
-			_max_step = 1;
 			initial();
 			// start events
 			run_events(0, 0.0, Event::START);
 
 			solve();
 
-			run_events(_max_step, 0.0, Event::END);
+			run_events(1, 0.0, Event::END);
 			finalize();
 		} else {
 			vt t = 0.0;
@@ -367,8 +373,10 @@ public:
 			// events before calculation
 			initial();
 			run_events(0, 0.0, Event::START);
+			vt ms = this->_timestep->max_step();
+			vt dt = this->_timestep->dt();
 			// loop
-			for (; step < _max_step; ++step) {
+			for (; step < ms; ++step) {
 				//
 				// events before each step
 				run_events(step, t, Event::BEFORE);
@@ -380,10 +388,10 @@ public:
 				// events after each step
 				run_events(step, t, Event::AFTER);
 				//
-				t += this->_dt;
+				t += dt;
 			}
 			// events after calculation
-			run_events(_max_step, t, Event::END);
+			run_events(ms, t, Event::END);
 			finalize();
 		}
 	}
@@ -395,7 +403,7 @@ public:
 	void run_events(st step, vt t, int fob) {
 		for (auto& event : this->_events) {
 			if (event.second->_do_execute(step, t, fob)) {
-				event.second->execute(step, t, fob);
+				event.second->execute(step, t, fob, _pdomain);
 			}
 		}
 	}
@@ -445,7 +453,6 @@ public:
 		}
 		return max;
 	}
-
 	/**
 	 * @brief this function check the events
 	 *        if flags contain key and value == val return true
@@ -461,11 +468,50 @@ public:
 		return false;
 	}
 
+	bool has_function(const std::string& key) const {
+		auto it = this->_functions.find(key);
+		if (it != this->_functions.end()) {
+			return true;
+		}
+		return false;
+	}
+
+	bool has_value(const std::string& key) const {
+		auto it = this->_values.find(key);
+		if (it != this->_values.end()) {
+			return true;
+		}
+		return false;
+	}
+
 	void set_output_time(int is = -1, int ie = -1, int istep = -1,
 			int flag = -1, std::FILE * f = nullptr) {
 		// output to screen
 		spEvent pse(new EventOutputTime_<cvt, vt, Dim>(is, ie, istep, flag, f));
 		this->_events["OutputTime"] = pse;
+	}
+
+	bool is_stand_alone() const {
+		return this->has("stand_alone");
+	}
+	/**
+	 *  @brief add event
+	 */
+	void add_event(const std::string& name, spEvent pse){
+		if(!this->has(name)){
+			this->_events[name] = pse;
+		}else{
+			SHOULD_NOT_REACH;
+		}
+	}
+
+	/**
+	 *  @brief set time term
+	 *         default --> stand_alone
+	 */
+	void set_stand_alone() {
+		spEvent pse(new Flag("stand_alone", 1));
+		this->_events["stand_alone"] = pse;
 	}
 
 	/*
@@ -474,21 +520,31 @@ public:
 	bool has_time_term() const {
 		return this->has("time_term");
 	}
+
 	/**
 	 *  @brief set time term
 	 *         default --> no time term
 	 */
-
 	void set_time_term(vt dt, st max_step, const std::string& scheme =
 			"explicit") {
 		spEvent pse(new EventFlag_<cvt, vt, Dim>("time_term", 1));
 		this->_events["time_term"] = pse;
-		this->_dt = dt;
-		this->_max_step = max_step;
+		//
+		//spEvent pdt(new FlagV("dt", 1, dt));
+		//this->_events["dt"] = pdt;
+		//this->_dt = dt;
+		//this->_max_step = max_step;
+		//spEvent pms(new FlagV("max_step", 1, max_step));
+		//this->_events["max_step"] = pms;
+
 		this->_timestep = TimeStep::Creator(scheme);
+
+		this->_timestep->set_dt(dt);
+		this->_timestep->set_max_step(max_step);
 	}
 	void unset_time_term() {
 		this->_events.erase("time_term");
+		this->_timestep = nullptr;
 	}
 
 	/*

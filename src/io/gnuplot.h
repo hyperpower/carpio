@@ -227,6 +227,17 @@ public:
 
 	//------------------------------------------------------------------------------
 	//
+	Gnuplot& set_terminal_pdf(const std::string& filename, double x = 400,
+			double y = 300, const std::string& font = "Helvetica",
+			int fontsize = 12);
+
+	Gnuplot& set_terminal_png(const std::string& filename, double x = 400,
+			double y = 300, const std::string& font = "Helvetica",
+			int fontsize = 12);
+
+	Gnuplot& set_terminal_jpeg(const std::string& filename, double x = 400,
+				double y = 300, const std::string& font = "Helvetica",
+				int fontsize = 12);
 
 	// set
 	Gnuplot& set(const std::string& str);
@@ -339,8 +350,8 @@ public:
 		}
 		std::ostringstream ss;
 		ss << "plot ";
-		for (std::list<std::shared_ptr<Gnuplot_actor> >::const_iterator iter = lga.begin();
-				iter != lga.end(); ++iter) {
+		for (std::list<std::shared_ptr<Gnuplot_actor> >::const_iterator iter =
+				lga.begin(); iter != lga.end(); ++iter) {
 			const std::shared_ptr<Gnuplot_actor> spa = (*iter);
 			if (spa->empty_style()) {
 				ss << "\"-\" " << spa->command() << "with lines lw 1";
@@ -354,8 +365,8 @@ public:
 		}
 		cmd(ss.str() + "\n");
 		ss.str("");
-		for (std::list<std::shared_ptr<Gnuplot_actor> >::const_iterator iter = lga.begin();
-				iter != lga.end(); ++iter) {
+		for (std::list<std::shared_ptr<Gnuplot_actor> >::const_iterator iter =
+				lga.begin(); iter != lga.end(); ++iter) {
 			const std::shared_ptr<Gnuplot_actor> spa = (*iter);
 			output_inline_data((*spa));
 		}

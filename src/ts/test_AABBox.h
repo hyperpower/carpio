@@ -243,34 +243,6 @@ void test_triangle_sigle() {
 
 }
 
-void test_orientation() {
-	Float v0[3];
-	Float v1[3];
-	Float v2[3];
-
-	Float d[3];
-
-	cout << " !!!--------------------------- \n";
-	v0[0] = 0;
-	v0[1] = 0;
-	v0[2] = 0;
-	v1[0] = 1;
-	v1[1] = 0;
-	v1[2] = 0;
-	v2[0] = 0;
-	v2[1] = 1;
-	v2[2] = 0;
-
-	d[0] = 0;
-	d[1] = 0;
-	d[2] = 1;
-
-	Float* a = v2;
-	Float* b = v0;
-	Float* c = v1;
-	cout << SIGN3(ORIENT3D(d, b, c, a)) << endl;
-
-}
 
 }
 

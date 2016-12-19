@@ -27,7 +27,8 @@ namespace LarusTS
 /********************************************************/
 #include <math.h>
 #include <stdio.h>
-
+#include "ts_define.h"
+namespace TS{
 static const uInt X = 0;
 static const uInt Y = 1;
 static const uInt Z = 2;
@@ -979,6 +980,7 @@ int TriTriIsect_Guigue_calculation(
 		}
 	}
 	return -1; // no intersect----------------------------
+}
 }
 
 }

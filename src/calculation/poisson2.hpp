@@ -21,6 +21,10 @@ namespace carpio {
 /*
  * the Poisson class
  */
+
+//#define DEGUG
+
+
 template<typename COO_VALUE, typename VALUE, int DIM>
 class Poisson_: public Equation_<COO_VALUE, VALUE, DIM> {
 public:
@@ -78,6 +82,7 @@ public:
 	typedef typename Equation::const_pBoundaryCondition const_pBoundaryCondition;
 
 	typedef typename Equation::Function Function;
+	typedef typename Equation::Fun_pNode Fun_pNode;
 	typedef typename Equation::Fun_get_spExp Fun_get_spExp;
 
 protected:
@@ -103,12 +108,12 @@ public:
 			st maxstep = 0,  //
 			int alphai = -1, int betai = -1, int phii = -1, int fi = -1,
 			int fei = -1) :
-			Equation(pd, dt, maxstep) {
+			Equation(pd) {
 		if (alphai == -1) {
 			//stand alone
-			this->_construct_stand_alone();
-			this->_pdomain->resize_data(this->max_idx(this->_vars_c) + 1, 0, 0,
-					this->max_idx(this->_vars_ut) + 1);
+			//this->_construct_stand_alone();
+			//this->_pdomain->resize_data(this->max_idx(this->_vars_c) + 1, 0, 0,
+			//		this->max_idx(this->_vars_ut) + 1);
 			this->set_uniform_beta();
 		} else {
 			this->_construct_depend(alphai, betai, phii, fi, fei);
@@ -122,8 +127,10 @@ public:
 		if (!this->has("uniform_beta")) {
 			beta_f = exp_val.substitute(this->_vars_c["beta"]);
 		} else {
-			// beta face equals beta center, no interpolation
-			beta_f = f.pori()->cda(this->_vars_c["beta"]);
+			// beta is uniform, no interpolation
+			beta_f = this->_values["uniform_beta"];
+			//std::cout << "beta " << beta_f << std::endl;
+			//beta_f = f.pori()->cda(this->_vars_c["beta"]);
 		}
 		Exp res(exp_gra);
 		int sign = IsFacePDirection(f.dir()) ? 1 : -1;
@@ -164,6 +171,14 @@ public:
 	}
 
 	/**
+	 * @brief get diffusion number
+	 */
+	void get_diffusion_number() const {
+		ASSERT(this->has_time_term());
+
+	}
+
+	/**
 	 * @brief override function solve
 	 *        only one step, no time term
 	 */
@@ -188,7 +203,7 @@ public:
 		int sf = Dia_BiCGSTAB(mat, x, b, this->_max_iter, this->_tol, lr);
 		if (sf != 0) {
 			std::cerr << " >! Poisson solve failed \n";
-			return -1;
+			//return -1;
 		}
 		//put the value back
 		this->_arr_to_grid(x, this->_vars_c["phi"]);
@@ -202,6 +217,28 @@ public:
 	}
 
 	int initial() {
+		if (this->is_stand_alone()) {
+			this->_construct_stand_alone();
+			// set time step
+			if (this->has_time_term()) {
+				this->_timestep->set_unknow_idx(this->_vars_c["phi"]);
+				this->_timestep->set_idx(this->max_idx(this->_vars_c));
+				//this->_timestep->set_dt(this->);
+				// resize center data array for inner time
+				st ss = this->_timestep->size_inner_step();
+				this->_pdomain->resize_data(this->max_idx(this->_vars_c) + ss,
+						0, 0, this->max_idx(this->_vars_ut) + 1);
+			} else {
+				this->_pdomain->resize_data(this->max_idx(this->_vars_c) + 1, 0,
+						0, this->max_idx(this->_vars_ut) + 1);
+			}
+			this->init_beta();
+			this->init_f();
+			this->init_phi();
+		} else {
+			SHOULD_NOT_REACH;
+		}
+
 		this->_build_FE_on_leaf();
 		this->_build_NE_on_leaf(1);
 		this->_build_fun_get();
@@ -210,15 +247,6 @@ public:
 				std::placeholders::_1, std::placeholders::_2);
 		this->_build_node_exp(f, 0);  //exp on 0 of arr_spexp
 
-		// set time step
-		if (this->has_time_term()) {
-			this->_timestep->set_unknow_idx(this->_vars_c["phi"]);
-			this->_timestep->set_idx(this->max_idx(this->_vars_c));
-			// resize center data array for inner time
-			st ss = this->_timestep->size_inner_step();
-			this->_pdomain->resize_data(this->max_idx(this->_vars_c) + ss, 0, 0,
-					this->max_idx(this->_vars_ut) + 1);
-		}
 		return -1;
 	}
 
@@ -229,17 +257,17 @@ public:
 	}
 
 	int run_one_step(st step) {
-		std::cout << "poisson one step " << "\n";
+		std::cout << "poisson one step " << step << "\n";
 		do {
 			if (this->_timestep->do_solve()) {
-				std::cout<<"solve \n";
+				std::cout << "solve \n";
 				// build a spexp on the node to solve
 				Mat mat;
 				Arr b;
 
 				Fun_get_spExp fun =
 						[this](pNode pn) {
-							spExp node_exp = this->_get_node_spexp(pn);
+							spExp node_exp(new Exp(*(this->_get_node_spexp(pn))));
 							this->_exp_substitute_ghost(pn, (*node_exp),this->_vars_c["phi"]);
 
 							spExp res = this->_timestep->new_exp(pn, node_exp);
@@ -258,16 +286,72 @@ public:
 						lr);
 				if (sf != 0) {
 					std::cerr << " >! solve failed \n";
-					return -1;
+					//return -1;
 				}
 				//put the value back
 				this->_arr_to_grid(x, this->_timestep->idx_new());
 
+
+
 			} else {
+				std::cout << "solve explicit\n";
+
+				Fun_pNode fun =
+						[this](pNode pn) {
+
+							spExp node_exp(new Exp(*(this->_get_node_spexp(pn))));
+							this->_exp_substitute_ghost(pn, (*node_exp),this->_vars_c["phi"]);
+
+							// coe = tau * volume / dt
+							vt coe = this->_timestep->tau() * pn->volume() / this->_timestep->dt();
+							st idx_n = this->_timestep->idx_new();
+							st idx_o = this->_timestep->idx_old();
+
+							vt v_o = pn->cd(idx_o);
+							vt vex = node_exp->substitute(idx_o);
+
+							vt vexp = v_o + node_exp->substitute(idx_o)/coe;
+							// set value back to node
+							pn->cd(idx_n) = vexp;
+							if(pn->is_in_on(__X__,__Y__)) {
+								std::cout<<"---------------------------\n";
+								node_exp->show();
+								std::cout<<"idx n   "<<idx_n<<std::endl;
+								std::cout<<"idx o   "<<idx_o<<std::endl;
+
+								std::cout<<"coe   = "<< coe<<std::endl;
+								std::cout<<"vex   = "<< vex<<std::endl;
+								std::cout<<"v o   = "<< v_o<<std::endl;
+								std::cout<<"v n   = "<< pn->cd(idx_n)<<std::endl;
+							}
+
+						};
+
+				pGrid pgrid = this->_pdomain->pgrid();
+
+				pgrid->for_each_leaf(fun);
 
 			}
 			this->_timestep->inner_advance();  // advance inner step
 		} while (!this->_timestep->is_end());
+		// copy new to old
+		Fun_pNode fun = [this](pNode pn) {
+			vt idx_b = this->_timestep->idx_begin();
+			vt idx_e = this->_timestep->idx_end();
+			if(pn->is_in_on(__X__,__Y__)) {
+				std::cout<<"idx b "<<idx_b<<" idx e "<<idx_e<<std::endl;
+				std::cout<<"idx b "<<idx_b<<" idx e "<<idx_e<<std::endl;
+				std::cout<<"val b "<< pn->cd(idx_b)<<std::endl;
+			}
+			pn->cd(idx_b) = pn->cd(idx_e);
+			if(pn->is_in_on(__X__,__Y__)) {
+				std::cout<<"val b "<< pn->cd(idx_b)<<std::endl;
+			}
+		};
+
+		pGrid pgrid = this->_pdomain->pgrid();
+		pgrid->for_each_leaf(fun);
+
 		this->_timestep->next_step();
 
 		return -1;
@@ -292,12 +376,14 @@ public:
 	/**
 	 *  @brief set uniform beta
 	 */
-	void set_uniform_beta() {     //default
+	void set_uniform_beta(vt beta = 1) {     //default
 		spEvent pse(new Flag("uniform_beta", 1));
 		this->_events["uniform_beta"] = pse;
+		this->_values["uniform_beta"] = beta;
 	}
 	void unset_uniform_beta() {
 		this->_events.erase("uniform_beta");
+		this->_values.erase("uniform_beta");
 	}
 
 	/**
@@ -310,12 +396,53 @@ public:
 	/**
 	 * @brief set value on center of the node
 	 */
-	void set_beta(Function pfun) {
-		this->set_val(pfun, this->_vars_c["beta"]);
+	void set_beta(Function fun) {
+		this->unset_uniform_beta();
+
+		//
+		this->_functions["set_beta"] = fun;
+
+		//this->set_val(fun, this->_vars_c["beta"]);
 	}
 
-	void set_f(Function pfun) {
-		this->set_val(pfun, this->_vars_c["f"]);
+	void set_f(Function fun) {
+		this->_functions["set_f"] = fun;
+		//this->set_val(fun, this->_vars_c["f"]);
+	}
+
+	void set_phi(Function fun) {
+		this->_functions["set_phi"] = fun;
+	}
+
+	void init_beta() {
+		if (this->has("uniform_beta")) {
+			return;
+		}
+
+		if (this->has_function("set_beta")) {
+			Function f = this->_functions["set_beta"];
+			this->set_val(f, this->_vars_c["beta"]);
+		} else {
+			SHOULD_NOT_REACH;
+		}
+	}
+
+	void init_f() {
+		if (this->has_function("set_f")) {
+			Function f = this->_functions["set_f"];
+			this->set_val(f, this->_vars_c["f"]);
+		} else {
+			SHOULD_NOT_REACH;
+		}
+	}
+
+	void init_phi() {
+		if (this->has_function("set_phi")) {
+			Function f = this->_functions["set_phi"];
+			this->set_val(f, this->_vars_c["phi"]);
+		} else {
+			SHOULD_NOT_REACH;
+		}
 	}
 
 	st phi_idx() const {
@@ -329,9 +456,14 @@ protected:
 	 */
 	void _construct_stand_alone() {
 		// variables on the center of node
-		this->_vars_c["phi"] = 0;
-		this->_vars_c["beta"] = 1;
-		this->_vars_c["f"] = 2;
+		if (!this->has("uniform_beta")) {
+			this->_vars_c["phi"] = 0;
+			this->_vars_c["beta"] = 1;
+			this->_vars_c["f"] = 2;
+		} else {
+			this->_vars_c["phi"] = 0;
+			this->_vars_c["f"] = 1;
+		}
 		// untype variables on the node
 		this->_vars_ut["FE"] = 0;
 		this->_vars_ut["NE"] = 1;

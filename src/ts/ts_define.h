@@ -20,7 +20,7 @@
 #include <limits>
 #include "math.h"
 
-namespace LarusTS
+namespace TS
 {
 
 // data type define  =============================

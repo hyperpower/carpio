@@ -5,6 +5,8 @@
 #include "../utility/format.h"
 #include "../utility/Clock.h"
 
+#include "../domain/domain.hpp"
+
 namespace carpio {
 /*
  * The event class
@@ -43,7 +45,7 @@ protected:
 	int _flag;
 	int _istart, _iend, _istep;
 
-	bool _has_flag(int f) const{
+	bool _has_flag(int f) const {
 		return (_flag | f) == _flag ? true : false;
 	}
 
@@ -73,6 +75,14 @@ public:
 	virtual void set_flag(int i) {
 		return;
 	}
+
+	//virtual DATA data() const {
+	//	return 0;
+	//}
+
+	//virtual void set_data(DATA v) {
+	//	return;
+	//}
 
 	virtual ~Event_() {
 	}
@@ -104,7 +114,6 @@ public:
 
 /*
  * derived class
- *
  */
 template<typename COO_VALUE, typename VALUE, int DIM>
 class EventOutput_: public Event_<COO_VALUE, VALUE, DIM> {
@@ -144,6 +153,63 @@ public:
 	virtual ~EventOutput_() {
 
 	}
+
+};
+
+template<typename COO_VALUE, typename VALUE, int DIM>
+class EventTraceCenterValue_: public EventOutput_<COO_VALUE, VALUE, DIM> {
+public:
+	typedef EventOutput_<COO_VALUE, VALUE, DIM> EventOutput;
+	typedef COO_VALUE cvt;
+	typedef VALUE vt;
+
+	typedef Domain_<cvt, vt, EventOutput::Dim> Domain;
+	typedef Domain_<cvt, vt, EventOutput::Dim>* pDomain;
+	typedef Domain_<cvt, vt, EventOutput::Dim>& ref_Domain;
+	typedef const Domain_<cvt, vt, EventOutput::Dim>& const_ref_Domain;
+
+	typedef Node_<cvt, vt, DIM> Node;
+	typedef Node_<cvt, vt, DIM> *pNode;
+	typedef const Node_<cvt, vt, DIM> *const_pNode;
+protected:
+	ArrayListV<cvt> _pos;
+	st _idx;
+
+	std::list<vt> _l_t;     //time
+	std::list<st> _l_step;  //step
+	std::list<tick_t> _l_v;   //value
+public:
+	EventTraceCenterValue_(int is = -1, int ie = -1, int istep = -1, int flag =
+			0, std::FILE* f = nullptr) :
+			EventOutput(is, ie, istep, flag, f), _pos(3), _idx(0) {
+		_pos.zeros();
+
+	}
+	void set_location(cvt x, cvt y = 0, cvt z = 0) {
+		_pos[0] = x;
+		_pos[1] = y;
+		_pos[2] = z;
+	}
+	void set_value_idx(st i) {
+		this->_idx = i;
+	}
+	int execute(st step, vt t, int fob, pDomain pd = nullptr) {
+		_record_value(step, t, pd);
+		return -1;
+	}
+
+
+protected:
+	void _record_value(const st& step, vt& t, pDomain pd) {
+		_l_step.push_back(step);
+		_l_t.push_back(t);
+		pNode pn = pd->grid().get_pnode(_pos[0], _pos[1], _pos[2]);
+		vt value = pn->cda(_idx);
+		_l_v.push_back(value);
+		std::cout<<"Trace Center Value  "<<value <<"\n";
+	}
+
+
 
 };
 
@@ -287,6 +353,135 @@ public:
 
 	void set_flag(int i) {
 		_flag = i;
+	}
+
+	std::string name() const {
+		return _name;
+	}
+};
+
+template<typename COO_VALUE, typename VALUE, int DIM, class DATA>
+class EventFlagData_: public Event_<COO_VALUE, VALUE, DIM> {
+public:
+	typedef Event_<COO_VALUE, VALUE, DIM> Event;
+	typedef COO_VALUE cvt;
+	typedef VALUE vt;
+
+	typedef Domain_<cvt, vt, Event::Dim> Domain;
+	typedef Domain_<cvt, vt, Event::Dim>* pDomain;
+	typedef Domain_<cvt, vt, Event::Dim>& ref_Domain;
+	typedef const Domain_<cvt, vt, Event::Dim>& const_ref_Domain;
+
+	typedef DATA Data;
+protected:
+	int _flag;
+	Data _data;
+	std::string _name; // the name of flag, it is also the key
+
+public:
+	EventFlagData_(const std::string& name, int f, Data val) :
+			Event(-1, -1, -1) {
+		this->_flag = f;
+		this->_name = name;
+		this->_data = val;
+	}
+
+	~EventFlagData_() {
+
+	}
+
+	bool _do_execute(st step, vt t, int fob) const {
+		return false;
+	}
+
+	int execute(st step, vt t, int fob, pDomain pd = nullptr) {
+		return -1;
+	}
+
+	int flag() const {
+		return _flag;
+	}
+
+	void set_flag(int i) {
+		_flag = i;
+	}
+
+	vt data() const {
+		return this->_data;
+	}
+
+	void set_data(Data v) {
+		this->_data = v;
+	}
+
+	std::string name() const {
+		return _name;
+	}
+};
+
+class Flag {
+protected:
+	int _flag;
+	std::string _name; // the name of flag, it is also the key
+
+public:
+	Flag(const std::string& name, int f) {
+		this->_flag = f;
+		this->_name = name;
+	}
+
+	virtual ~Flag() {
+
+	}
+
+	int flag() const {
+		return _flag;
+	}
+
+	void set_flag(int i) {
+		_flag = i;
+	}
+
+	std::string name() const {
+		return _name;
+	}
+};
+
+template<class V>
+class FlagValue: public Flag {
+public:
+	typedef V vt;
+	typedef Flag Base;
+protected:
+	vt _value;
+public:
+	FlagValue(const std::string& name, int f, vt v) :
+			Base(name, f) {
+		this->_value = v;
+	}
+
+	~FlagValue() {
+
+	}
+
+	int flag() const {
+		return _flag;
+	}
+
+	void set_flag(int i) {
+		_flag = i;
+	}
+
+	vt value() const {
+		return _value;
+	}
+
+	vt& ref_value() {
+		return _value;
+	}
+
+	void set_value(vt v) {
+		_flag = v;
 	}
 
 	std::string name() const {

@@ -26,7 +26,7 @@ void Gnuplot::_init() {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
 	std::string this->terminal_std = "windows";
 #elif ( defined(unix) || defined(__unix) || defined(__unix__) ) && !defined(__APPLE__)
-	this->terminal_std = "x11";
+	this->terminal_std = "wxt";
 #elif defined(__APPLE__)
 	this->terminal_std = "qt";
 #endif
@@ -77,9 +77,51 @@ void Gnuplot::_init() {
 
 	//set terminal type
 	cmd("set output");
-	cmd("set terminal " + this->terminal_std + " enhanced font 'Helvetica,14'");
+	cmd("set terminal " + this->terminal_std + " enhanced font 'Helvetica,12'");
 
 	return;
+}
+
+Gnuplot& Gnuplot::set_terminal_pdf(const std::string& filename, double x,
+		double y, const std::string& font,
+		int fontsize ) {
+
+	this->terminal_std = "pdf";
+	std::stringstream sst;
+	sst<< "set terminal " << this->terminal_std <<
+			" enhanced font '" << font
+			<< "," << fontsize << "'"
+			<< "size "<< x <<", " <<y;
+	cmd(sst.str());
+	cmd("set output '"+ filename + "'");
+}
+
+Gnuplot& Gnuplot::set_terminal_png(const std::string& filename, double x,
+		double y, const std::string& font,
+		int fontsize ) {
+
+	this->terminal_std = "pngcairo";
+	std::stringstream sst;
+	sst<< "set terminal " << this->terminal_std <<
+			" enhanced font '" << font
+			<< "," << fontsize << "'"
+			<< "size "<< x <<", " <<y;
+	cmd(sst.str());
+	cmd("set output '"+ filename + "'");
+}
+
+Gnuplot& Gnuplot::set_terminal_jpeg(const std::string& filename, double x,
+		double y, const std::string& font,
+		int fontsize ) {
+
+	this->terminal_std = "jpeg";
+	std::stringstream sst;
+	sst<< "set terminal " << this->terminal_std <<
+			" enhanced font '" << font
+			<< "," << fontsize << "'"
+			<< "size "<< x <<", " <<y;
+	cmd(sst.str());
+	cmd("set output '"+ filename + "'");
 }
 
 /*
